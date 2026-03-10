@@ -14,4 +14,5 @@ Frontend: HTML, CSS, JavaScript
 Backend: Node.js / Python / PHP 
 Database: mongo DB/ Firebase
 Version Control: Git
+-------------------------------------------------------------------------------------------------------------------------
 
