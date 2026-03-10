@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCare</title>
+    <link rel="stylesheet" href="/LOGIN/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" href="/IMAGES/logo.png">
+</head>
+<body>
+<div class="mobile-container">
+    <div class="header">
+        <div class="app-icon">
+            <img src="/IMAGES/logo.png" alt="App Icon">
+        </div>
+        <h1>CampusCare</h1>
+        <p>Report and manage campus issues efficiently</p>
+    </div>
+
+    <div class="role-selector">
+        <button class="active">Student</button>
+        <button>Admin</button>
+    </div>
+
+    <div class="login-card">
+        <div class="user-icon">👤</div>
+        <h2>Student Login</h2>
+        <p>Welcome back! Please login to continue</p>
+
+        <div class="input-group">
+            <label>Email Address</label>
+            <div class="input-icon">
+                <i class="fas fa-envelope"></i>
+                <input type="email" placeholder="Enter your email">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-icon password-container">
+                <i class="fas fa-lock"></i>
+                <input type="password" placeholder="Enter your password" id="passwordInput">
+                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+            </div>
+        </div>
+
+        <button class="login-btn">Login</button>
+        <p class="signup-text">Don't have an account?</p>
+        <button type="button" class="signup-btn">Sign up</button>
+    </div>
+</div>
+<script src="/LOGIN/function.js"></script>
+</body>
+</html>
+

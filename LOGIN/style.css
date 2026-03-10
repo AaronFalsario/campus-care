@@ -1,0 +1,350 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 18px;
+}
+
+body { 
+    background-color: #f4f7f6; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 18px;
+}
+
+.header { 
+    text-align: center; 
+    margin-bottom: 30px;
+}
+
+.app-icon img { 
+    width: 95px; 
+    height: 95px; 
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto 16px;
+}
+
+h1 {
+    font-size: 24px; 
+    margin: 0; 
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.header p { 
+    font-size: 15px; 
+    color: #64748b; 
+    margin-top: 8px;
+}
+
+.role-selector { 
+    display: flex; 
+    background: #f1f5f9; 
+    border-radius: 10px; 
+    padding: 6px; 
+    margin-bottom: 30px;
+    gap: 6px;
+}
+
+.role-selector button { 
+    flex: 1; 
+    border: none; 
+    padding: 12px 14px;
+    border-radius: 8px; 
+    cursor: pointer; 
+    background: transparent; 
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.role-selector button.active { 
+    background: #2563eb; 
+    color: white;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 380px;
+    background: white; 
+    border-radius: 20px; 
+    padding: 30px 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.image {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.avatar {
+    width: 90%;
+    height: 90%;
+}
+
+.user-icon { 
+    width: 60px; 
+    height: 60px; 
+    background: #eff6ff;
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    margin: 0 auto 20px; 
+    color: #2563eb; 
+    font-size: 28px;
+}
+
+h2 { 
+    font-size: 20px; 
+    margin: 0 0 10px 0;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.login-card p { 
+    font-size: 14px; 
+    color: #64748b; 
+    margin: 6px 0 24px;
+}
+
+.input-icon,
+.input-group { 
+    text-align: left; 
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+label { 
+    display: block; 
+    font-size: 14px; 
+    font-weight: 600;
+    margin-bottom: 8px; 
+    color: #1e293b;
+}
+
+.input-icon {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+}
+
+.input-icon i {
+    position: absolute;
+    left: 14px;
+    color: #64748b;
+    font-size: 18px;
+}
+
+.password-container .toggle-password {
+    left: auto;
+    right: 14px;
+    cursor: pointer;
+    color: #2563eb;
+    font-size: 17px;
+    transition: color 0.2s ease;
+}
+
+.password-container .toggle-password:hover {
+    color: #1d4ed8;
+}
+
+input { 
+    width: 100%; 
+    padding: 14px 14px 14px 45px;
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+.password-container input {
+    padding-right: 45px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+input::placeholder {
+    color: #cbd5e1;
+}
+
+button[type="submit"],
+.login-btn { 
+    width: 100%; 
+    padding: 16px;
+    background: #2563eb; 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: 600;
+    font-size: 17px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+button[type="submit"]:active,
+.login-btn:active {
+    background: #1d4ed8;
+}
+
+.login-card p button {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.signup-text {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 15px;
+    color: #000;
+    line-height: 1.6;
+}
+
+.signup-text a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.signup-text a:hover {
+    color: black;
+}
+
+.signup-btn {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 0;
+    text-decoration: none;
+    display: block;
+    font-family: inherit;
+    transition: color 0.2s ease;
+    margin: -20px auto 0;
+}
+
+.signup-btn:hover {
+    color: #1d4ed8;
+}
+
+.signup-link { 
+    display: block; 
+    margin-top: 20px; 
+    font-size: 14px; 
+    color: #2563eb; 
+    text-decoration: none;
+}
+
+
+.login-box,
+.Signin {
+    width: 100%;
+}
+
+@media (max-width: 430px) {
+    html {
+        font-size: 15px;
+    }
+
+    body {
+        padding: 12px;
+    }
+
+    .login-card,
+    .login-box,
+    .Signin {
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+
+    h1 {
+        font-size: 18px;
+    }
+
+    h2 {
+        font-size: 16px;
+    }
+
+    input {
+        padding: 11px 11px 11px 36px;
+        font-size: 16px;
+    }
+
+    button[type="submit"],
+    .login-btn {
+        padding: 12px;
+        font-size: 15px;
+        margin-top: 6px;
+    }
+
+    .login-card p {
+        font-size: 11px;
+        margin: 3px 0 18px;
+    }
+
+    .input-icon,
+    .input-group {
+        margin-bottom: 12px;
+    }
+
+    .input-icon i {
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 768px) {
+    .login-card,
+    .login-box,
+    .Signin {
+        max-width: 400px;
+        padding: 40px 30px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    input {
+        padding: 14px 14px 14px 44px;
+        font-size: 16px;
+    }
+}
