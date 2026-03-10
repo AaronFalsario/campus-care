@@ -2,25 +2,32 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 html {
-    font-size: 18px;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
 }
 
 body { 
     background-color: #f4f7f6; 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex; 
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
-    padding: 18px;
+    padding: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
 }
 
 .header { 
     text-align: center; 
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .app-icon img { 
@@ -36,12 +43,14 @@ h1 {
     margin: 0; 
     color: #1e293b;
     font-weight: 600;
+    line-height: 1.2;
 }
 
 .header p { 
     font-size: 15px; 
     color: #64748b; 
     margin-top: 8px;
+    line-height: 1.4;
 }
 
 .role-selector { 
@@ -49,8 +58,13 @@ h1 {
     background: #f1f5f9; 
     border-radius: 10px; 
     padding: 6px; 
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     gap: 6px;
+}
+
+.mobile-container {
+    width: 100%;
+    max-width: 440px;
 }
 
 .role-selector button { 
@@ -66,10 +80,59 @@ h1 {
     transition: all 0.2s ease;
 }
 
-.role-selector button.active { 
+@keyframes buttonSlideSmooth {
+    0% {
+        transform: translateX(-5px);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.role-selector button.active {
     background: #2563eb; 
     color: white;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+    animation: buttonSlideSmooth 0.4s ease-in-out;
+}
+
+.role-selector button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #cbd5e1;
+}
+
+body.admin-role {
+    background-color: #ecfdf5;
+}
+
+body.admin-role .role-selector button.active {
+    background: #10b981;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.login-card.admin-theme {
+    background: white;
+}
+
+.login-card.admin-theme h2 {
+    color: #10b981;
+}
+
+.login-card.admin-theme .user-icon {
+    background: #d1fae5;
+    color: #10b981;
+}
+
+.admin-btn {
+    background: #10b981 !important;
+}
+
+.admin-btn:active {
+    background: #059669 !important;
 }
 
 .login-card {
@@ -79,6 +142,9 @@ h1 {
     border-radius: 20px; 
     padding: 30px 24px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    margin: 0 auto;
 }
 
 .image {
@@ -119,12 +185,16 @@ h2 {
     margin: 0 0 10px 0;
     color: #1e293b;
     font-weight: 600;
+    line-height: 1.3;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .login-card p { 
     font-size: 14px; 
     color: #64748b; 
     margin: 6px 0 24px;
+    line-height: 1.5;
 }
 
 .input-icon,
@@ -141,6 +211,7 @@ label {
     font-weight: 600;
     margin-bottom: 8px; 
     color: #1e293b;
+    line-height: 1.4;
 }
 
 .input-icon {
@@ -177,6 +248,9 @@ input {
     font-size: 16px;
     font-family: inherit;
     transition: border-color 0.2s ease;
+    line-height: 1.5;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .password-container input {
@@ -203,11 +277,12 @@ button[type="submit"],
     border-radius: 8px; 
     font-weight: 600;
     font-size: 17px;
-    margin-top: 10px;
+    margin-top: 20px;
     cursor: pointer;
     transition: background-color 0.2s ease;
     -webkit-appearance: none;
     appearance: none;
+    line-height: 1.4;
 }
 
 button[type="submit"]:active,
@@ -255,7 +330,7 @@ button[type="submit"]:active,
     display: block;
     font-family: inherit;
     transition: color 0.2s ease;
-    margin: -20px auto 0;
+    margin: 8px auto 0;
 }
 
 .signup-btn:hover {
@@ -270,15 +345,51 @@ button[type="submit"]:active,
     text-decoration: none;
 }
 
-
 .login-box,
 .Signin {
     width: 100%;
 }
 
+#signupForm {
+    width: 100%;
+    padding: 16px;
+    display: none;
+}
+
+#signupForm.visible {
+    display: block;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slideUp {
+    animation: slideUp 0.9s ease-out forwards;
+}
+
+#signupForm .login-card {
+    width: 100%;
+    max-width: 380px;
+    background: white;
+    border-radius: 20px;
+    padding: 30px 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin: -15px auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
 @media (max-width: 430px) {
     html {
-        font-size: 15px;
+        font-size: 16px;
     }
 
     body {
@@ -287,50 +398,194 @@ button[type="submit"]:active,
 
     .login-card,
     .login-box,
-    .Signin {
+    .Signin,
+    #signupForm .login-card {
         padding: 20px 16px;
         border-radius: 16px;
+        max-width: 100%;
+    }
+
+    #signupForm .login-card {
+        padding: 12px 10px;
+    }
+
+    #signupForm {
+        padding: 8px;
+        margin: 0;
+        min-height: auto;
     }
 
     h1 {
-        font-size: 18px;
+        font-size: 20px;
+        line-height: 1.3;
     }
 
     h2 {
-        font-size: 16px;
+        font-size: 18px;
+        line-height: 1.3;
+    }
+
+    .user-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        margin: 0 auto 16px;
+    }
+
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .app-icon img {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 12px;
+    }
+
+    .header p {
+        font-size: 14px;
+        margin-top: 6px;
+        line-height: 1.5;
+    }
+
+    .role-selector {
+        margin-bottom: 20px;
+        padding: 4px;
+    }
+
+    .role-selector button {
+        padding: 10px 12px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    label {
+        font-size: 13px;
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+
+    #signupForm label {
+        font-size: 13px;
+        margin-bottom: 5px;
     }
 
     input {
-        padding: 11px 11px 11px 36px;
+        padding: 12px 12px 12px 40px;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    #signupForm input {
+        padding: 10px 10px 10px 38px;
+        font-size: 14px;
+    }
+
+    #signupForm .password-container input {
+        padding-left: 52px;
+        padding-right: 10px;
+        font-size: 13px;
+        width: calc(100% - 2px);
+    }
+
+    .input-icon i {
+        left: 12px;
         font-size: 16px;
     }
+
+    #signupForm .input-icon i {
+        left: 11px;
+        font-size: 15px;
+    }
+
+    .password-container .toggle-password {
+        right: 12px;
+        font-size: 16px;
+    }
+
+   #signupForm .password-container .toggle-password {
+    left: auto;
+    right: 12px;
+    font-size: 13px;
+    padding: 0 2px;
+}
 
     button[type="submit"],
     .login-btn {
         padding: 12px;
         font-size: 15px;
-        margin-top: 6px;
+        margin-top: 16px;
+        line-height: 1.4;
     }
 
-    .login-card p {
-        font-size: 11px;
-        margin: 3px 0 18px;
+    #signupForm .login-btn {
+        padding: 11px;
+        font-size: 15px;
+        margin-top: 12px;
+    }
+
+    .login-card p,
+    #signupForm .login-card p {
+        font-size: 13px;
+        margin: 5px 0 18px;
+        line-height: 1.5;
     }
 
     .input-icon,
     .input-group {
-        margin-bottom: 12px;
+        margin-bottom: 5px;
     }
 
-    .input-icon i {
-        font-size: 14px;
+    #signupForm .input-group {
+        margin-bottom: 4px;
     }
-}
+
+    #signupForm .user-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
+        margin: 0 auto 6px;
+    }
+
+    #signupForm h2 {
+        font-size: 16px;
+        margin: 0 0 4px 0;
+        line-height: 1.2;
+    }
+
+    #signupForm > .login-card > p {
+        font-size: 13px;
+        margin: 2px 0 12px 0;
+    }
+
+    .signup-text {
+        margin-top: 18px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    #signupForm .signup-text {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .signup-btn {
+        font-size: 13px;
+        margin: 6px auto 0;
+        line-height: 1.4;
+    }
+
+    #signupForm .signup-btn {
+        font-size: 13px;
+        margin: 3px auto 0;
+    }
 
 @media (min-width: 768px) {
     .login-card,
     .login-box,
-    .Signin {
+    .Signin,
+    #signupForm .login-card {
         max-width: 400px;
         padding: 40px 30px;
     }
@@ -347,4 +602,5 @@ button[type="submit"]:active,
         padding: 14px 14px 14px 44px;
         font-size: 16px;
     }
+}
 }
