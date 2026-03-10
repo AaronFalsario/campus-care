@@ -10,4 +10,195 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+.image img.avatar {
+    height: 110px;
+    width: 110px;
+    border-radius: 50%;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.2);
+    padding: 8px;
+}
+
+form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.login-box, .Signin {
+    padding: 44px 36px 32px 36px;
+    border-radius: 22px;
+    background: rgba(34, 34, 54, 0.45);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    color: #fff;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(10px) saturate(120%);
+    border: 1.5px solid rgba(255,255,255,0.18);
+    z-index: 2;
+    margin-bottom: 32px;
+}
+
+.login-box h1, .Signin h1 {
+    margin-bottom: 28px;
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.login-box label, .Signin label {
+    align-self: flex-start;
+    margin-bottom: 7px;
+    font-size: 1.05rem;
+    margin-left: 4px;
+    font-weight: 500;
+    color: #e0d7f7;
+    letter-spacing: 0.5px;
+}
+
+.input-icon {
+    position: relative;
+    width: 100%;
+    margin-bottom: 18px;
+}
+
+.input-icon i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bba8e6;
+    font-size: 1.1rem;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+.login-box input, .Signin input {
+    width: 87%;
+    padding: 11px 12px 11px 40px;
+    margin-bottom: 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-size: 1.05rem;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.login-box input:focus, .Signin input:focus {
+    background: rgba(255,255,255,0.28);
+    box-shadow: 0 4px 16px rgba(142,68,173,0.12);
+}
+
+.login-box input::placeholder, .Signin input::placeholder {
+    color: #d6cbe9;
+    opacity: 0.95;
+}
+
+.login-box button, .Signin button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(90deg, #8e44ad 60%, #6c3483 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.08rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 12px rgba(142,68,173,0.13);
+    transition: background 0.2s, transform 0.1s;
+}
+
+.login-box button:hover, .Signin button:hover {
+    transform: translateY(-2px) scale(1.03);
+}
+
+.login-box p, .Signin p {
+    color: #e0d7f7;
+    font-size: 0.97rem;
+    margin-bottom: 0;
+    margin-left: 0;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.login-box p button, .Signin p button {
+    background: none;
+    border: none;
+    color: #bba8e6;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: underline;
+    padding: 0 2px;
+    transition: color 0.2s;
+}
+
+.login-box p button:hover, .Signin p button:hover {
+    color: #fff;
+    text-shadow: 0 2px 8px #8e44ad55;
+}
+
+@media (max-width: 480px) {
+    .login-box, .Signin {
+        width: 95vw;
+        padding: 28px 8vw 24px 8vw;
+    }
+    .image img.avatar {
+        height: 80px;
+        width: 80px;
+    }
+}
+
+.show-up {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: showUp 0.7s ease forwards;
+}
+@keyframes showUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-box.show-up > *, .Signin.show-up > * {
+    opacity: 0;
+    animation: showUp 0.7s ease forwards;
+}
+.login-box.show-up > *:nth-child(1),
+.Signin.show-up > *:nth-child(1) { animation-delay: 0.1s; }
+.login-box.show-up > *:nth-child(2),
+.Signin.show-up > *:nth-child(2) { animation-delay: 0.2s; }
+.login-box.show-up > *:nth-child(3),
+.Signin.show-up > *:nth-child(3) { animation-delay: 0.3s; }
+.login-box.show-up > *:nth-child(4),
+.Signin.show-up > *:nth-child(4) { animation-delay: 0.4s; }
+.login-box.show-up > *:nth-child(5),
+.Signin.show-up > *:nth-child(5) { animation-delay: 0.5s; }
+.login-box.show-up > *:nth-child(6),
+.Signin.show-up > *:nth-child(6) { animation-delay: 0.6s; }
+.login-box.show-up > *:nth-child(7),
+.Signin.show-up > *:nth-child(7) { animation-delay: 0.7s; }
+
+
+
+

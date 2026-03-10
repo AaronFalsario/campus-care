@@ -3,10 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusCare Login</title>
+    <title>Velvet Key Hotel</title>
+    <link rel="stylesheet" href="/PAGES/style.css">
+    <link rel="icon" href="/HOTEL RESERVATION SYSTEM/PICTURES/V-removebg-preview (1).png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
-<body>  
-    
-    
+<body>
+    <div class="image">
+        <img src="/HOTEL RESERVATION SYSTEM/PICTURES/V-removebg-preview (1).png" class="avatar" alt="Avatar Image">
+    </div>
+    <form id="loginForm">
+        <div class="login-box">
+            <h1>Login Here</h1>
+            <label for="username">Username</label>
+            <div class="input-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" placeholder="Enter Username" required>
+            </div>
+            <label for="password">Password</label>
+            <div class="input-icon">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Enter Password" required>
+            </div>
+            <button type="submit">Login</button>
+            <p>Don't have an account yet? <button type="button" id="showSignup">Sign up</button></p>
+        </div>
+    </form>
+
+    <form id="signupForm" style="display:none;">
+        <div class="Signin">
+            <h1>Sign Up Here</h1>
+            <label for="new-username">Username</label>
+            <div class="input-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" id="new-username" placeholder="Enter Username" required>
+            </div>
+            <label for="new-password">Password</label>
+            <div class="input-icon">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="new-password" placeholder="Enter Password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+            <p>Already have an account? <button type="button" id="showLogin">Login</button></p>
+        </div>
+    </form>
+    <script src="/PAGES/function.js"></script>
 </body>
 </html>
