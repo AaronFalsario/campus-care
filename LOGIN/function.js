@@ -168,6 +168,7 @@ studentLoginBtn.addEventListener('click', async function () {
         return;
     }
 
+    showLoader(false);
     studentLoginBtn.textContent = 'Logging in...';
     studentLoginBtn.disabled = true;
 
@@ -182,12 +183,15 @@ studentLoginBtn.addEventListener('click', async function () {
             } else {
                 showError('studentLoginCard', 'This account is not a student account.');
                 await signOut(auth);
+                hideLoader();
             }
         } else {
             showError('studentLoginCard', 'Account not found. Please sign up.');
+            hideLoader();
         }
     } catch (error) {
         showError('studentLoginCard', friendlyError(error.code));
+        hideLoader();
     } finally {
         studentLoginBtn.textContent = 'Login';
         studentLoginBtn.disabled = false;
@@ -206,6 +210,7 @@ adminLoginBtn.addEventListener('click', async function () {
         return;
     }
 
+    showLoader(true);
     adminLoginBtn.textContent = 'Logging in...';
     adminLoginBtn.disabled = true;
 
@@ -221,12 +226,15 @@ adminLoginBtn.addEventListener('click', async function () {
             } else {
                 showError('adminLoginCard', 'This account is not an admin account.');
                 await signOut(auth);
+                hideLoader();
             }
         } else {
             showError('adminLoginCard', 'Admin account not found.');
+            hideLoader();
         }
     } catch (error) {
         showError('adminLoginCard', friendlyError(error.code));
+        hideLoader();
     } finally {
         adminLoginBtn.textContent = 'Login';
         adminLoginBtn.disabled = false;
@@ -254,6 +262,7 @@ signupFormEl.addEventListener('submit', async function (e) {
         return;
     }
 
+    showLoader(false);
     const signupBtn = card.querySelector('button[type="submit"]');
     signupBtn.textContent = 'Creating account...';
     signupBtn.disabled = true;
@@ -273,6 +282,7 @@ signupFormEl.addEventListener('submit', async function (e) {
         window.location.href = '/STUDENT/dashboard.html';
     } catch (error) {
         showError('signupForm', friendlyError(error.code));
+        hideLoader();
     } finally {
         signupBtn.textContent = 'Sign Up';
         signupBtn.disabled = false;
@@ -292,4 +302,21 @@ function friendlyError(code) {
         case 'auth/network-request-failed': return 'Network error. Check your connection.';
         default: return 'Something went wrong. Please try again.';
     }
+}
+
+// LOADER FUNCTIONS
+function showLoader(isAdmin = false) {
+    const loader = document.getElementById('loaderOverlay');
+    loader.classList.add('show');
+    if (isAdmin) {
+        loader.classList.add('admin-loader');
+    } else {
+        loader.classList.remove('admin-loader');
+    }
+}
+
+function hideLoader() {
+    const loader = document.getElementById('loaderOverlay');
+    loader.classList.remove('show');
+    loader.classList.remove('admin-loader');
 }
