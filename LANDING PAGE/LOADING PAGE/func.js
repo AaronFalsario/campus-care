@@ -30,7 +30,7 @@
                     setTimeout(() => {
                         content.style.opacity = '1';
                         setTimeout(() => {
-                            window.location.href = '/LANDING PAGE/Index.html';
+                            window.location.href = '/LANDING PAGE/land.html';
                         }, 4000);
                     }, 200);
                 }, 180);

@@ -17,7 +17,7 @@ font-family: 'Sora', sans-serif;
 position: fixed;
 inset: 0;
 background: linear-gradient(135deg, #1a56db 0%, #2563eb 100%);
-opacity: 0;
+opacity: 0;     
 z-index: 0;
 transition: opacity 0.35s ease;
 }
