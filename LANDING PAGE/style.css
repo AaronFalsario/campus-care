@@ -710,9 +710,8 @@ padding: 48px 32px;
 max-width: 380px
 ) {
 .cards-grid {
-     grid-template-columns: 1fr; 
+    grid-template-columns: 1fr; 
 }
 .stats-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
 .stat-item h2 { font-size: 24px; }
 }
- 

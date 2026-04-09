@@ -29,10 +29,6 @@ body {
 body.admin-role {
     background-color: #ecfdf5;
 }
-
-/* =====================
-   MOBILE CONTAINER
-===================== */
 .mobile-container {
     width: 100%;
     max-width: 480px;
@@ -41,9 +37,6 @@ body.admin-role {
     flex: 1;
 }
 
-/* =====================
-   HEADER
-===================== */
 .header {
     text-align: center;
     margin-bottom: 20px;
@@ -71,10 +64,6 @@ h1 {
     margin-top: 6px;
     line-height: 1.4;
 }
-
-/* =====================
-   ROLE SELECTOR
-===================== */
 .role-selector {
     display: flex;
     background: #f1f5f9;
@@ -120,10 +109,6 @@ body.admin-role .role-selector button.active {
     cursor: not-allowed;
     color: #cbd5e1;
 }
-
-/* =====================
-   LOGIN CARD
-===================== */
 .login-card {
     width: 100%;
     background: white;
@@ -147,10 +132,6 @@ body.admin-role .role-selector button.active {
     background: #d1fae5;
     color: #10b981;
 }
-
-/* =====================
-   USER ICON
-===================== */
 .user-icon {
     width: 56px;
     height: 56px;
@@ -163,10 +144,6 @@ body.admin-role .role-selector button.active {
     color: #2563eb;
     font-size: 26px;
 }
-
-/* =====================
-   TYPOGRAPHY
-===================== */
 h2 {
     font-size: 20px;
     margin: 0 0 8px 0;
@@ -183,10 +160,6 @@ h2 {
     margin: 4px 0 20px;
     line-height: 1.5;
 }
-
-/* =====================
-   INPUTS
-===================== */
 .input-group {
     text-align: left;
     margin-bottom: 16px;
@@ -260,10 +233,6 @@ input:focus {
 input::placeholder {
     color: #cbd5e1;
 }
-
-/* =====================
-   BUTTONS
-===================== */
 button[type="submit"],
 .login-btn {
     width: 100%;
@@ -304,10 +273,6 @@ button[type="submit"]:active,
 .admin-btn:active {
     background: #059669 !important;
 }
-
-/* =====================
-   SIGNUP TEXT & BTN
-===================== */
 .signup-text {
     text-align: center;
     margin-top: 20px;
@@ -342,10 +307,6 @@ button[type="submit"]:active,
 .signup-btn:hover {
     color: #1d4ed8;
 }
-
-/* =====================
-   SIGNUP FORM
-===================== */
 #signupForm {
     width: 100%;
     display: none;
@@ -358,10 +319,6 @@ button[type="submit"]:active,
 #signupForm .login-card {
     margin: 0 auto;
 }
-
-/* =====================
-   ANIMATIONS
-===================== */
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -370,10 +327,6 @@ button[type="submit"]:active,
 .slideUp {
     animation: slideUp 0.5s ease-out forwards;
 }
-
-/* =====================
-   LOADER
-===================== */
 .loader-overlay {
     display: none;
     position: fixed;
@@ -417,10 +370,6 @@ button[type="submit"]:active,
     from { opacity: 0; }
     to   { opacity: 1; }
 }
-
-/* =====================
-   FOOTER
-===================== */
 footer {
     width: 100%;
     max-width: 480px;
@@ -434,10 +383,6 @@ footer p {
     color: #94a3b8;
     line-height: 1.5;
 }
-
-/* =====================
-   PHONE  (≤ 480px)
-===================== */
 @media (max-width: 480px) {
     body {
         padding: 16px 12px 72px;
@@ -514,10 +459,6 @@ footer p {
         z-index: 100;
     }
 }
-
-/* =====================
-   TABLET  (481px – 1023px)
-===================== */
 @media (min-width: 481px) and (max-width: 1023px) {
     body {
         padding: 40px 24px 40px;
