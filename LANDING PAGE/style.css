@@ -30,6 +30,7 @@ font-family: 'DM Sans', sans-serif;
 background: var(--white);
 color: var(--gray-800);
 overflow-x: hidden;
+padding-bottom: 34px;
 }
 
 nav {
@@ -445,7 +446,7 @@ line-height: 1.6;
 }
 
 .cta-banner {
-padding: 80px 5%;
+padding: 80px 5% 0;
 text-align: center;
 background: white;
 }
@@ -522,24 +523,24 @@ box-shadow: 0 10px 28px rgba(0,0,0,0.2);
 }
 
 footer {
-    background: var(--blue-deep);
-    color: rgba(255,255,255,0.55);
-    text-align: center;
-    padding: 10px 5%;
-    font-size: 13px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    transform: translateY(0);
-    transition: transform 0.35s ease, opacity 0.35s ease;
-    opacity: 1;
+background: var(--blue-deep);
+color: rgba(255,255,255,0.55);
+text-align: center;
+padding: 5px 8%;
+font-size: 13px;
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+z-index: 10;
+transform: translateY(0);
+transition: transform 0.35s ease, opacity 0.35s ease;
+opacity: 1;
 }
 
 footer.hidden {
-    transform: translateY(100%);
-    opacity: 0;
+transform: translateY(100%);
+opacity: 0;
 }
 
 footer span { color: rgba(255,255,255,0.8); font-weight: 600; }
@@ -593,31 +594,30 @@ padding: 48px 32px;
 }
 }
 @media (max-width: 640px) {
-    nav { padding: 0 16px; height: 58px; }
-    .mobile-menu { top: 58px; padding: 12px 20px 16px; }
+nav { padding: 0 16px; height: 58px; }
+.mobile-menu { top: 58px; padding: 12px 20px 16px; }
 
-    .hero {
-        padding: 80px 16px 48px;
-        min-height: 100svh;
-    }
+.hero {
+padding: 80px 16px 48px;
+min-height: 100svh;
+}
 
-    .hero h1 {
-        font-size: 36px;
-        letter-spacing: -1px;
-        margin-bottom: 16px;
-    }
+.hero h1 {
+font-size: 36px;
+letter-spacing: -1px;
+margin-bottom: 16px;
+}
 
-    .hero p {
-        font-size: 16px;
-        margin-bottom: 32px;
-    }
+.hero p {
+font-size: 16px;
+margin-bottom: 32px;
+}
 
-    .hero-btn {
-        font-size: 16px;
-        padding: 16px 28px;
-        width: 100%;
-        justify-content: center;
-    }
+.hero-btn {
+font-size: 16px;
+padding: 16px 28px;
+width: 100%;justify-content: center;
+}
 
     .hero-badge {
         font-size: 13px;

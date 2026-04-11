@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Care — Incident Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/STUDENTDB/style.css">
+<link rel="icon" type="image/x-icon" href="/STUDENTDB/favicon.ico">
+</head>
+<body>
+<div class="app">
+<nav>
+    <div class="nav-brand">
+    <div class="nav-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+    </div>
+    <div>
+        <div class="nav-title">Campus Care</div>
+        <div class="nav-sub">Report and Track Incident</div>
+    </div>
+    </div>
+    <div class="nav-right">
+    <button class="btn-report">
+        <span>+</span> Report
+    </button>
+    </div>
+</nav>
+  <main>
+    <!-- Hero banner -->
+    <div class="hero">
+      <div class="hero-title">Incident Dashboard</div>
+      <div class="hero-sub">See what's already reported before filling a new one</div>
+    </div>
+
+    <!-- Statuses -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Open Reports</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">1</div>
+        <div class="stat-label">In progress reports</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-row">
+      <button class="filter-btn active">All</button>
+      <button class="filter-btn">Security</button>
+      <button class="filter-btn">Maintenance</button>
+      <button class="filter-btn">Janitorial</button>
+      <button class="filter-btn">Facilities</button>
+    </div>
+
+    <!-- Reports -->
+    <div class="section-label">Recent Reports</div>
+
+    <div class="incidents">
+
+      <!-- Dirty Toilet -->
+      <div class="incident-card">
+        <div class="inc-icon ic-green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#13917A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+            <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+            <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+          </svg>
+        </div>
+        <div class="inc-body">
+          <div class="inc-title">Dirty Toilet</div>
+          <div class="inc-location">5th floor, near room 517</div>
+          <div class="badge-row">
+            <span class="badge b-janitorial">Janitorial</span>
+            <span class="badge b-medium">Medium</span>
+            <span class="badge b-done">Done</span>
+          </div>
+          <div class="inc-meta">
+            <div class="inc-reporters">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                <path d="M19 8v6m3-3h-6"/>
+              </svg>
+              2 students reported this
+            </div>
+            <div class="inc-time">2h ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sharp Knife -->
+      <div class="incident-card">
+        <div class="inc-icon ic-red">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C0392B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="inc-body">
+          <div class="inc-title">Sharp knife</div>
+          <div class="inc-location">Room 504, 5th floor</div>
+          <div class="badge-row">
+            <span class="badge b-security">Security</span>
+            <span class="badge b-high">High</span>
+            <span class="badge b-inprogress">In progress</span>
+          </div>
+          <div class="inc-meta">
+            <div class="inc-reporters">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                <path d="M19 8v6m3-3h-6"/>
+              </svg>
+              1 student reported this
+            </div>
+            <div class="inc-time">3h ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Broken sparking wire -->
+      <div class="incident-card">
+        <div class="inc-icon ic-blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="inc-body">
+          <div class="inc-title">Broken sparking wire</div>
+          <div class="inc-location">Room 504, 5th floor</div>
+          <div class="badge-row">
+            <span class="badge b-maintenance">Maintenance</span>
+            <span class="badge b-high">High</span>
+            <span class="badge b-open">Open</span>
+          </div>
+          <div class="inc-meta">
+            <div class="inc-reporters">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                <path d="M19 8v6m3-3h-6"/>
+              </svg>
+              1 student reported this
+            </div>
+            <div class="inc-time">5h ago</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="/STUDENTDB/function.js"></script>
+</body>
+</html>
