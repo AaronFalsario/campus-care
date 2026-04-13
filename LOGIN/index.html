@@ -17,12 +17,13 @@
         <h1>CampusCare</h1>
         <p>Report and manage campus issues efficiently</p>
     </div>
-
+<!--Role Selector-->
     <div class="role-selector">
         <button class="active" data-role="student">Student</button>
         <button data-role="admin">Admin</button>
     </div>
 
+<!--Student Login-->
     <div class="login-card" id="studentLoginCard">
         <div class="user-icon"><i class="fas fa-user-pen"></i></div>
         <h2>Student Login</h2>
@@ -48,8 +49,10 @@
         <button class="login-btn">Login</button>
         <p class="signup-text" id="signupPrompt">Don't have an account?</p>
         <button type="button" class="signup-btn" id="showSignup">Sign up</button>
+        <button type="button" class="Forgot-password" id="showForgotPassword">Forgot Password?</button>
     </div>
 
+<!--Admin login-->
     <div class="login-card admin-theme" id="adminLoginCard" style="display:none;">
         <div class="user-icon">🛡️</div>
         <h2>Admin Login</h2>
@@ -71,11 +74,12 @@
                 <i class="fas fa-eye toggle-password" id="toggleAdminPassword"></i>
             </div>
         </div>
-
         <button class="login-btn admin-btn">Login</button>
+        <button type="button" class="Adminforgot-btn" id="showAdminForgotPassword">Forgot Password?</button>
     </div>
 
-    <form id="signupForm" style="display:none;">
+<!--Student Sign Up-->
+    <form id="signupForm" action="../STUDENTDB/SDB.html" method="post" style="display:none;">
         <div class="login-card">
             <div class="user-icon"><i class="fas fa-user-pen"></i></div>
             <h2>Student Sign Up</h2>
@@ -119,7 +123,9 @@
             <button type="button" id="showLogin" class="signup-btn">Login</button>
         </div>
     </form>
-</div>
+</div>          
+
+<!--Loader Overlay-->
 <div class="loader-overlay" id="loaderOverlay">
     <div class="loader-container">
         <div class="spinner"></div>
@@ -129,6 +135,6 @@
 <footer>
     <p>&copy; 2023 Campus Care. All rights reserved.</p>
 </footer>
-<script type="module" src="/LOGIN/function.js"></script>
+<script type="module" src="function.js"></script>
 </body>
-</html>s
+</html>

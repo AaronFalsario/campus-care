@@ -18,7 +18,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 24px 16px 80px;
@@ -30,12 +30,12 @@ body.admin-role {
     background-color: #ecfdf5;
 }
 
-mobile-container {
+.mobile-container {
     width: 100%;
-    max-width: 500px; 
+    max-width: 400px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    flex: 1;
 }
 
 .header {
@@ -44,15 +44,15 @@ mobile-container {
 }
 
 .app-icon img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 12px;
     display: block;
     margin: 0 auto 12px;
 }
 
 h1 {
-    font-size: 22px;
+    font-size: 18px;
     margin: 0;
     color: #1e293b;
     font-weight: 700;
@@ -113,8 +113,8 @@ body.admin-role .role-selector button.active {
 .login-card {
     width: 100%;
     background: white;
-    border-radius: 20px;
-    padding: 28px 24px;
+    border-radius: 16px;
+    padding: 20px 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -134,19 +134,19 @@ body.admin-role .role-selector button.active {
     color: #10b981;
 }
 .user-icon {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     background: #eff6ff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 16px;
+    margin: 0 auto 12px;
     color: #2563eb;
-    font-size: 26px;
+    font-size: 20px;
 }
 h2 {
-    font-size: 20px;
+    font-size: 16px;
     margin: 0 0 8px 0;
     color: #1e293b;
     font-weight: 700;
@@ -185,18 +185,18 @@ label {
 
 .input-icon i {
     position: absolute;
-    left: 14px;
+    left: 12px;
     color: #94a3b8;
-    font-size: 16px;
+    font-size: 14px;
     pointer-events: none;
 }
 
 .password-container .toggle-password {
     left: auto;
-    right: 14px;
+    right: 12px;
     cursor: pointer;
     color: #2563eb;
-    font-size: 16px;
+    font-size: 14px;
     pointer-events: all;
     transition: color 0.2s ease;
 }
@@ -207,10 +207,10 @@ label {
 
 input {
     width: 100%;
-    padding: 13px 14px 13px 44px;
+    padding: 10px 14px 10px 36px;
     border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 8px;
+    font-size: 14px;
     font-family: inherit;
     color: #1e293b;
     background: #f8fafc;
@@ -235,16 +235,17 @@ input::placeholder {
     color: #cbd5e1;
 }
 button[type="submit"],
+
 .login-btn {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     background: #2563eb;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-weight: 700;
-    font-size: 16px;
-    margin-top: 20px;
+    font-size: 14px;
+    margin-top: 16px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
     -webkit-appearance: none;
@@ -274,6 +275,22 @@ button[type="submit"]:active,
 .admin-btn:active {
     background: #059669 !important;
 }
+.Adminforgot-btn {
+    background: none;
+    border: none;
+    color: #10b981;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 0;
+    display: block;
+    font-family: inherit;
+    transition: color 0.2s ease;
+    margin: 4px auto 0;
+    margin-top: 15px;
+    right: 0px;
+}
+
 .signup-text {
     text-align: center;
     margin-top: 20px;
@@ -294,7 +311,7 @@ button[type="submit"]:active,
 .signup-btn {
     background: none;
     border: none;
-    color: #2563eb;
+    color: #1d4ed8;
     cursor: pointer;
     font-weight: 700;
     font-size: 14px;
@@ -303,11 +320,37 @@ button[type="submit"]:active,
     font-family: inherit;
     transition: color 0.2s ease;
     margin: 4px auto 0;
+    margin-top: -20px;
+    right: 0px;
 }
 
 .signup-btn:hover {
     color: #1d4ed8;
 }
+
+.Forgot-password {
+    background: none;
+    border: none;
+    color: #1e293b;
+    opacity: 0.5;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 0;
+    display: block;
+    font-family: inherit;
+    transition: color 0.2s ease;
+    margin: 4px auto 0;
+    margin-top: 2px;
+    right: 0px;
+    animation: ease-in-out 0.3s fadeIn;
+}
+
+.Forgot-password:hover {
+    color: #1d4ed8;
+    opacity: 1;
+}
+
 #signupForm {
     width: 100%;
     display: none;
@@ -469,7 +512,7 @@ footer p {
     }
 
     .mobile-container {
-        max-width: 520px;
+        max-width: 420px;
     }
 
     .app-icon img {
@@ -540,18 +583,18 @@ footer p {
     }
 
     .mobile-container {
-        max-width: 520px;
+        max-width: 420px;
         background: transparent;
     }
 
     .app-icon img {
-        width: 75px;
-        height: 75px;
+        width: 60px;
+        height: 60px;
         border-radius: 16px;
     }
 
-    h1 { font-size: 28px; }
-    h2 { font-size: 22px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 18px; }
 
     .header p { font-size: 15px; }
     .header { margin-bottom: 28px; }
@@ -569,8 +612,8 @@ footer p {
     }
 
     .login-card {
-        padding: 40px 36px;
-        border-radius: 24px;
+        padding: 24px 20px;
+        border-radius: 16px;
         box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
         transition: box-shadow 0.3s ease;
     }
@@ -580,10 +623,10 @@ footer p {
     }
 
     .user-icon {
-        width: 68px;
-        height: 68px;
-        font-size: 30px;
-        margin-bottom: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+        margin-bottom: 16px;
     }
 
     label { font-size: 15px; }
@@ -599,9 +642,9 @@ footer p {
 
     button[type="submit"],
     .login-btn {
-        padding: 16px;
-        font-size: 17px;
-        border-radius: 12px;
+        padding: 14px;
+        font-size: 15px;
+        border-radius: 10px;
         cursor: pointer;
     }
 

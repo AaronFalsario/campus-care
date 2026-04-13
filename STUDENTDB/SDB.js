@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const drawer  = document.getElementById('drawer');
 const overlay = document.getElementById('overlay');
 const hamburger  = document.getElementById('hamburger');
-const drawerClose = document.getElementById('drawerClose');
+const studentDrawerToggle = document.getElementById('studentDrawerToggle');
 
 function openDrawer() {
     drawer.classList.add('open');
@@ -16,8 +16,22 @@ function closeDrawer() {
     document.body.style.overflow = '';
 }
 
-hamburger.addEventListener('click', openDrawer);
-drawerClose.addEventListener('click', closeDrawer);
+function toggleDrawer() {
+    if (drawer.classList.contains('open')) {
+        closeDrawer();
+    } else {
+        openDrawer();
+    }
+}
+
+if (hamburger) {
+    hamburger.addEventListener('click', toggleDrawer);
+}
+
+if (studentDrawerToggle) {
+    studentDrawerToggle.addEventListener('click', toggleDrawer);
+}
+
 overlay.addEventListener('click', closeDrawer);
 
 document.querySelectorAll('.drawer-item').forEach(item => {

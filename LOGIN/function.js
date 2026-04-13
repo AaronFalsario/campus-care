@@ -120,6 +120,7 @@ if (showSignupBtn) {
     });
 }
 
+//Show login button functionality
 if (showLoginBtn) {
     showLoginBtn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -179,7 +180,7 @@ studentLoginBtn.addEventListener('click', async function () {
         if (userDoc.exists()) {
             const data = userDoc.data();
             if (data.role === 'student') {
-                window.location.href = '/STUDENT/dashboard.html';
+                window.location.href = '/STUDENTDB/SDB.html';
             } else {
                 showError('studentLoginCard', 'This account is not a student account.');
                 await signOut(auth);
@@ -270,6 +271,7 @@ signupFormEl.addEventListener('submit', async function (e) {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
+
 //Database entry for new user
         await setDoc(doc(db, 'users', uid), {
             fullName,
@@ -279,7 +281,7 @@ signupFormEl.addEventListener('submit', async function (e) {
             createdAt: new Date().toISOString()
         });
 
-        window.location.href = '/STUDENT/dashboard.html';
+        window.location.href = '/STUDENTDB/SDB.html';
     } catch (error) {
         showError('signupForm', friendlyError(error.code));
         hideLoader();

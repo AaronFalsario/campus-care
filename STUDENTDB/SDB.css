@@ -109,13 +109,15 @@ html, body {
     padding: 16px 0;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
     overflow-y: auto;
 }
 
 .drawer-item {
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 8px;
     padding: 8px 24px;
     height: 48px;
     color: rgba(0, 0, 0, 0.75);
@@ -216,7 +218,7 @@ nav {
 .nav-sub   { font-size: 12px; color: var(--muted); margin-top: 1px; }
 
 .btn-report {
-    background: var(--teal);
+    background: linear-gradient( to right,  #1ADBB2, #226AAF);
     color: #fff;
     border: none;
     padding: 9px 20px;
@@ -225,15 +227,30 @@ nav {
     font-weight: 500;
     font-family: inherit;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 5px;
     transition: background .15s;
     white-space: nowrap;
     flex-shrink: 0;
 }
-.btn-report:hover { background: var(--teal-dark); }
 
+.btn-report--desktop {
+    display: none;
+}
+
+.btn-report--mobile {
+    display: inline-flex;
+}
+
+@media (min-width: 601px) {
+    .btn-report--desktop {
+        display: inline-flex;
+    }
+    .btn-report--mobile {
+        display: none;
+    }
+}
 
 main {
     max-width: 1080px;

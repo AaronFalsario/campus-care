@@ -14,11 +14,6 @@
 
 <!-- Header -->
 <div class="drawer-header">
-    <button class="drawer-close" id="drawerClose" aria-label="Close menu">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-    </button>
     <div class="drawer-avatar">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -35,17 +30,11 @@
 <nav class="drawer-nav">
     <button class="drawer-item active">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-    </svg>
-    Dashboard
-    </button>
-    <button class="drawer-item">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
         <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
     </svg>
+    New Report
     </button>
     <div class="drawer-divider"></div>
     <button class="drawer-item">
@@ -56,16 +45,15 @@
     My Report
     </button>
 </nav>
-
 <div class="drawer-footer">
-    <button class="drawer-logout">
+    <a button class="drawer-logout" href="http://127.0.0.1:5500/LANDING%20PAGE/land.html">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
         <polyline points="16 17 21 12 16 7"/>
         <line x1="21" y1="12" x2="9" y2="12"/>
     </svg>
     Logout 
-    </button>
+    </a>
 </div>
 </div>
 
@@ -82,7 +70,8 @@
     <div class="nav-sub">Report and Track Incident</div>
     </div>
 </div>
-<button class="btn-report">+ Report</button>
+    <button type="button" class="btn-report btn-report--desktop" id="studentDrawerToggle" aria-label="Open student menu">Student</button>
+    <a class="btn-report btn-report--mobile" href="../STUDENT RP/report.html" aria-label="Go to report page">+ Report</a>
 </nav>
 
 <!-- ── Main Content ── -->
