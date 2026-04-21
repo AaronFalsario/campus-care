@@ -119,7 +119,7 @@ function setupEventListeners() {
     // Admin Pill - Opens drawer on desktop only
     if (DOM.adminPill) {
         DOM.adminPill.addEventListener('click', () => {
-            if (window.innerWidth > 640) { // Desktop viewport
+            if (window.innerWidth > 640) { 
                 openDrawer();
             }
         });

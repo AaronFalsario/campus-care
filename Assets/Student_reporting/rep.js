@@ -13,7 +13,7 @@ function selPriority(element) {
 }
 
 function goBack() {
-    window.location.href = '/STUDENTDB/SDB.html';
+    window.location.href = '/Assets/Student_dashboard/SDB.html';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
