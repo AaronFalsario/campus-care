@@ -47,7 +47,7 @@ adminLoginBtn.addEventListener('click', async function () {
         adminLoginBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
 
         setTimeout(() => {
-            window.location.href = '/Assets/Admin_dashboard/admin.html';
+            window.location.href = '/Assets/Admin_dashboard/Admin.html';
         }, 800);
 
     } catch (error) {
