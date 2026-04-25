@@ -152,17 +152,41 @@ html, body {
 
 .hamburger:hover span { background: var(--text); }
 
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand-logo img{
-    width: 40px; height: 40px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+.brand { display: flex; 
+    align-items: center; 
+    gap: 10px; 
 }
-.brand-name { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+
+.brand-logo img{
+    width: 40px; 
+    height: 40px; 
+    border-radius: 8px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    flex-shrink: 0;
+}
+
+.brand-name { 
+    font-size: 15px; 
+    font-weight: 700; 
+    color: var(--text); 
+    letter-spacing: -.01em; 
+}
 
 .admin-pill {
-    background: var(--blue); color: #fff;
-    font-size: 11px; font-weight: 600; letter-spacing: .06em;
-    padding: 5px 14px; border-radius: 20px; text-transform: uppercase;
+    background: var(--blue);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    border: none;        
+    outline: none;          
+    cursor: pointer;
+    transition: background 0.15s ease;
 }
 
 main {

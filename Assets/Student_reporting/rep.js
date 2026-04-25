@@ -38,9 +38,9 @@ const categoryMapping = {
         bgColor: '#FEF2F2',
         weight: 1.5,
         keywords: ['knife', 'weapon', 'gun', 'danger', 'threat', 'intruder', 'violence', 'attack', 
-                   'fight', 'assault', 'suspicious', 'trespassing', 'theft', 'robbery', 'vandalism',
-                   'harassment', 'emergency', 'fire', 'smoke', 'alarm', 'security', 'police', 'blood',
-                   'injury', 'accident', 'broken glass', 'window broken']
+                'fight', 'assault', 'suspicious', 'trespassing', 'theft', 'robbery', 'vandalism',
+                'harassment', 'emergency', 'fire', 'smoke', 'alarm', 'security', 'police', 'blood',
+                'injury', 'accident', 'broken glass', 'window broken']
     },
     'maintenance': { 
         name: 'Maintenance', 
@@ -48,8 +48,8 @@ const categoryMapping = {
         bgColor: '#EFF6FF',
         weight: 1.0,
         keywords: ['broken', 'wire', 'sparking', 'light', 'electrical', 'pipe', 'leak', 'ac', 'cracked',
-                   'flickering', 'outlet', 'plumbing', 'flood', 'water', 'heater', 'ventilation',
-                   'circuit', 'breaker', 'switch', 'socket', 'cable']
+                'flickering', 'outlet', 'plumbing', 'flood', 'water', 'heater', 'ventilation',
+                'circuit', 'breaker', 'switch', 'socket', 'cable']
     },
     'janitorial': { 
         name: 'Janitorial', 
@@ -57,8 +57,8 @@ const categoryMapping = {
         bgColor: '#E1F5EE',
         weight: 1.0,
         keywords: ['trash', 'dirty', 'toilet', 'spill', 'garbage', 'overflow', 'mess', 'odor', 'bathroom',
-                   'clean', 'dust', 'mold', 'restroom', 'clogged', 'sink', 'urinal', 'waste',
-                   'litter', 'debris', 'stain', 'floor wet']
+                'clean', 'dust', 'mold', 'restroom', 'clogged', 'sink', 'urinal', 'waste',
+                'litter', 'debris', 'stain', 'floor wet']
     },
     'facilities': { 
         name: 'Facilities', 
@@ -66,8 +66,8 @@ const categoryMapping = {
         bgColor: '#FFFBEB',
         weight: 1.0,
         keywords: ['elevator', 'door', 'window', 'ceiling', 'floor', 'wall', 'paint', 'furniture',
-                   'chair', 'table', 'desk', 'stair', 'railing', 'lighting', 'exit', 'signage',
-                   'handle', 'lock', 'hinge', 'carpet', 'tile']
+                'chair', 'table', 'desk', 'stair', 'railing', 'lighting', 'exit', 'signage',
+                'handle', 'lock', 'hinge', 'carpet', 'tile']
     }
 };
 
@@ -75,7 +75,6 @@ const categoryMapping = {
 async function loadMobileNet() {
     if (mobilenetModel) return mobilenetModel;
     try {
-        // Check if TensorFlow is loaded
         if (typeof tf === 'undefined') {
             console.log('Loading TensorFlow.js...');
             await new Promise((resolve) => {
@@ -86,7 +85,6 @@ async function loadMobileNet() {
             });
         }
         
-        // Check if MobileNet is loaded
         if (typeof mobilenet === 'undefined') {
             console.log('Loading MobileNet model...');
             await new Promise((resolve) => {
@@ -97,8 +95,6 @@ async function loadMobileNet() {
             });
         }
         
-        // Load the model
-        console.log('Loading MobileNet model...');
         mobilenetModel = await mobilenet.load();
         console.log('MobileNet model loaded successfully!');
         return mobilenetModel;
@@ -110,13 +106,8 @@ async function loadMobileNet() {
 
 // Analyze image with MobileNet
 async function analyzeImageWithMobileNet(imageElement) {
-    if (!mobilenetModel) {
-        console.log('MobileNet not loaded yet');
-        return null;
-    }
-    
+    if (!mobilenetModel) return null;
     try {
-        // Get predictions from MobileNet
         const predictions = await mobilenetModel.classify(imageElement);
         console.log('MobileNet predictions:', predictions);
         return predictions;
@@ -139,16 +130,12 @@ async function analyzeImageWithAI(imageFile) {
                 let detectedCategory = 'maintenance';
                 let highestConfidence = 0.3;
                 let matchedKeywords = [];
-                let mobileNetPredictions = [];
                 
                 // Try MobileNet analysis first
                 if (mobilenetModel) {
                     try {
                         const predictions = await analyzeImageWithMobileNet(img);
                         if (predictions && predictions.length > 0) {
-                            mobileNetPredictions = predictions;
-                            
-                            // Check MobileNet predictions against our categories
                             for (const pred of predictions) {
                                 const className = pred.className.toLowerCase();
                                 const confidence = pred.probability;
@@ -205,8 +192,6 @@ async function analyzeImageWithAI(imageFile) {
                 const redRatio = redPixels / totalPixels;
                 const darkRatio = darkPixels / totalPixels;
                 
-                console.log(`Color Analysis - Red Ratio: ${redRatio}, Dark Ratio: ${darkRatio}`);
-                
                 if (redRatio > 0.03 && detectedCategory !== 'security') {
                     const colorConfidence = Math.min(0.7 + (redRatio * 3), 0.9);
                     if (colorConfidence > highestConfidence) {
@@ -226,7 +211,7 @@ async function analyzeImageWithAI(imageFile) {
                     for (let i = 0; i < data.length; i += 4) {
                         avgBrightness += (data[i] + data[i+1] + data[i+2]) / 3;
                     }
-                    avgBrightness /= (totalPixels);
+                    avgBrightness /= totalPixels;
                     
                     if (avgBrightness < 80) {
                         detectedCategory = 'maintenance';
@@ -238,15 +223,11 @@ async function analyzeImageWithAI(imageFile) {
                 highestConfidence = Math.min(highestConfidence, 0.95);
                 
                 console.log(`AI Detection Result - Category: ${detectedCategory}, Confidence: ${highestConfidence}`);
-                console.log(`Matched Keywords: ${matchedKeywords.join(', ')}`);
                 
                 resolve({
                     predicted_type: detectedCategory,
                     confidence: highestConfidence,
-                    matchedKeywords: matchedKeywords,
-                    redRatio: redRatio,
-                    darkRatio: darkRatio,
-                    mobileNetPredictions: mobileNetPredictions
+                    matchedKeywords: matchedKeywords
                 });
             };
         };
@@ -263,7 +244,7 @@ async function analyzeImageWithAI(imageFile) {
     });
 }
 
-// Analyze priority level based on image and category
+// Analyze priority level
 async function analyzePriorityLevel(imageFile, category) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -299,7 +280,6 @@ async function analyzePriorityLevel(imageFile, category) {
                 if (category === 'security') {
                     urgencyScore = 0.85;
                     if (redIntensity > 0.02) urgencyScore = 0.95;
-                    if (darkIntensity > 0.4) urgencyScore = 0.90;
                 } else if (category === 'maintenance') {
                     urgencyScore = 0.5;
                     if (darkIntensity > 0.3) urgencyScore = 0.7;
@@ -457,13 +437,13 @@ function setupAnonymousToggle() {
     anonymousToggle.addEventListener('change', function(e) {
         if (this.checked) {
             const originalName = studentNameInput.value;
-            studentNameInput.value = 'Anonymous';
+            studentNameInput.value = 'Anonymous Reporter';
             studentNameInput.disabled = true;
             studentNameInput.style.backgroundColor = '#F3F4F6';
             studentNameInput.style.color = '#6B7280';
             studentNameInput.style.cursor = 'not-allowed';
             
-            if (originalName && originalName !== 'Anonymous') {
+            if (originalName && originalName !== 'Anonymous Reporter') {
                 studentNameInput.setAttribute('data-original-name', originalName);
             }
             
@@ -485,6 +465,35 @@ function setupAnonymousToggle() {
             showNotification('Anonymous mode disabled. Your name will be visible.', 'info');
         }
     });
+}
+
+// Upload image to Supabase
+async function uploadImage(file, studentId) {
+    if (!file) return null;
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${studentId}_${Date.now()}.${fileExt}`;
+    const filePath = `incidents/${fileName}`;
+    
+    try {
+        const { data, error } = await supabase.storage
+            .from('incident-images')
+            .upload(filePath, file);
+        
+        if (error) {
+            console.error('Upload error:', error);
+            return null;
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+            .from('incident-images')
+            .getPublicUrl(filePath);
+        
+        return publicUrl;
+    } catch (error) {
+        console.error('Image upload failed:', error);
+        return null;
+    }
 }
 
 // Setup image upload
@@ -561,7 +570,7 @@ function setupImageUpload() {
         if (indicator) {
             indicator.className = 'ai-indicator processing';
             indicator.style.display = 'block';
-            indicator.innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><div class="spinner-small"></div><span>🤖 AI is analyzing the image... (This may take a few seconds)</span></div>`;
+            indicator.innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><div class="spinner-small"></div><span>🤖 AI is analyzing the image...</span></div>`;
         }
         
         try {
@@ -590,7 +599,7 @@ function setupImageUpload() {
                 if (indicator) {
                     indicator.className = 'ai-indicator error';
                     indicator.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                        <span>⚠️ AI couldn't determine the category with high confidence. Please select manually from the options below.</span>
+                        <span>⚠️ AI couldn't determine the category. Please select manually.</span>
                         <button type="button" id="dismissAIError" style="background: none; border: none; cursor: pointer; color: #DC2626;">✗ Dismiss</button>
                     </div>`;
                     const dismissError = document.getElementById('dismissAIError');
@@ -604,7 +613,7 @@ function setupImageUpload() {
             if (indicator) {
                 indicator.className = 'ai-indicator error';
                 indicator.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <span>⚠️ AI analysis encountered an error. Please select the category manually.</span>
+                    <span>⚠️ AI analysis failed. Please select category manually.</span>
                     <button type="button" id="dismissAIError" style="background: none; border: none; cursor: pointer; color: #DC2626;">✗ Dismiss</button>
                 </div>`;
                 const dismissError = document.getElementById('dismissAIError');
@@ -666,28 +675,6 @@ function showErrorMessage(message, elementId) {
     setTimeout(() => errorDiv.style.display = 'none', 5000);
 }
 
-// Upload image to Supabase
-async function uploadImage(file, studentId) {
-    if (!file) return null;
-    
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${studentId}_${Date.now()}.${fileExt}`;
-    const filePath = `incidents/${fileName}`;
-    
-    try {
-        const { error } = await supabase.storage.from('incident-images').upload(filePath, file);
-        if (error) {
-            console.error('Upload error:', error);
-            return null;
-        }
-        const { data: { publicUrl } } = supabase.storage.from('incident-images').getPublicUrl(filePath);
-        return publicUrl;
-    } catch (error) {
-        console.error('Image upload failed:', error);
-        return null;
-    }
-}
-
 // Set loading state
 function setLoading(isLoading) {
     const submitBtn = document.getElementById('submitBtn');
@@ -733,7 +720,7 @@ async function initializeAI() {
     console.log('AI initialization complete!');
 }
 
-// Form submission
+// Form submission - FIXED
 document.addEventListener('DOMContentLoaded', async () => {
     const reportForm = document.getElementById('reportForm');
     const categoryInput = document.getElementById('category');
@@ -741,7 +728,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     await initializeAI();
     setupImageUpload();
-    setupAnonymousToggle(); // Initialize anonymous toggle
+    setupAnonymousToggle();
     
     if (reportForm) {
         reportForm.addEventListener('submit', async (e) => {
@@ -759,7 +746,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const anonymousToggle = document.getElementById('anonymousToggle');
             const isAnonymous = anonymousToggle ? anonymousToggle.checked : false;
             
-            // If anonymous, override the name
             if (isAnonymous) {
                 studentName = 'Anonymous Reporter';
             }
@@ -781,6 +767,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     imageUrl = await uploadImage(imageFile, currentStudent.id);
                 }
                 
+                // SINGLE reportData - FIXED: No duplicate
                 const reportData = {
                     title: title,
                     location: location,
@@ -789,8 +776,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     description: description,
                     image_url: imageUrl,
                     student_name: studentName,
-                    student_id_number: isAnonymous ? null : currentStudent.idNumber,
-                    is_anonymous: isAnonymous,
+                    student_id_number: currentStudent.idNumber,
                     status: 'pending',
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
@@ -874,7 +860,6 @@ if (!document.querySelector('style[data-report-animations]')) {
         .ai-dismiss-btn { background: #E5E7EB; color: #4B5563; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
         .ai-dismiss-btn:hover { background: #D1D5DB; }
         
-        /* Anonymous reporting styles */
         .anonymous-switch { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-radius: 12px; transition: background 0.2s ease; cursor: pointer; }
         .anonymous-switch:hover { background: rgba(0,0,0,0.02); }
         .anonymous-switch input { width: 18px; height: 18px; cursor: pointer; accent-color: #1D9E75; }
