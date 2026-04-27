@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Care -- Admin Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Assets/login/admin/style.css">
+    <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <div class="app-icon">
+                <img src="/Assets/Images/logo.png" alt="App Icon">
+            </div>
+            <h1>CampusCare</h1>
+            <p>Report and manage campus issues efficiently</p>
+        </div>
+
+        <div class="login-card admin-theme" id="adminLoginCard">
+            <div class="user-icon">🛡️</div>
+            <h2>Admin Login</h2>
+            <p>Access admin panel securely</p>
+
+            <div class="input-group">
+                <label>Email Address</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="Enter your email" id="adminEmail">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <div class="input-icon password-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Enter your password" id="adminPasswordInput">
+                </div>
+            </div>
+            <button class="login-btn admin-btn">Login</button>
+            <button type="button" class="Adminforgot-btn" id="showAdminForgotPassword">Forgot Password?</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Campus Care. All rights reserved.</p>
+    </footer>
+
+    <script type="module" src="/Assets/login/admin/func.js"></script>
+</body>
+</html>

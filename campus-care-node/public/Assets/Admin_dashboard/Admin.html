@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCare — Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Assets/Admin_dashboard/style.css">
+    <link rel="icon" href="/Assets/IMAGES/logo.png" type="image/png">
+  </head>
+  <body>
+    <!-- Navigation Drawer Overlay -->
+    <div class="drawer-overlay" id="overlay"></div>
+
+    <!-- Navigation Drawer -->
+    <nav class="drawer" id="drawer" aria-label="Main navigation">
+      <div class="drawer-header">
+        <button class="drawer-close" id="drawerClose" aria-label="Close menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        
+        <div class="drawer-profile">
+          <div class="drawer-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="drawer-info">
+            <div class="drawer-name">Administrator</div>
+            <div class="drawer-role">Campus Care Admin</div>
+          </div>
+          <span class="drawer-badge">Admin</span>
+        </div>
+      </div>
+
+      <!-- Navigation Items -->
+      <div class="drawer-nav">
+        <button class="drawer-item active" data-page="dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="drawer-item" data-page="incidents">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span>Incidents</span>
+        </button>
+        <button class="drawer-item" data-page="users">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span>Users</span>
+        </button>
+
+        <hr class="drawer-divider">
+
+        <button class="drawer-item" data-page="settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          </svg>
+          <span>Settings</span>
+        </button>
+        <button class="drawer-item" data-page="reports">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 20V10"/>
+            <path d="M12 20V4"/>
+            <path d="M6 20v-6"/>
+          </svg>
+          <span>Reports</span>
+        </button>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="drawer-footer">
+        <button class="drawer-logout" aria-label="Logout">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        
+        <div class="brand">
+          <div class="brand-logo">
+            <img src="/Assets/IMAGES/logo.png" alt="CampusCare Logo">
+          </div>
+          <span class="brand-name">CampusCare</span>
+        </div>
+      </div>
+      <button class="admin-pill" id="adminPill" aria-label="Admin menu">Admin</button>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Page Header -->
+      <section class="page-header">
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="page-sub">Manage Incident and Monitor Campus Maintenance</p>
+      </section>
+
+      <!-- Key Performance Indicators -->
+      <section class="kpi-section">
+        <h2 class="sr-only">Key Performance Indicators</h2>
+        <div class="kpi-strip">
+          <!-- Total Reports KPI -->
+          <div class="kpi-card">
+            <div class="kpi-icon ki-teal">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 20V10"/>
+                <path d="M12 20V4"/>
+                <path d="M6 20v-6"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val">3</div>
+              <div class="kpi-label">Total Reports</div>
+              <div class="kpi-sub">All time</div>
+            </div>
+          </div>
+
+          <!-- Average Resolution Time KPI -->
+          <div class="kpi-card">
+            <div class="kpi-icon ki-blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val">69h</div>
+              <div class="kpi-label">Average Resolution</div>
+              <div class="kpi-sub">Average time</div>
+            </div>
+          </div>
+
+          <!-- Active Departments KPI -->
+          <div class="kpi-card">
+            <div class="kpi-icon ki-purple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val">4</div>
+              <div class="kpi-label">Departments</div>
+              <div class="kpi-sub">Active</div>
+            </div>
+          </div>
+
+          <!-- User Rating KPI -->
+          <div class="kpi-card">
+            <div class="kpi-icon ki-amber">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val">92%</div>
+              <div class="kpi-label">Average Resolution</div>
+              <div class="kpi-sub">User rating</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Incident Categories -->
+      <section class="categories-section">
+        <h2 class="sr-only">Incident Categories</h2>
+        <div class="cat-strip">
+          <div class="cat-card cc-red">
+            <div class="cat-num">1</div>
+            <div class="cat-label">Security</div>
+          </div>
+          <div class="cat-card cc-blue">
+            <div class="cat-num">1</div>
+            <div class="cat-label">Maintenance</div>
+          </div>
+          <div class="cat-card cc-green">
+            <div class="cat-num">1</div>
+            <div class="cat-label">Janitorial</div>
+          </div>
+          <div class="cat-card cc-amber">
+            <div class="cat-num">0</div>
+            <div class="cat-label">Facilities</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Incidents Management Section -->
+      <section class="incidents-section">
+        <div class="section-hdr">
+          <h2 class="section-title">Incident Management</h2>
+          <div class="filter-tabs">
+            <button class="tab-btn active" data-filter="all">All</button>
+            <button class="tab-btn" data-filter="pending">Pending</button>
+            <button class="tab-btn" data-filter="in-progress">In Progress</button>
+            <button class="tab-btn" data-filter="resolved">Resolved</button>
+          </div>
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="table-wrap">
+          <table role="table" aria-label="Incidents table">
+            <thead>
+              <tr>
+                <th scope="col">Incident</th>
+                <th scope="col">Category</th>
+                <th scope="col">Priority</th>
+                <th scope="col">Status</th>
+                <th scope="col">Reporter</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Incident Row 1: Sharp Knife -->
+              <tr>
+                <td>
+                  <div class="inc-cell">
+                    <div class="inc-icon-sm ics-red" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="inc-name">Sharp knife</div>
+                      <div class="inc-loc">Room 504, 5th floor</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge b-security">Security</span></td>
+                <td><span class="badge b-high">High</span></td>
+                <td><span class="badge b-pending">Pending</span></td>
+                <td><span class="reporter-name">Lebron K. James</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" aria-label="Edit incident">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn del" aria-label="Delete incident">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Incident Row 2: Dirty Toilet -->
+              <tr>
+                <td>
+                  <div class="inc-cell">
+                    <div class="inc-icon-sm ics-teal" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+                        <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+                        <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+                        <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="inc-name">Dirty Toilet</div>
+                      <div class="inc-loc">5th floor, near room 517</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge b-janitorial">Janitorial</span></td>
+                <td><span class="badge b-medium">Medium</span></td>
+                <td><span class="badge b-resolved">Resolved</span></td>
+                <td><span class="reporter-name">Michael Jordan</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" aria-label="Edit incident">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn del" aria-label="Delete incident">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Incident Row 3: Broken Wire -->
+              <tr>
+                <td>
+                  <div class="inc-cell">
+                    <div class="inc-icon-sm ics-blue" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="inc-name">Broken sparking wire</div>
+                      <div class="inc-loc">Room 504, 5th floor</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge b-maintenance">Maintenance</span></td>
+                <td><span class="badge b-high">High</span></td>
+                <td><span class="badge b-inprogress">In progress</span></td>
+                <td><span class="reporter-name">Gerald Anderson</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" aria-label="Edit incident">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn del" aria-label="Delete incident">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mobile-cards">
+          <!-- Mobile Card 1: Sharp Knife -->
+          <article class="m-card">
+            <div class="m-card-top">
+              <div class="inc-icon-sm ics-red" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <div>
+                <div class="inc-name">Sharp knife</div>
+                <div class="inc-loc">Room 504, 5th floor</div>
+              </div>
+            </div>
+
+            <div class="m-card-body">
+              <div>
+                <div class="m-field-label">Category</div>
+                <span class="badge b-security">Security</span>
+              </div>
+              <div>
+                <div class="m-field-label">Priority</div>
+                <span class="badge b-high">High</span>
+              </div>
+              <div>
+                <div class="m-field-label">Status</div>
+                <span class="badge b-pending">Pending</span>
+              </div>
+              <div>
+                <div class="m-field-label">Reporter</div>
+                <div class="reporter-mobile">Lebron K. James</div>
+              </div>
+            </div>
+
+            <div class="m-card-footer">
+              <div class="m-timestamp">2h ago</div>
+              <div class="action-btns">
+                <button class="action-btn" aria-label="Edit incident">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="action-btn del" aria-label="Delete incident">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- Mobile Card 2: Dirty Toilet -->
+          <article class="m-card">
+            <div class="m-card-top">
+              <div class="inc-icon-sm ics-teal" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+                  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+                  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+                  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                </svg>
+              </div>
+              <div>
+                <div class="inc-name">Dirty Toilet</div>
+                <div class="inc-loc">5th floor, near room 517</div>
+              </div>
+            </div>
+
+            <div class="m-card-body">
+              <div>
+                <div class="m-field-label">Category</div>
+                <span class="badge b-janitorial">Janitorial</span>
+              </div>
+              <div>
+                <div class="m-field-label">Priority</div>
+                <span class="badge b-medium">Medium</span>
+              </div>
+              <div>
+                <div class="m-field-label">Status</div>
+                <span class="badge b-resolved">Resolved</span>
+              </div>
+              <div>
+                <div class="m-field-label">Reporter</div>
+                <div class="reporter-mobile">Michael Jordan</div>
+              </div>
+            </div>
+
+            <div class="m-card-footer">
+              <div class="m-timestamp">5h ago</div>
+              <div class="action-btns">
+                <button class="action-btn" aria-label="Edit incident">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="action-btn del" aria-label="Delete incident">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- Mobile Card 3: Broken Wire -->
+          <article class="m-card">
+            <div class="m-card-top">
+              <div class="inc-icon-sm ics-blue" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="inc-name">Broken sparking wire</div>
+                <div class="inc-loc">Room 504, 5th floor</div>
+              </div>
+            </div>
+
+            <div class="m-card-body">
+              <div>
+                <div class="m-field-label">Category</div>
+                <span class="badge b-maintenance">Maintenance</span>
+              </div>
+              <div>
+                <div class="m-field-label">Priority</div>
+                <span class="badge b-high">High</span>
+              </div>
+              <div>
+                <div class="m-field-label">Status</div>
+                <span class="badge b-inprogress">In progress</span>
+              </div>
+              <div>
+                <div class="m-field-label">Reporter</div>
+                <div class="reporter-mobile">Gerald Anderson</div>
+              </div>
+            </div>
+
+            <div class="m-card-footer">
+              <div class="m-timestamp">8h ago</div>
+              <div class="action-btns">
+                <button class="action-btn" aria-label="Edit incident">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="action-btn del" aria-label="Delete incident">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+    <!-- Scripts -->
+    <script src="/Assets/Admin_dashboard/Admin.js"></script>
+  </body>
+</html>

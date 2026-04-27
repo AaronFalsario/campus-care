@@ -18,10 +18,11 @@
             <p>Report and manage campus issues efficiently</p>
         </div>
 
+        <!-- Login Card -->
         <div class="login-card admin-theme" id="adminLoginCard">
             <div class="user-icon">🛡️</div>
             <h2>Admin Login</h2>
-            <p>Access admin panel securely</p>
+            <p id="loginMessage">Access admin panel securely</p>
 
             <div class="input-group">
                 <label>Email Address</label>
@@ -38,8 +39,51 @@
                     <input type="password" placeholder="Enter your password" id="adminPasswordInput">
                 </div>
             </div>
-            <button class="login-btn admin-btn">Login</button>
+            <button class="login-btn admin-btn" id="adminLoginBtn">Login</button>
             <button type="button" class="Adminforgot-btn" id="showAdminForgotPassword">Forgot Password?</button>
+        </div>
+
+        <!-- Sign Up Card (Hidden by default) -->
+        <div class="login-card admin-theme" id="adminSignupCard" style="display: none;">
+            <div class="user-icon">🛡️</div>
+            <h2>Admin Registration</h2>
+            <p id="signupMessage">Request admin access</p>
+
+            <div class="input-group">
+                <label>Full Name</label>
+                <div class="input-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" placeholder="Enter your full name" id="adminName">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Email Address</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="Enter your email" id="adminSignupEmail">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <div class="input-icon password-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Create a password (min. 6 characters)" id="adminSignupPassword">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Confirm Password</label>
+                <div class="input-icon password-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Confirm your password" id="adminConfirmPassword">
+                </div>
+            </div>
+
+            <button class="login-btn admin-btn" id="adminSignupBtn">Request Access</button>
+            <p class="signup-text">Already have an account?</p>
+            <button type="button" id="showAdminLogin" class="signup-btn">Login</button>
         </div>
     </div>
 

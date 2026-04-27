@@ -1,8 +1,8 @@
 // Student Dashboard JavaScript
 const STORAGE_KEY = 'campus_care_reports';
 const CURRENT_STUDENT = {
-    name: 'Lebron James',
-    id: 'student_001'
+    name: 'Student',
+    id: 'student_001'   
 };
 
 let currentFilter = 'all';
@@ -589,13 +589,30 @@ function initializeDrawer() {
         });
     });
     
-    // Logout
+    // ========== LOGOUT BUTTON - FIXED ==========
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to logout?')) {
+        // Remove any existing event listeners
+        const newLogoutBtn = logoutBtn.cloneNode(true);
+        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+        
+        newLogoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Show confirmation dialog
+            const confirmLogout = confirm('Are you sure you want to logout?');
+            
+            if (confirmLogout) {
+                // Clear student session from localStorage
                 localStorage.removeItem('currentStudent');
-                window.location.href = 'http://127.0.0.1:5500/LANDING%20PAGE/land.html';
+                localStorage.removeItem('studentSession');
+                
+                // Show logout message
+                alert('Logging out...');
+                
+                // Redirect to landing page
+                window.location.href = '/Assets/Landing_page/land.html';
             }
         });
     }

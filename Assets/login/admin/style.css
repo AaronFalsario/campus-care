@@ -275,3 +275,52 @@ footer p {
     color: #94a3b8;
     line-height: 1.5;
 }
+
+        /* Additional admin-specific styles */
+        .admin-login-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .admin-header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .admin-header h1 {
+            font-size: 24px;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        .admin-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .admin-icon {
+            width: 60px;
+            height: 60px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .admin-icon i {
+            font-size: 30px;
+            color: #10b981;
+        }
+        .admin-btn {
+            background: #10b981 !important;
+        }
+        .admin-btn:hover {
+            background: #059669 !important;
+        }
