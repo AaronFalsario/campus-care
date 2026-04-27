@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusCare--login</title>
-    <link rel="stylesheet" href="/Assets/login/log.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CampusCare — Student Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="icon" href="/Assets/IMAGES/logo.png" type="image/png">
+    <link rel="stylesheet" href="/Assets/login/log.css">
 </head>
 <body>
+
 <div class="mobile-container">
     <div class="header">
         <div class="app-icon">
@@ -18,7 +19,7 @@
         <p>Report and manage campus issues efficiently</p>
     </div>
 
-<!--Student Login-->
+    <!-- Student Login Card -->
     <div class="login-card" id="studentLoginCard">
         <div class="user-icon"><i class="fas fa-user-pen"></i></div>
         <h2>Student Login</h2>
@@ -28,80 +29,80 @@
             <label>Email Address</label>
             <div class="input-icon">
                 <i class="fas fa-envelope"></i>
-                <input type="email" placeholder="Enter your email">
+                <input type="email" id="loginEmail" placeholder="Enter your email">
             </div>
+            <div class="email-hint"><i class="fas fa-info-circle"></i> Must use @gordoncollege.edu.ph domain</div>
         </div>
 
         <div class="input-group">
             <label>Password</label>
             <div class="input-icon password-container">
                 <i class="fas fa-lock"></i>
-                <input type="password" placeholder="Enter your password" id="passwordInput">
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+                <i class="fas fa-eye toggle-password" id="toggleLoginPassword" style="left: auto; right: 12px; cursor: pointer;"></i>
             </div>
         </div>
 
-        <button class="login-btn">Login</button>
-        <p class="signup-text" id="signupPrompt">Don't have an account?</p>
+        <button class="login-btn" id="loginBtn">Login</button>
+        <p class="signup-text">Don't have an account?</p>
         <button type="button" class="signup-btn" id="showSignup">Sign up</button>
         <button type="button" class="Forgot-password" id="showForgotPassword">Forgot Password?</button>
     </div>
 
-<!--Student Sign Up-->
-    <form id="signupForm" action="/Assets/STUDENTDB/SDB.html" method="post" style="display:none;">
-        <div class="login-card">
-            <div class="user-icon"><i class="fas fa-user-pen"></i></div>
-            <h2>Student Sign Up</h2>
-            <p>Create your student account</p>
+    <!-- Student Sign Up Form -->
+    <div class="login-card" id="signupForm" style="display: none;">
+        <div class="user-icon"><i class="fas fa-user-plus"></i></div>
+        <h2>Student Sign Up</h2>
+        <p>Create your student account</p>
 
-            <div class="input-group">
-                <label>Full Name</label>
-                <div class="input-icon">
-                    <i class="fas fa-user"></i>
-                    <input type="text" placeholder="e.g Juan, Dela Cruz" required>
-                </div>
+        <div class="input-group">
+            <label>Full Name</label>
+            <div class="input-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" id="signupName" placeholder="e.g., Juan Dela Cruz">
             </div>
-
-            <div class="input-group">
-                <label>Student ID</label>
-                <div class="input-icon">
-                    <i class="fas fa-hashtag"></i>
-                    <input type="text" placeholder="Enter your student ID" required>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>Email Address</label>
-                <div class="input-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" placeholder="Enter your email (@gordoncollege.edu.ph)" required>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>Password</label>
-                <div class="input-icon password-container">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="new-password" placeholder="Enter password" required>
-                </div>
-            </div>
-
-            <button type="submit" class="login-btn">Sign Up</button>
-            <p class="signup-text">Already have an account?</p>
-            <button type="button" id="showLogin" class="signup-btn">Login</button>
         </div>
-    </form>
-</div>          
 
-<!--Loader Overlay-->
-<div class="loader-overlay" id="loaderOverlay">
-    <div class="loader-container">
-        <div class="spinner"></div>
+        <div class="input-group">
+            <label>Student ID</label>
+            <div class="input-icon">
+                <i class="fas fa-hashtag"></i>
+                <input type="text" id="signupStudentId" placeholder="Enter your student ID">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Email Address</label>
+            <div class="input-icon">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="signupEmail" placeholder="Enter your email">
+            </div>
+            <div class="email-hint"><i class="fas fa-info-circle"></i> Must use @gordoncollege.edu.ph domain</div>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-icon password-container">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="signupPassword" placeholder="Enter password (min. 6 characters)">
+                <i class="fas fa-eye toggle-password" id="toggleSignupPassword" style="left: auto; right: 12px; cursor: pointer;"></i>
+            </div>
+        </div>
+
+        <button class="login-btn" id="signupBtn">Sign Up</button>
+        <p class="signup-text">Already have an account?</p>
+        <button type="button" id="showLogin" class="signup-btn">Login</button>
     </div>
-</div>          
+</div>
+
+<div class="loader-overlay" id="loaderOverlay">
+    <div class="spinner"></div>
+</div>
 
 <footer>
-    <p>&copy; 2023 Campus Care. All rights reserved.</p>
+    <p>&copy; 2025 CampusCare. All rights reserved.</p>
 </footer>
+
 <script type="module" src="/Assets/login/log.js"></script>
 </body>
 </html>

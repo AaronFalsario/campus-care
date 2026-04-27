@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CampusCare — Incident Management | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
+    <link rel="stylesheet" href="/Assets/Admin_dashboard/incident/incident.css">
+</head>
+<body>
+    <div class="drawer-overlay" id="overlay"></div>
+    <nav class="drawer" id="drawer">
+        <div class="drawer-header">
+            <div class="drawer-avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="drawer-info"><div class="drawer-name">Administrator</div><div class="drawer-role">Campus Care Admin</div></div>
+            <span class="drawer-badge">Admin</span>
+        </div>
+        <div class="drawer-nav">
+            <button class="drawer-item" data-page="dashboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="drawer-item active" data-page="incidents">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span>Incidents</span>
+            </button>
+            <button class="drawer-item" data-page="users">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Users</span>
+            </button>
+            <hr class="drawer-divider">
+            <button class="drawer-item" data-page="settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                </svg>
+                <span>Settings</span>
+            </button>
+        </div>
+        <div class="drawer-footer">
+            <button class="drawer-logout" id="logoutBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                <span>Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="topbar">
+        <div class="topbar-left" style="display: flex; align-items: center; gap: 12px;">
+            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+            <div class="brand">
+                <div class="brand-logo"><img src="/Assets/Images/logo.png" alt="CampusCare" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%231D9E75\'%3E%3Cpath d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/%3E%3C/svg%3E'"></div>
+                <span class="brand-name">CampusCare</span>
+            </div>
+        </div>
+        <button class="admin-pill" id="adminPill">Admin</button>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <h1 class="page-title">Incident Management</h1>
+            <p class="page-sub">View, filter, and manage all campus incident reports</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-info"><div class="stat-number" id="totalIncidents">0</div><div class="stat-label">Total Incidents</div></div></div>
+            <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-info"><div class="stat-number" id="pendingIncidents">0</div><div class="stat-label">Pending</div></div></div>
+            <div class="stat-card"><div class="stat-icon">⚙️</div><div class="stat-info"><div class="stat-number" id="inProgressIncidents">0</div><div class="stat-label">In Progress</div></div></div>
+            <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-info"><div class="stat-number" id="resolvedIncidents">0</div><div class="stat-label">Resolved</div></div></div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <span class="filter-label">🔍 Search:</span>
+                <input type="text" id="searchInput" class="filter-input search-input" placeholder="Title, reporter, location...">
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Category:</span>
+                <select id="categoryFilter" class="filter-select">
+                    <option value="all">All Categories</option>
+                    <option value="security">Security</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="janitorial">Janitorial</option>
+                    <option value="facilities">Facilities</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Priority:</span>
+                <select id="priorityFilter" class="filter-select">
+                    <option value="all">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Status:</span>
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+            </div>
+            <button class="export-btn" onclick="exportToCSV()">📊 Export CSV</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Incident</th><th>Category</th><th>Priority</th><th>Status</th><th>Reporter</th><th>Student ID</th><th>Date</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="incidentTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="mobile-cards" id="mobileCards"></div>
+        <div class="pagination" id="pagination"></div>
+    </main>
+
+    <div id="incidentModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header"><h3>Incident Details</h3><button onclick="closeModal()">&times;</button></div>
+            <div class="modal-body">
+                <div><img id="modalImage" style="max-width:100%; border-radius:12px;"><div id="noImage" style="text-align:center;color:#999;">No image</div></div>
+                <div>
+                    <div class="info-row"><span class="info-label">Title:</span><span id="modalTitle"></span></div>
+                    <div class="info-row"><span class="info-label">Location:</span><span id="modalLocation"></span></div>
+                    <div class="info-row"><span class="info-label">Category:</span><span id="modalCategory"></span></div>
+                    <div class="info-row"><span class="info-label">Priority:</span><span id="modalPriority"></span></div>
+                    <div class="info-row"><span class="info-label">Reporter:</span><span id="modalReporter"></span></div>
+                    <div class="info-row"><span class="info-label">Student ID:</span><span id="modalStudentId"></span></div>
+                    <div class="info-row"><span class="info-label">Date:</span><span id="modalDate"></span></div>
+                    <div class="info-row"><span class="info-label">Description:</span><span id="modalDescription"></span></div>
+                    <div class="info-row"><span class="info-label">Status:</span><select id="modalStatus"><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option></select></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button onclick="closeModal()">Cancel</button><button onclick="saveStatus()">Save Changes</button></div>
+        </div>
+    </div>
+
+    <script src="/Assets/Admin_dashboard/incident/incident.js"></script>
+
+</body>
+</html>
