@@ -10,24 +10,48 @@ let isAnalyzing = false;
 let currentAnalysis = null;
 let mobilenetModel = null;
 
+// ========== ADDED: Store uploaded image data ==========
+let uploadedImageData = null;
+
 // Function to get current logged-in student
 function getCurrentStudent() {
     const stored = localStorage.getItem('currentStudent');
     if (stored) {
         const student = JSON.parse(stored);
         return {
-            id: student.id || 'student_001',
+            id: student.id || student.studentId || 'student_001',
             name: student.name || document.getElementById('studentName')?.value || 'Student',
-            idNumber: student.idNumber || student.student_id_number || student.student_id_numb || '2024-00001',
+            // FIXED: Use studentId consistently
+            studentId: student.studentId || student.id || student.idNumber || '2024-00001',
             email: student.email || 'student@campus.edu'
         };
     }
     return {
         id: 'student_001',
         name: document.getElementById('studentName')?.value || 'Student',
-        idNumber: '2024-00001',
+        studentId: '2024-00001',
         email: 'student@campus.edu'
     };
+}
+
+// NEW: Prefill student name from localStorage
+function prefillStudentName() {
+    const studentNameInput = document.getElementById('studentName');
+    if (!studentNameInput) return;
+    
+    const stored = localStorage.getItem('currentStudent');
+    if (stored) {
+        try {
+            const student = JSON.parse(stored);
+            if (student.name) {
+                studentNameInput.value = student.name;
+                // Store original name for anonymous toggle restore
+                studentNameInput.setAttribute('data-original-name', student.name);
+            }
+        } catch(e) {
+            console.error('Error parsing student data:', e);
+        }
+    }
 }
 
 // Category mapping with keywords for MobileNet detection
@@ -425,7 +449,7 @@ function showAISuggestion(category, confidence, matchedKeywords = [], priority =
     }
 }
 
-// Setup anonymous reporting toggle
+// Setup anonymous reporting toggle (MODIFIED: clears name field when checked)
 function setupAnonymousToggle() {
     const anonymousToggle = document.getElementById('anonymousToggle');
     const studentNameInput = document.getElementById('studentName');
@@ -436,22 +460,23 @@ function setupAnonymousToggle() {
     
     anonymousToggle.addEventListener('change', function(e) {
         if (this.checked) {
-            const originalName = studentNameInput.value;
-            studentNameInput.value = 'Anonymous Reporter';
+            // Store the original name if not already stored
+            if (!studentNameInput.getAttribute('data-original-name') && studentNameInput.value) {
+                studentNameInput.setAttribute('data-original-name', studentNameInput.value);
+            }
+            // Clear the name field (vanish)
+            studentNameInput.value = '';
             studentNameInput.disabled = true;
             studentNameInput.style.backgroundColor = '#F3F4F6';
             studentNameInput.style.color = '#6B7280';
             studentNameInput.style.cursor = 'not-allowed';
             
-            if (originalName && originalName !== 'Anonymous Reporter') {
-                studentNameInput.setAttribute('data-original-name', originalName);
-            }
-            
             if (anonymousWarning) anonymousWarning.style.display = 'block';
             if (anonymousInfo) anonymousInfo.style.display = 'block';
             
-            showNotification('🔒 Anonymous mode activated. Your identity is protected.', 'info');
+            showNotification('🔒 Anonymous mode activated. Your name will not appear.', 'info');
         } else {
+            // Restore original name
             const originalName = studentNameInput.getAttribute('data-original-name');
             studentNameInput.value = originalName || '';
             studentNameInput.disabled = false;
@@ -496,7 +521,7 @@ async function uploadImage(file, studentId) {
     }
 }
 
-// Setup image upload
+// ========== FIXED: Setup image upload with base64 storage ==========
 function setupImageUpload() {
     const imageInput = document.getElementById('image');
     const uploadZone = document.getElementById('uploadZone');
@@ -532,8 +557,7 @@ function setupImageUpload() {
         
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
-            imageInput.files = file;
-            handleImageUpload(file);
+            handleImageFile(file);
         }
     });
     
@@ -541,6 +565,7 @@ function setupImageUpload() {
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             imageInput.value = '';
+            uploadedImageData = null;  // Clear stored image
             previewContainer.style.display = 'none';
             uploadContent.style.display = 'block';
             
@@ -550,22 +575,27 @@ function setupImageUpload() {
         });
     }
     
-    imageInput.addEventListener('change', async function(e) {
+    imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
-            await handleImageUpload(file);
+            handleImageFile(file);
         }
     });
     
-    async function handleImageUpload(file) {
+    // ========== FIXED: Store image as base64 ==========
+    function handleImageFile(file) {
         const reader = new FileReader();
         reader.onload = function(event) {
-            previewImg.src = event.target.result;
+            // Store base64 image data
+            uploadedImageData = event.target.result;
+            previewImg.src = uploadedImageData;
             uploadContent.style.display = 'none';
             previewContainer.style.display = 'flex';
+            console.log('Image loaded and stored as base64, length:', uploadedImageData.length);
         };
         reader.readAsDataURL(file);
         
+        // AI Analysis (keep existing functionality)
         const indicator = document.getElementById('aiAnalysisIndicator');
         if (indicator) {
             indicator.className = 'ai-indicator processing';
@@ -573,33 +603,48 @@ function setupImageUpload() {
             indicator.innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><div class="spinner-small"></div><span>🤖 AI is analyzing the image...</span></div>`;
         }
         
-        try {
-            await loadMobileNet();
-            
-            const aiResult = await analyzeImageWithAI(file);
-            
-            if (aiResult && aiResult.predicted_type && aiResult.confidence > 0.35) {
-                const category = aiResult.predicted_type;
-                const confidence = aiResult.confidence;
-                const matchedKeywords = aiResult.matchedKeywords || [];
+        (async () => {
+            try {
+                await loadMobileNet();
                 
-                const priorityResult = await analyzePriorityLevel(file, category);
-                const priority = priorityResult.priority;
-                const priorityConfidence = priorityResult.confidence;
+                const aiResult = await analyzeImageWithAI(file);
                 
-                showAISuggestion(category, confidence, matchedKeywords, priority, priorityConfidence);
-                
-                if (confidence > 0.65) {
-                    setTimeout(() => {
-                        applyAICategory(category);
-                        applyAIPriority(priority);
-                    }, 500);
+                if (aiResult && aiResult.predicted_type && aiResult.confidence > 0.35) {
+                    const category = aiResult.predicted_type;
+                    const confidence = aiResult.confidence;
+                    const matchedKeywords = aiResult.matchedKeywords || [];
+                    
+                    const priorityResult = await analyzePriorityLevel(file, category);
+                    const priority = priorityResult.priority;
+                    const priorityConfidence = priorityResult.confidence;
+                    
+                    showAISuggestion(category, confidence, matchedKeywords, priority, priorityConfidence);
+                    
+                    if (confidence > 0.65) {
+                        setTimeout(() => {
+                            applyAICategory(category);
+                            applyAIPriority(priority);
+                        }, 500);
+                    }
+                } else {
+                    if (indicator) {
+                        indicator.className = 'ai-indicator error';
+                        indicator.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <span>⚠️ AI couldn't determine the category. Please select manually.</span>
+                            <button type="button" id="dismissAIError" style="background: none; border: none; cursor: pointer; color: #DC2626;">✗ Dismiss</button>
+                        </div>`;
+                        const dismissError = document.getElementById('dismissAIError');
+                        if (dismissError) {
+                            dismissError.onclick = () => { indicator.style.display = 'none'; };
+                        }
+                    }
                 }
-            } else {
+            } catch (error) {
+                console.error('AI analysis error:', error);
                 if (indicator) {
                     indicator.className = 'ai-indicator error';
                     indicator.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                        <span>⚠️ AI couldn't determine the category. Please select manually.</span>
+                        <span>⚠️ AI analysis failed. Please select category manually.</span>
                         <button type="button" id="dismissAIError" style="background: none; border: none; cursor: pointer; color: #DC2626;">✗ Dismiss</button>
                     </div>`;
                     const dismissError = document.getElementById('dismissAIError');
@@ -608,20 +653,7 @@ function setupImageUpload() {
                     }
                 }
             }
-        } catch (error) {
-            console.error('AI analysis error:', error);
-            if (indicator) {
-                indicator.className = 'ai-indicator error';
-                indicator.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <span>⚠️ AI analysis failed. Please select category manually.</span>
-                    <button type="button" id="dismissAIError" style="background: none; border: none; cursor: pointer; color: #DC2626;">✗ Dismiss</button>
-                </div>`;
-                const dismissError = document.getElementById('dismissAIError');
-                if (dismissError) {
-                    dismissError.onclick = () => { indicator.style.display = 'none'; };
-                }
-            }
-        }
+        })();
     }
 }
 
@@ -720,11 +752,14 @@ async function initializeAI() {
     console.log('AI initialization complete!');
 }
 
-// Form submission - FIXED
+// ========== FIXED: Form submission with base64 image ==========
 document.addEventListener('DOMContentLoaded', async () => {
     const reportForm = document.getElementById('reportForm');
     const categoryInput = document.getElementById('category');
     const priorityInput = document.getElementById('priority');
+    
+    // NEW: Prefill student name from localStorage
+    prefillStudentName();
     
     await initializeAI();
     setupImageUpload();
@@ -740,14 +775,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const priority = priorityInput?.value;
             const description = document.getElementById('description')?.value.trim();
             let studentName = document.getElementById('studentName')?.value.trim();
-            const imageFile = document.getElementById('image')?.files[0];
             
             // Check if anonymous mode is enabled
             const anonymousToggle = document.getElementById('anonymousToggle');
             const isAnonymous = anonymousToggle ? anonymousToggle.checked : false;
             
+            // If anonymous mode is on, clear name
             if (isAnonymous) {
-                studentName = 'Anonymous Reporter';
+                studentName = '';
             }
             
             // Validation
@@ -756,62 +791,67 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!category) { showErrorMessage('Please select a category', 'categoryError'); scrollToError(document.querySelector('.cat-grid')); return; }
             if (!priority) { showErrorMessage('Please select a priority level', 'priorityError'); scrollToError(document.querySelector('.priority-row')); return; }
             if (!description) { showErrorMessage('Please provide a description', 'descriptionError'); scrollToError(document.getElementById('description')); return; }
-            if (!studentName) { showErrorMessage('Please enter your name or enable anonymous reporting', 'nameError'); scrollToError(document.getElementById('studentName')); return; }
             
             setLoading(true);
             
             try {
                 const currentStudent = getCurrentStudent();
-                let imageUrl = null;
-                if (imageFile) {
-                    imageUrl = await uploadImage(imageFile, currentStudent.id);
-                }
                 
-                // SINGLE reportData - FIXED: No duplicate
-                const reportData = {
+                // ========== FIXED: Use stored base64 image data ==========
+                let imageUrl = uploadedImageData || null;
+                console.log('Image saved:', imageUrl ? `YES (length: ${imageUrl.length})` : 'NO');
+                
+                // If anonymous and studentName is empty, set to 'Anonymous Reporter'
+                const finalStudentName = (isAnonymous && !studentName) ? 'Anonymous Reporter' : (studentName || currentStudent.name);
+                
+                // Create report object for localStorage (with base64 image)
+                // FIXED: Use studentId consistently
+                const localReport = {
+                    id: Date.now(),
                     title: title,
                     location: location,
                     category: category,
                     priority: priority,
                     description: description,
-                    image_url: imageUrl,
-                    student_name: studentName,
-                    student_id_number: currentStudent.idNumber,
-                    status: 'pending',
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-                
-                console.log('Submitting report:', reportData);
-                
-                const { data, error } = await supabase
-                    .from('incident')
-                    .insert([reportData])
-                    .select();
-                
-                if (error) {
-                    console.error('Supabase error:', error);
-                    throw new Error(error.message);
-                }
-                
-                console.log('Success! Report saved:', data);
-                
-                // Save to localStorage
-                const existingReports = JSON.parse(localStorage.getItem('campus_care_reports') || '[]');
-                existingReports.unshift({
-                    id: data?.[0]?.id || Date.now(),
-                    title: title,
-                    location: location,
-                    category: category,
-                    priority: priority,
-                    description: description,
-                    imageUrl: imageUrl,
-                    studentName: studentName,
-                    isAnonymous: isAnonymous,
+                    imageUrl: imageUrl,  // Base64 image
+                    studentName: finalStudentName,
+                    studentId: currentStudent.studentId,  // FIXED: Changed from studentIdNumber to studentId
                     status: 'pending',
                     timestamp: new Date().toISOString()
-                });
+                };
+                
+                console.log('Submitting report:', localReport);
+                console.log('Student ID being saved:', currentStudent.studentId);
+                
+                // Save to localStorage first
+                const existingReports = JSON.parse(localStorage.getItem('campus_care_reports') || '[]');
+                existingReports.unshift(localReport);
                 localStorage.setItem('campus_care_reports', JSON.stringify(existingReports));
+                
+                // Also try to save to Supabase (optional, don't fail if it errors)
+                try {
+                    const supabaseData = {
+                        title: title,
+                        location: location,
+                        category: category,
+                        priority: priority,
+                        description: description,
+                        image_url: imageUrl,
+                        student_name: finalStudentName,
+                        student_id_number: currentStudent.studentId,  // FIXED: Use studentId
+                        status: 'pending',
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    const { error } = await supabase
+                        .from('incident')
+                        .insert([supabaseData]);
+                    
+                    if (error) console.error('Supabase error (non-critical):', error);
+                } catch (supabaseError) {
+                    console.log('Supabase save skipped:', supabaseError.message);
+                }
                 
                 const successMessage = isAnonymous ? 
                     '✅ Report submitted anonymously! Your identity is protected.' : 

@@ -19,8 +19,8 @@ function loadIncidents() {
             reporter: r.studentName || 'Student',
             description: r.description || '',
             timestamp: new Date(r.timestamp),
-            image_url: r.imageUrl || null,
-            student_id_number: r.studentIdNumber || 'N/A'
+            image_url: r.imageUrl || r.image_url || null,
+            student_id_number: r.studentIdNumber || r.studentId || 'N/A'
         }));
     } else {
         // EMPTY - NO DEMO DATA
@@ -92,11 +92,11 @@ function renderTable(incidentsList) {
             <td><span class="badge" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${inc.category.charAt(0).toUpperCase() + inc.category.slice(1)}</span></td>
             <td><span class="badge ${inc.priority === 'high' ? 'b-high' : inc.priority === 'medium' ? 'b-medium' : 'b-low'}">${inc.priority.toUpperCase()}</span></td>
             <td><span class="badge ${inc.status === 'pending' ? 'b-pending' : inc.status === 'in-progress' ? 'b-inprogress' : 'b-resolved'}">${inc.status}</span></td>
-            <td>${escapeHtml(inc.reporter)}</span></td>
-            <td>${inc.student_id_number}</span></td>
-            <td>${getTimeAgo(new Date(inc.timestamp))}</span></td>
+            <td>${escapeHtml(inc.reporter)}</td>
+            <td>${inc.student_id_number}</td>
+            <td>${getTimeAgo(new Date(inc.timestamp))}</td>
             <td><div class="action-btns"><button class="action-btn" onclick="openModal(${inc.id})">👁️</button><button class="action-btn del" onclick="deleteIncident(${inc.id})">🗑️</button></div></td>
-        </tr>
+        <\/tr>
     `).join('');
 }
 
@@ -150,24 +150,92 @@ window.deleteIncident = function(id) {
 
 let currentIncidentId = null;
 
+// ========== FIXED MODAL WITH IMAGE DISPLAY ==========
 window.openModal = function(id) {
     const inc = incidents.find(i => i.id === id);
     if (!inc) return;
     currentIncidentId = id;
-    document.getElementById('modalTitle').innerText = inc.name;
-    document.getElementById('modalLocation').innerText = inc.location;
-    document.getElementById('modalCategory').innerHTML = `<span class="badge" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${inc.category}</span>`;
-    document.getElementById('modalPriority').innerHTML = `<span class="badge">${inc.priority}</span>`;
-    document.getElementById('modalReporter').innerText = inc.reporter;
-    document.getElementById('modalStudentId').innerText = inc.student_id_number;
-    document.getElementById('modalDate').innerText = new Date(inc.timestamp).toLocaleString();
-    document.getElementById('modalDescription').innerText = inc.description || 'No description';
-    document.getElementById('modalStatus').value = inc.status;
-    document.getElementById('incidentModal').style.display = 'flex';
+    
+    // Update text fields
+    const modalTitle = document.getElementById('modalTitle');
+    const modalLocation = document.getElementById('modalLocation');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalPriority = document.getElementById('modalPriority');
+    const modalReporter = document.getElementById('modalReporter');
+    const modalStudentId = document.getElementById('modalStudentId');
+    const modalDate = document.getElementById('modalDate');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalStatus = document.getElementById('modalStatus');
+    const modalImage = document.getElementById('modalImage');
+    const noImageDiv = document.getElementById('noImage');
+    
+    if (modalTitle) modalTitle.innerText = inc.name;
+    if (modalLocation) modalLocation.innerText = inc.location;
+    if (modalCategory) modalCategory.innerHTML = `<span class="badge" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${inc.category}</span>`;
+    if (modalPriority) modalPriority.innerHTML = `<span class="badge ${inc.priority === 'high' ? 'b-high' : inc.priority === 'medium' ? 'b-medium' : 'b-low'}">${inc.priority}</span>`;
+    if (modalReporter) modalReporter.innerText = inc.reporter;
+    if (modalStudentId) modalStudentId.innerText = inc.student_id_number;
+    if (modalDate) modalDate.innerText = new Date(inc.timestamp).toLocaleString();
+    if (modalDescription) modalDescription.innerText = inc.description || 'No description provided';
+    if (modalStatus) modalStatus.value = inc.status;
+    
+    // ========== DISPLAY IMAGE IF EXISTS ==========
+    if (modalImage && noImageDiv) {
+        if (inc.image_url && inc.image_url !== 'null' && inc.image_url !== '' && inc.image_url !== 'undefined') {
+            modalImage.src = inc.image_url;
+            modalImage.style.display = 'block';
+            noImageDiv.style.display = 'none';
+            console.log('Image loaded for incident:', inc.id);
+            
+            // Handle image load error
+            modalImage.onload = function() {
+                console.log('Image loaded successfully');
+            };
+            modalImage.onerror = function() {
+                console.error('Image failed to load:', inc.image_url);
+                modalImage.style.display = 'none';
+                noImageDiv.style.display = 'flex';
+                noImageDiv.style.flexDirection = 'column';
+                noImageDiv.style.alignItems = 'center';
+                noImageDiv.innerHTML = `
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <p>Image failed to load</p>
+                    <p style="font-size: 11px;">The image URL may be invalid or corrupted</p>
+                `;
+            };
+        } else {
+            modalImage.style.display = 'none';
+            noImageDiv.style.display = 'flex';
+            noImageDiv.style.flexDirection = 'column';
+            noImageDiv.style.alignItems = 'center';
+            noImageDiv.innerHTML = `
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <p>No image attached</p>
+                <p style="font-size: 11px;">Student did not upload an image</p>
+            `;
+        }
+    }
+    
+    const modal = document.getElementById('incidentModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
 };
 
 window.closeModal = function() { 
-    document.getElementById('incidentModal').style.display = 'none'; 
+    const modal = document.getElementById('incidentModal');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    currentIncidentId = null;
 };
 
 window.saveStatus = function() {
@@ -178,6 +246,8 @@ window.saveStatus = function() {
         renderIncidents(); 
         updateStats(); 
         showNotification('Status updated', 'success'); 
+        // Also trigger storage event for student dashboard to refresh
+        window.dispatchEvent(new StorageEvent('storage', { key: 'campus_care_reports' }));
     }
     closeModal();
 };
@@ -272,9 +342,72 @@ if (existingData) {
     }
 }
 
+// Add modal image styles
+function addModalImageStyles() {
+    const modalImageContainer = document.querySelector('.modal-image-section');
+    if (modalImageContainer) return;
+    
+    const style = document.createElement('style');
+    style.id = 'modal-image-styles';
+    style.textContent = `
+        .modal-image-section {
+            background: #F1F5F9;
+            border-radius: 12px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .modal-image-section img {
+            max-width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+        }
+        .no-image {
+            text-align: center;
+            color: #94A3B8;
+            padding: 20px;
+        }
+        .no-image svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Add modal HTML if not exists
+function ensureModalHasImageSection() {
+    const modal = document.getElementById('incidentModal');
+    if (!modal) return;
+    
+    const modalBody = modal.querySelector('.modal-body');
+    if (modalBody && !modalBody.querySelector('.modal-image-section')) {
+        const imageSection = document.createElement('div');
+        imageSection.className = 'modal-image-section';
+        imageSection.innerHTML = `
+            <img id="modalImage" src="" alt="Incident Image" style="max-width:100%; max-height:250px; display:none;">
+            <div id="noImage" class="no-image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <p>No image attached</p>
+            </div>
+        `;
+        modalBody.insertBefore(imageSection, modalBody.firstChild);
+    }
+}
+
 loadIncidents();
 setupFilters();
 setupNav();
+addModalImageStyles();
+ensureModalHasImageSection();
 
 window.addEventListener('storage', (e) => { 
     if (e.key === 'campus_care_reports') { 

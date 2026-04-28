@@ -18,10 +18,10 @@
     function isValidGordonEmail(email) {
         if (!email) return false;
         const trimmedEmail = email.trim().toLowerCase();
-        // Must end with @gordoncollege.edu.ph exactly
+        // Must end with @gordoncollege.edu.ph
         return trimmedEmail.endsWith('@gordoncollege.edu.ph') && 
-               trimmedEmail.length > '@gordoncollege.edu.ph'.length &&
-               !trimmedEmail.includes(' ');
+            trimmedEmail.length > '@gordoncollege.edu.ph'.length &&
+            !trimmedEmail.includes(' ');
     }
 
     // Show error style on email input

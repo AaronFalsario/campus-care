@@ -45,10 +45,6 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
             <span>Settings</span>
         </button>
-        <button class="drawer-item" data-page="reports">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-            <span>Reports</span>
-        </button>
     </div>
     <div class="drawer-footer">
         <button class="drawer-logout" id="logoutBtn">
@@ -86,17 +82,53 @@
     </div>
 
     <div class="stats-row">
-        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-info"><div class="stat-number" id="totalReports">0</div><div class="stat-label">Total Reports</div></div></div>
-        <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-info"><div class="stat-number" id="avgResolution">—</div><div class="stat-label">Avg Resolution</div></div></div>
-        <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-info"><div class="stat-number" id="activeReports">0</div><div class="stat-label">Active Reports</div></div></div>
-        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-info"><div class="stat-number" id="resolvedRate">0%</div><div class="stat-label">Resolution Rate</div></div></div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+                <div class="stat-number" id="totalReports">0</div>
+                <div class="stat-label">Total Reports</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-info">
+                <div class="stat-number" id="avgResolution">—</div>
+                <div class="stat-label">Avg Resolution</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+                <div class="stat-number" id="activeReports">0</div>
+                <div class="stat-label">Active Reports</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <div class="stat-number" id="resolvedRate">0%</div>
+                <div class="stat-label">Resolution Rate</div>
+            </div
+        ></div>
     </div>
 
     <div class="cat-strip">
-        <div class="cat-card cc-red"><div class="cat-num" id="securityCount">0</div><div class="cat-label">Security</div></div>
-        <div class="cat-card cc-blue"><div class="cat-num" id="maintenanceCount">0</div><div class="cat-label">Maintenance</div></div>
-        <div class="cat-card cc-green"><div class="cat-num" id="janitorialCount">0</div><div class="cat-label">Janitorial</div></div>
-        <div class="cat-card cc-amber"><div class="cat-num" id="facilitiesCount">0</div><div class="cat-label">Facilities</div></div>
+        <div class="cat-card cc-red">
+            <div class="cat-num" id="securityCount">0</div>
+            <div class="cat-label">Security</div>
+        </div>
+        <div class="cat-card cc-blue">
+            <div class="cat-num" id="maintenanceCount">0</div>
+            <div class="cat-label">Maintenance</div>
+        </div>
+        <div class="cat-card cc-green">
+            <div class="cat-num" id="janitorialCount">0</div>
+            <div class="cat-label">Janitorial</div>
+        </div>
+        <div class="cat-card cc-amber">
+            <div class="cat-num" id="facilitiesCount">0</div>
+            <div class="cat-label">Facilities</div>
+        </div>
     </div>
 
     <div class="two-columns">
@@ -109,10 +141,22 @@
             <div class="card-title">🏷️ Top Categories</div>
             <div class="card-sub">Most reported issues</div>
             <div style="margin-top: 12px;">
-                <div class="violation-item"><span class="violation-name">Security</span><span class="violation-count" id="topSecurity">0</span></div>
-                <div class="violation-item"><span class="violation-name">Maintenance</span><span class="violation-count" id="topMaintenance">0</span></div>
-                <div class="violation-item"><span class="violation-name">Janitorial</span><span class="violation-count" id="topJanitorial">0</span></div>
-                <div class="violation-item"><span class="violation-name">Facilities</span><span class="violation-count" id="topFacilities">0</span></div>
+                <div class="violation-item">
+                    <span class="violation-name">Security</span>
+                    <span class="violation-count" id="topSecurity">0</span>
+                </div>
+                <div class="violation-item">
+                    <span class="violation-name">Maintenance</span>
+                    <span class="violation-count" id="topMaintenance">0</span>
+                </div>
+                <div class="violation-item">
+                    <span class="violation-name">Janitorial</span>
+                    <span class="violation-count" id="topJanitorial">0</span>
+                </div>
+                <div class="violation-item">
+                    <span class="violation-name">Facilities</span>
+                    <span class="violation-count" id="topFacilities">0</span>
+                </div>
             </div>
         </div>
     </div>
@@ -126,7 +170,18 @@
 
     <div class="table-wrap">
         <table>
-            <thead><tr><th>Incident</th><th>Category</th><th>Priority</th><th>Status</th><th>Reporter</th><th>Student ID</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Incident</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Reporter</th>
+                    <th>Student ID</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
             <tbody id="incidentsTableBody"></tbody>
         </table>
     </div>
@@ -152,15 +207,46 @@
                 </div>
             </div>
             <div class="modal-info-section">
-                <div class="info-row"><span class="info-label">Title:</span><span id="modalTitle" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Location:</span><span id="modalLocation" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Category:</span><span id="modalCategory" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Priority:</span><span id="modalPriority" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Reported By:</span><span id="modalReporter" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Student ID:</span><span id="modalStudentId" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Date:</span><span id="modalDate" class="info-value"></span></div>
-                <div class="info-row"><span class="info-label">Description:</span><span id="modalDescription" class="info-value description-text"></span></div>
-                <div class="info-row"><span class="info-label">Status:</span><select id="modalStatus" class="modal-status-select"><option value="pending">⏱️ Pending</option><option value="in-progress">⚙️ In Progress</option><option value="resolved">✓ Resolved</option></select></div>
+                <div class="info-row">
+                    <span class="info-label">Title:</span>
+                    <span id="modalTitle" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Location:</span>
+                    <span id="modalLocation" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Category:</span>
+                    <span id="modalCategory" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Priority:</span>
+                    <span id="modalPriority" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Reported By:</span>
+                    <span id="modalReporter" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Student ID:</span>
+                    <span id="modalStudentId" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date:</span>
+                    <span id="modalDate" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Description:</span>
+                    <span id="modalDescription" class="info-value description-text"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <select id="modalStatus" class="modal-status-select">
+                        <option value="pending">⏱️ Pending</option>
+                        <option value="in-progress">⚙️ In Progress</option>
+                        <option value="resolved">✓ Resolved</option
+                        ></select>
+                    </div>
             </div>
         </div>
         <div class="modal-footer">
