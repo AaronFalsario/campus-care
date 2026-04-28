@@ -24,21 +24,21 @@ window.addEventListener('beforeunload', () => {
     if (refreshInterval) clearInterval(refreshInterval);
 });
 
-// ========== DATABASE & AUTHENTICATION ==========
+// DATABASE & AUTHENTICATION 
 function checkAuth() {
     const stored = localStorage.getItem('currentStudent');
     if (!stored) {
-        window.location.href = '/Assets/Student Authentication/Student.html';
+        window.location.href = '/Assets/Landing_page/land.html';
         return false;
     }
     try {
         currentStudent = JSON.parse(stored);
         if (!currentStudent.name || !currentStudent.studentId) {
-            window.location.href = '/Assets/Student Authentication/Student.html';
+            window.location.href = '/Assets/Landing_page/land.html';
             return false;
         }
     } catch(e) {
-        window.location.href = '/Assets/Student Authentication/Student.html';
+        window.location.href = '/Assets/Landing_page/land.html';
         return false;
     }
     return true;
@@ -149,7 +149,6 @@ function createIncidentCard(report) {
     const timeAgo = getTimeAgo(new Date(report.timestamp));
     const isYourReport = String(report.student_id) === String(currentStudent?.studentId);
     
-    // Status badge class
     let statusClass = '';
     if (report.status === 'pending') statusClass = 'pending';
     else if (report.status === 'in-progress') statusClass = 'progress';
@@ -177,18 +176,14 @@ function createIncidentCard(report) {
     `;
 }
 
-// ========== STATS FUNCTION - NO ANIMATION ==========
 function updateStats() {
-    // Get ONLY the current student's reports
     const myReports = allIncidents.filter(inc => String(inc.student_id) === String(currentStudent?.studentId));
     
     const total = myReports.length;
-    const pendingCount = myReports.filter(r => r.status === 'pending').length;
     const inProgressCount = myReports.filter(r => r.status === 'in-progress').length;
     const resolvedCount = myReports.filter(r => r.status === 'resolved').length;
     const totalCampus = allIncidents.length;
     
-    // Update DOM elements - NO ANIMATION
     const yourReportsEl = document.getElementById('yourReportsCount');
     const inProgressEl = document.getElementById('inProgressCount');
     const resolvedEl = document.getElementById('resolvedCount');
@@ -243,7 +238,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// ========== VIEW MODE TOGGLE ==========
 function toggleViewMode() {
     viewMode = viewMode === 'all' ? 'my' : 'all';
     const toggleBtn = document.getElementById('viewModeToggle');
@@ -270,7 +264,6 @@ window.viewIncident = function(id) {
     document.getElementById('modalCategory').innerHTML = `<span class="badge ${inc.category}">${inc.category}</span>`;
     document.getElementById('modalPriority').innerHTML = `<span class="badge ${inc.priority}">${inc.priority}</span>`;
     
-    // Status display
     let statusClass = '';
     if (inc.status === 'pending') statusClass = 'pending';
     else if (inc.status === 'in-progress') statusClass = 'progress';
@@ -471,6 +464,36 @@ function setupDrawerReportButton() {
     }
 }
 
+// SETTINGS NAVIGATION 
+function setupSettingsNavigation() {
+    // Find settings button in drawer (by data-page or text content)
+    const settingsBtn = document.querySelector('.drawer-item[data-page="settings"]');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/Assets/Student_dashboard/setting/setting.html';
+        });
+    }
+    
+    // Also check for any element with id "settingsNav"
+    const settingsNav = document.getElementById('settingsNav');
+    if (settingsNav) {
+        settingsNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/Assets/Student_dashboard/setting/setting.html';
+        });
+    }
+    
+    // Check for settings button in main content
+    const mainSettingsBtn = document.querySelector('[data-page="settings"], .settings-btn, #settingsBtn');
+    if (mainSettingsBtn) {
+        mainSettingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/Assets/Student_dashboard/setting/setting.html';
+        });
+    }
+}
+
 function setupFilters() {
     document.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -537,7 +560,7 @@ function initializeDrawer() {
                 localStorage.removeItem('currentStudent');
                 showNotification('Logged out successfully');
                 setTimeout(() => {
-                    window.location.href = '/Assets/Student Authentication/Student.html';
+                    window.location.href = '/Assets/Landing_page/land.html';
                 }, 1000);
             }
         });
@@ -571,6 +594,7 @@ function setupUI() {
     addDrawerStyles();
     transformReportButtonToStudentButton();
     setupDrawerReportButton();
+    setupSettingsNavigation();  
     setupAvatarUpload();
     setupFilters();
     addViewModeToggle();
@@ -593,8 +617,6 @@ function init() {
     loadStudentFromLogin();
     loadIncidents();
     setupUI();
-    
-    // Listen for localStorage changes (when admin updates status in another tab)
     window.addEventListener('storage', (e) => {
         if (e.key === STORAGE_KEY) {
             console.log('Storage event detected - reloading incidents');
