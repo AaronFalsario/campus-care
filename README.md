@@ -1,4 +1,3 @@
-Campus Care
 Campus Care is a platform designed to support student wellness, safety, and academic success within a campus environment. 
 It provides students with easy access to campus resources, health services, and support systems.
 ----------------------------------------------------------------------------------------------------------------------------
