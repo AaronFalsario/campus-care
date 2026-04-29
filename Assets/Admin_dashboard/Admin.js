@@ -2,9 +2,47 @@ let allIncidents = [];
 let currentFilter = 'all';
 let incidentChart = null;
 let currentIncidentId = null;
+let currentAdmin = null;
 
-//  AUTO-DELETE RESOLVED INCIDENTS AFTER 24 HOURS
+// AUTO-DELETE RESOLVED INCIDENTS AFTER 24 HOURS
 const RESOLVED_RETENTION_HOURS = 24;
+
+// ============ LOAD ADMIN INFO TO DRAWER ============
+function loadAdminToDrawer() {
+    try {
+        const storedAdmin = localStorage.getItem('currentAdmin');
+        const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
+        
+        if (!storedAdmin || isLoggedIn !== 'true') {
+            return;
+        }
+        
+        currentAdmin = JSON.parse(storedAdmin);
+        const adminName = currentAdmin.name || currentAdmin.email;
+        const adminInitials = adminName
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+        
+        // Update drawer elements
+        const drawerName = document.getElementById('drawerAdminName');
+        const drawerRole = document.getElementById('drawerAdminRole');
+        const drawerInitials = document.getElementById('drawerInitials');
+        const topAdminName = document.getElementById('topAdminName');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        
+        if (drawerName) drawerName.textContent = adminName;
+        if (drawerRole) drawerRole.textContent = currentAdmin.role || 'Campus Care Admin';
+        if (drawerInitials) drawerInitials.textContent = adminInitials;
+        if (topAdminName) topAdminName.textContent = adminName.split(' ')[0] || 'Admin';
+        if (welcomeMessage) welcomeMessage.textContent = `Welcome back, ${adminName}! Manage incidents and monitor campus maintenance`;
+        
+    } catch (error) {
+        console.error('Error loading admin to drawer:', error);
+    }
+}
 
 function checkAndDeleteOldResolved() {
     const now = new Date();
@@ -181,9 +219,9 @@ function renderIncidents() {
             <td><span class="badge b-${inc.category}">${inc.category}</span></td>
             <td><span class="badge b-${inc.priority}">${inc.priority}</span></td>
             <td><span class="badge b-${inc.status === 'in-progress' ? 'inprogress' : inc.status}">${inc.status}</span></td>
-            <td>${escape(inc.reporter)}</td>
-            <td>${inc.student_id}</td>
-            <td>${getTimeAgo(inc.timestamp)}</td>
+            <td>${escape(inc.reporter)}</span></td>
+            <td>${inc.student_id}</span></td>
+            <td>${getTimeAgo(inc.timestamp)}</span></td>
             <td><div class="action-btns"><button class="action-btn" onclick="openModal(${inc.id})">👁️</button></div></td>
         </tr>
     `).join('');
@@ -205,13 +243,11 @@ function renderMobileCards() {
     `).join('');
 }
 
-// ========== FIXED MODAL WITH IMAGE DISPLAY ==========
 window.openModal = function(id) {
     const inc = allIncidents.find(i => i.id === id);
     if (!inc) return;
     currentIncidentId = id;
     
-    // Update text fields
     const modalTitle = document.getElementById('modalTitle');
     const modalLocation = document.getElementById('modalLocation');
     const modalCategory = document.getElementById('modalCategory');
@@ -232,11 +268,8 @@ window.openModal = function(id) {
     if (modalDescription) modalDescription.innerText = inc.description || 'No description provided';
     if (modalStatus) modalStatus.value = inc.status;
     
-    // ========== IMAGE DISPLAY FIX ==========
     const modalImage = document.getElementById('modalImage');
     const noImageDiv = document.getElementById('noImage');
-    
-    console.log('Opening incident:', inc.id, 'Image URL:', inc.image_url);
     
     if (modalImage && noImageDiv) {
         if (inc.image_url && inc.image_url !== 'null' && inc.image_url !== '' && inc.image_url !== 'undefined') {
@@ -244,7 +277,6 @@ window.openModal = function(id) {
             modalImage.style.display = 'block';
             noImageDiv.style.display = 'none';
             
-            // Handle image load error
             modalImage.onload = function() {
                 console.log('Image loaded successfully for incident:', inc.id);
             };
@@ -279,7 +311,6 @@ window.openModal = function(id) {
         }
     }
     
-    // Show deletion info if resolved
     const deletionInfo = document.getElementById('modalDeletionInfo');
     if (deletionInfo) {
         if (inc.status === 'resolved' && inc.resolved_at) {
@@ -361,21 +392,30 @@ function setupEvents() {
             const page = item.dataset.page;
             if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
             else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
-            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/Settings.html';
-            else if (page !== 'dashboard') showNotification(`${page} page coming soon`);
+            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+            else if (page !== 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
             drawer.classList.remove('open'); overlay.classList.remove('open');
         };
     });
     
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.onclick = () => { if (confirm('Logout?')) { localStorage.removeItem('currentStudent'); window.location.href = '/LANDING PAGE/land.html'; } };
-    }
+    // ============ FIXED LOGOUT BUTTON ============
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.onclick = () => { 
+        if (confirm('Are you sure you want to logout?')) { 
+            localStorage.removeItem('currentStudent'); 
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('isAdminLoggedIn');
+            window.location.href = '/Assets/Landing_page/land.html'; 
+        } 
+    };
+}
     
-    document.addEventListener('click', (e) => { if (window.innerWidth <= 768 && !drawer.contains(e.target) && !hamburger.contains(e.target)) { drawer.classList.remove('open'); overlay.classList.remove('open'); } });
+    document.addEventListener('click', (e) => { if (window.innerWidth <= 768 && drawer && hamburger && !drawer.contains(e.target) && !hamburger.contains(e.target)) { drawer.classList.remove('open'); overlay.classList.remove('open'); } });
 }
 
 // Initialize
+loadAdminToDrawer();
 loadData();
 setupEvents();
 startAutoCleanupScheduler();

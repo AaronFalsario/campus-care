@@ -15,17 +15,13 @@
 
 <div class="drawer" id="drawer">
     <div class="drawer-header">
-        <div class="drawer-avatar">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-            </svg>
+        <div class="drawer-avatar" id="drawerAvatar">
+            <span id="drawerInitials" style="font-size: 18px; font-weight: 600;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
         </div>
         <div class="drawer-info">
-            <div class="drawer-name">Administrator</div>
-            <div class="drawer-role">Campus Care Admin</div>
+            <div class="drawer-name" id="drawerAdminName">Administrator</div>
+            <div class="drawer-role" id="drawerAdminRole">Campus Care Admin</div>
         </div>
-        <span class="drawer-badge">Admin</span>
     </div>
     <div class="drawer-nav">
         <button class="drawer-item active" data-page="dashboard">
@@ -48,7 +44,10 @@
     </div>
     <div class="drawer-footer">
         <button class="drawer-logout" id="logoutBtn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
             <span>Logout</span>
         </button>
     </div>
@@ -71,14 +70,14 @@
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
         </svg>
-        <span class="admin-text">Admin</span>
+        <span class="admin-text" id="topAdminName">Admin</span>
     </div>
 </header>
 
 <main>
     <div class="page-header">
         <h1 class="page-title">Admin Dashboard</h1>
-        <p class="page-sub">Manage incidents and monitor campus maintenance</p>
+        <p class="page-sub" id="welcomeMessage">Manage incidents and monitor campus maintenance</p>
     </div>
 
     <div class="stats-row">
@@ -108,8 +107,8 @@
             <div class="stat-info">
                 <div class="stat-number" id="resolvedRate">0%</div>
                 <div class="stat-label">Resolution Rate</div>
-            </div
-        ></div>
+            </div>
+        </div>
     </div>
 
     <div class="cat-strip">
@@ -244,9 +243,9 @@
                     <select id="modalStatus" class="modal-status-select">
                         <option value="pending">⏱️ Pending</option>
                         <option value="in-progress">⚙️ In Progress</option>
-                        <option value="resolved">✓ Resolved</option
-                        ></select>
-                    </div>
+                        <option value="resolved">✓ Resolved</option>
+                    </select>
+                </div>
             </div>
         </div>
         <div class="modal-footer">

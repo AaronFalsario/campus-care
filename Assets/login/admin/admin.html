@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campus Care -- Admin Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/Assets/login/admin/style.css">
     <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
+    <link rel="stylesheet" href="/Assets/login/admin/style.css">
 </head>
 <body>
     <div class="mobile-container">
@@ -18,7 +18,7 @@
             <p>Report and manage campus issues efficiently</p>
         </div>
 
-        <!-- Login Card -->
+        <!-- LOGIN CARD -->
         <div class="login-card admin-theme" id="adminLoginCard">
             <div class="user-icon">🛡️</div>
             <h2>Admin Login</h2>
@@ -43,8 +43,8 @@
             <button type="button" class="Adminforgot-btn" id="showAdminForgotPassword">Forgot Password?</button>
         </div>
 
-        <!-- Sign Up Card (Hidden by default) -->
-        <div class="login-card admin-theme" id="adminSignupCard" style="display: none;">
+        <!-- SIGNUP CARD (HIDDEN BY DEFAULT - Revealed by pressing S then U) -->
+        <div class="login-card admin-theme" id="adminSignupCard">
             <div class="user-icon">🛡️</div>
             <h2>Admin Registration</h2>
             <p id="signupMessage">Request admin access</p>
@@ -91,6 +91,9 @@
         <p>&copy; 2023 Campus Care. All rights reserved.</p>
     </footer>
 
-    <script type="module" src="/Assets/login/admin/func.js"></script>
+    <!-- Toast notification -->
+    <div id="adminToast" class="admin-toast">🔐 Admin access granted</div>
+
+<script type="module" src="/Assets/login/admin/func.js"></script>
 </body>
 </html>

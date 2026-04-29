@@ -52,3 +52,17 @@ window.addEventListener('scroll', () => {
 
     lastScroll = current;
 });
+
+// Hidden admin trigger (click the dash 3 times)
+let adminClickCount = 0;
+let adminTimeout;
+
+document.getElementById('adminTrigger')?.addEventListener('click', () => {
+    adminClickCount++;
+    clearTimeout(adminTimeout);
+    adminTimeout = setTimeout(() => { adminClickCount = 0; }, 800);
+    
+    if (adminClickCount === 3) {
+        window.location.href = '/Assets/login/admin/admin.html';
+    }
+});

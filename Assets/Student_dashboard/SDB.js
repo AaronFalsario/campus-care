@@ -6,6 +6,9 @@ let allIncidents = [];
 let viewMode = 'my';
 let refreshInterval = null;
 
+// Sensitive categories that should be hidden from other students
+const SENSITIVE_CATEGORIES = ['weapon', 'violence', 'threat', 'danger', 'security', 'harassment', 'bullying'];
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     init();
@@ -42,6 +45,44 @@ function checkAuth() {
         return false;
     }
     return true;
+}
+
+// NEW: Check if student can see the description of an incident
+function canStudentSeeDescription(incident) {
+    // If it's the student's OWN report, they can always see it (they already know)
+    if (String(incident.student_id) === String(currentStudent?.studentId)) {
+        return true;
+    }
+    
+    // Check if the category is sensitive
+    if (incident.category && SENSITIVE_CATEGORIES.includes(incident.category.toLowerCase())) {
+        return false;
+    }
+    
+    // For maintenance/janitorial/facilities - it's safe to show
+    return true;
+}
+
+// NEW: Get safe location (hide specific details for sensitive reports)
+function getSafeLocation(incident) {
+    if (canStudentSeeDescription(incident)) {
+        return incident.location;
+    }
+    // Only show general area for sensitive reports
+    const generalArea = incident.location.split(',')[0] || incident.location.split('-')[0];
+    return generalArea + " (specific location hidden for safety)";
+}
+
+// NEW: Get safe title (don't reveal sensitive details in title)
+function getSafeTitle(incident) {
+    if (canStudentSeeDescription(incident)) {
+        return incident.name;
+    }
+    // Generic title for sensitive reports
+    if (incident.category === 'security') {
+        return '⚠️ Security Alert - Admin Notified';
+    }
+    return '⚠️ Safety Alert - Details Restricted';
 }
 
 function loadIncidents() {
@@ -148,27 +189,37 @@ function createIncidentCard(report) {
     
     const timeAgo = getTimeAgo(new Date(report.timestamp));
     const isYourReport = String(report.student_id) === String(currentStudent?.studentId);
+    const canSeeDetails = canStudentSeeDescription(report);
+    const safeTitle = getSafeTitle(report);
+    const safeLocation = getSafeLocation(report);
     
     let statusClass = '';
     if (report.status === 'pending') statusClass = 'pending';
     else if (report.status === 'in-progress') statusClass = 'progress';
     else if (report.status === 'resolved') statusClass = 'resolved';
     
+    // Add safety warning badge for sensitive reports
+    const safetyBadge = (!canSeeDetails && !isYourReport) ? 
+        '<span class="badge safety">🔒 Restricted</span>' : '';
+    
     return `
         <div class="incident-card" onclick="viewIncident(${report.id})">
             <div class="card-header">
-                <div class="incident-title">${escapeHtml(report.name)}</div>
+                <div class="incident-title">${escapeHtml(safeTitle)}</div>
                 <div class="incident-badges">
                     <span class="badge ${report.category}">${cat.label}</span>
                     <span class="badge ${report.priority}">${pri.label}</span>
                     <span class="badge ${statusClass}">${stat.label}</span>
                     ${isYourReport ? '<span class="badge your">Your Report</span>' : '<span class="badge other">By: ' + escapeHtml(report.reporter || 'Student') + '</span>'}
+                    ${safetyBadge}
                 </div>
             </div>
-            <div class="incident-location">📍 ${escapeHtml(report.location)}</div>
+            <div class="incident-location">📍 ${escapeHtml(safeLocation)}</div>
             <div class="card-footer">
                 <div class="reporter-info">
-                    👤 ${isYourReport ? 'Reported by you' : `Reported by: ${escapeHtml(report.reporter || 'Another Student')}`}
+                    ${!canSeeDetails && !isYourReport ? 
+                        '🔒 Sensitive report - details restricted to security personnel' : 
+                        `👤 ${isYourReport ? 'Reported by you' : `Reported by: ${escapeHtml(report.reporter || 'Another Student')}`}`}
                 </div>
                 <div class="timestamp">${timeAgo}</div>
             </div>
@@ -258,9 +309,12 @@ window.viewIncident = function(id) {
     }
     
     const isYourReport = String(inc.student_id) === String(currentStudent?.studentId);
+    const canSeeDetails = canStudentSeeDescription(inc);
+    const safeTitle = getSafeTitle(inc);
+    const safeLocation = getSafeLocation(inc);
     
-    document.getElementById('modalTitle').innerText = inc.name;
-    document.getElementById('modalLocation').innerText = inc.location;
+    document.getElementById('modalTitle').innerText = safeTitle;
+    document.getElementById('modalLocation').innerText = safeLocation;
     document.getElementById('modalCategory').innerHTML = `<span class="badge ${inc.category}">${inc.category}</span>`;
     document.getElementById('modalPriority').innerHTML = `<span class="badge ${inc.priority}">${inc.priority}</span>`;
     
@@ -271,12 +325,32 @@ window.viewIncident = function(id) {
     
     let statusLabel = inc.status === 'in-progress' ? 'In Progress' : inc.status.charAt(0).toUpperCase() + inc.status.slice(1);
     document.getElementById('modalStatus').innerHTML = `<span class="badge ${statusClass}">${statusLabel}</span>`;
-    document.getElementById('modalDescription').innerText = inc.description;
+    
+    // Handle description with safety restrictions
+    const descriptionElement = document.getElementById('modalDescription');
+    if (canSeeDetails) {
+        descriptionElement.innerText = inc.description;
+    } else if (isYourReport) {
+        descriptionElement.innerText = inc.description;
+    } else {
+        descriptionElement.innerHTML = `
+            <div style="background: #FEF2F2; padding: 16px; border-radius: 12px; border-left: 4px solid #DC2626;">
+                <strong style="color: #DC2626;">⚠️ Security Restriction</strong><br>
+                <span style="color: #475569;">This report contains sensitive safety information. Campus security has been notified and is handling the situation.</span><br><br>
+                <span style="font-size: 13px; color: #64748B;">If you have direct knowledge of this incident, please report to the Campus Security Office or Dean's Office immediately.</span>
+            </div>
+        `;
+    }
+    
     document.getElementById('modalDate').innerText = new Date(inc.timestamp).toLocaleString();
     
     const modalReporter = document.getElementById('modalReporter');
     if (modalReporter) {
-        modalReporter.innerHTML = `<span class="badge other">${isYourReport ? 'You' : escapeHtml(inc.reporter || 'Another Student')}</span>`;
+        if (!canSeeDetails && !isYourReport) {
+            modalReporter.innerHTML = `<span class="badge safety">🔒 Confidential - Restricted Access</span>`;
+        } else {
+            modalReporter.innerHTML = `<span class="badge other">${isYourReport ? 'You' : escapeHtml(inc.reporter || 'Another Student')}</span>`;
+        }
     }
     
     modal.classList.add('active');
@@ -306,7 +380,7 @@ function createModal() {
                     <div class="modal-row"><div class="modal-label">Priority</div><div class="modal-value" id="modalPriority"></div></div>
                     <div class="modal-row"><div class="modal-label">Status</div><div class="modal-value" id="modalStatus"></div></div>
                     <div class="modal-row"><div class="modal-label">Reported By</div><div class="modal-value" id="modalReporter"></div></div>
-                    <div class="modal-row"><div class="modal-label">Description</div><div class="modal-value">📄 <span id="modalDescription"></span></div></div>
+                    <div class="modal-row"><div class="modal-label">Description</div><div class="modal-value" id="modalDescription"></div></div>
                     <div class="modal-row"><div class="modal-label">Date</div><div class="modal-value" id="modalDate"></div></div>
                 </div>
                 <div class="modal-footer"><button class="modal-btn modal-btn-primary" onclick="closeModal()">Close</button></div>
@@ -344,6 +418,7 @@ function createModal() {
             .modal-btn { padding: 8px 20px; border-radius: 30px; border: none; cursor: pointer; font-family: inherit; }
             .modal-btn-primary { background: #2368AF; color: white; }
             .badge.other { background: #E2E8F0; color: #475569; }
+            .badge.safety { background: #FEF2F2; color: #DC2626; }
             .badge.progress { background: #EFF6FF; color: #2563EB; }
             .badge.resolved { background: #D1FAE5; color: #059669; }
             .badge.pending { background: #FEF3C7; color: #D97706; }
@@ -582,9 +657,21 @@ function addDrawerStyles() {
             from { transform: translateX(400px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
         .badge.other { background: #E2E8F0; color: #475569; }
+        .badge.safety { background: #FEF2F2; color: #DC2626; font-weight: 500; }
         .filter-chip.active { background: #2563EB; color: white; }
         #viewModeToggle { transition: all 0.2s ease; }
+        .incident-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .incident-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
     `;
     document.head.appendChild(style);
 }
