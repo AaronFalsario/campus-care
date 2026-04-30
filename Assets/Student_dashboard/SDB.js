@@ -1,92 +1,197 @@
 // Student Dashboard JavaScript
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+// Supabase configuration
+const supabaseUrl = 'https://opjyksksnccurdwyskiu.supabase.co'
+const supabaseKey = 'sb_publishable_l7mKNQVJ6WesiTM4GJCxQg_oXxTN3it'
+const supabase = createClient(supabaseUrl, supabaseKey)
+
 const STORAGE_KEY = 'campus_care_reports';
 let currentStudent = null;
 let currentFilter = 'all';
 let allIncidents = [];
 let viewMode = 'my';
 let refreshInterval = null;
+let realtimeSubscription = null;
 
-// Sensitive categories that should be hidden from other students
+// Sensitive categories
 const SENSITIVE_CATEGORIES = ['weapon', 'violence', 'threat', 'danger', 'security', 'harassment', 'bullying'];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing...');
     init();
     startAutoRefresh();
 });
 
 function startAutoRefresh() {
-    if (refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(() => {
-        loadIncidents();
-        console.log('Auto-refreshed - checking for status updates');
-    }, 3000);
+    // Disabled auto-refresh to prevent spam
+    console.log('Auto-refresh is disabled');
+    return;
 }
 
 window.addEventListener('beforeunload', () => {
     if (refreshInterval) clearInterval(refreshInterval);
+    if (realtimeSubscription) realtimeSubscription.unsubscribe();
 });
 
-// DATABASE & AUTHENTICATION 
-function checkAuth() {
+// ========== AUTHENTICATION - CONNECT TO STUDENT TABLE ==========
+async function checkAuth() {
     const stored = localStorage.getItem('currentStudent');
+    console.log('Stored student in localStorage:', stored);
+    
     if (!stored) {
+        console.log('No stored student, redirecting to landing page');
         window.location.href = '/Assets/Landing_page/land.html';
         return false;
     }
+    
     try {
-        currentStudent = JSON.parse(stored);
-        if (!currentStudent.name || !currentStudent.studentId) {
-            window.location.href = '/Assets/Landing_page/land.html';
-            return false;
+        const localStudent = JSON.parse(stored);
+        console.log('Parsed local student:', localStudent);
+        
+        const { data: studentData, error } = await supabase
+            .from('student')
+            .select('*')
+            .eq('student_id', localStudent.studentId)
+            .single();
+        
+        if (error) {
+            console.error('Student not found in database:', error);
+            currentStudent = {
+                id: localStudent.studentId,
+                studentId: localStudent.studentId,
+                name: localStudent.name || localStudent.full_name || 'Student',
+                email: localStudent.email || '',
+                role: 'student'
+            };
+        } else {
+            console.log('Student found in database:', studentData);
+            currentStudent = {
+                id: studentData.id,
+                studentId: studentData.student_id,
+                name: studentData.full_name,
+                email: studentData.email,
+                role: 'student'
+            };
+            // FIX: This write does NOT use the guarded saveToStorage helper because it's
+            // writing currentStudent (a different key), not STORAGE_KEY. It's safe as-is.
+            localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
         }
+        
+        console.log('Final currentStudent:', currentStudent);
+        return true;
+        
     } catch(e) {
-        window.location.href = '/Assets/Landing_page/land.html';
-        return false;
+        console.error('Auth error:', e);
+        currentStudent = {
+            id: 'guest',
+            studentId: 'guest',
+            name: 'Student',
+            email: '',
+            role: 'student'
+        };
+        return true;
     }
-    return true;
 }
 
-// NEW: Check if student can see the description of an incident
 function canStudentSeeDescription(incident) {
-    // If it's the student's OWN report, they can always see it (they already know)
+    if (!currentStudent) return false;
     if (String(incident.student_id) === String(currentStudent?.studentId)) {
         return true;
     }
-    
-    // Check if the category is sensitive
     if (incident.category && SENSITIVE_CATEGORIES.includes(incident.category.toLowerCase())) {
         return false;
     }
-    
-    // For maintenance/janitorial/facilities - it's safe to show
     return true;
 }
 
-// NEW: Get safe location (hide specific details for sensitive reports)
 function getSafeLocation(incident) {
-    if (canStudentSeeDescription(incident)) {
-        return incident.location;
+    if (!currentStudent) return incident.location || 'Location not specified';
+    if (String(incident.student_id) === String(currentStudent?.studentId)) {
+        return incident.location || 'Location not specified';
     }
-    // Only show general area for sensitive reports
-    const generalArea = incident.location.split(',')[0] || incident.location.split('-')[0];
-    return generalArea + " (specific location hidden for safety)";
+    
+    if (incident.category === 'security') {
+        return '<span class="location-restricted">🔒 LOCATION RESTRICTED 🔒</span>';
+    }
+    
+    if (incident.category && SENSITIVE_CATEGORIES.includes(incident.category.toLowerCase())) {
+        const generalArea = incident.location ? (incident.location.split(',')[0] || incident.location.split('-')[0]) : 'Campus';
+        return `📍 ${generalArea} (restricted)`;
+    }
+    
+    return incident.location || 'Location not specified';
 }
 
-// NEW: Get safe title (don't reveal sensitive details in title)
 function getSafeTitle(incident) {
+    if (!currentStudent) return incident.name || 'Incident Report';
     if (canStudentSeeDescription(incident)) {
         return incident.name;
     }
-    // Generic title for sensitive reports
     if (incident.category === 'security') {
         return '⚠️ Security Alert - Admin Notified';
     }
     return '⚠️ Safety Alert - Details Restricted';
 }
 
-function loadIncidents() {
+// ========== LOAD INCIDENTS FROM INCIDENT TABLE ==========
+async function loadIncidents() {
+    try {
+        console.log('Loading incidents from Supabase incident table...');
+        
+        const { data: incidents, error } = await supabase
+            .from('incident')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Supabase error:', error);
+            loadFromLocalStorage();
+            return;
+        }
+        
+        console.log('Raw incidents from Supabase:', incidents);
+        
+        if (incidents && incidents.length > 0) {
+            allIncidents = incidents.map(r => ({
+                id: r.id,
+                name: r.title,
+                location: r.location,
+                category: r.category || 'maintenance',
+                priority: r.priority || 'medium',
+                status: r.status || 'pending',
+                reporter: r.student_name,
+                student_id: r.student_id_number,
+                description: r.description || 'No description provided',
+                timestamp: new Date(r.created_at),
+                image_url: r.image_url || null,
+                is_anonymous: r.is_anonymous
+            }));
+            
+            // FIX: Student dashboard is READ-ONLY. Never write campus_care_reports here.
+            // Writing it caused a cross-tab ping-pong loop with the admin dashboard.
+            // Supabase real-time handles live sync — no localStorage backup needed.
+            console.log(`Loaded ${allIncidents.length} incidents from Supabase`);
+        } else {
+            allIncidents = [];
+            console.log('No incidents found in Supabase');
+        }
+        
+        loadAndDisplayReports();
+        updateStats();
+        
+    } catch (error) {
+        console.error('Error loading from Supabase:', error);
+        loadFromLocalStorage();
+    }
+}
+
+// Fallback to localStorage
+function loadFromLocalStorage() {
     const stored = localStorage.getItem(STORAGE_KEY);
+    console.log('Loading from localStorage:', stored);
+    
     if (stored && stored !== '[]') {
         const reports = JSON.parse(stored);
         allIncidents = reports.map(r => ({
@@ -96,22 +201,47 @@ function loadIncidents() {
             category: r.category || 'maintenance',
             priority: r.priority || 'medium',
             status: r.status || 'pending',
-            reporter: r.studentName,
-            student_id: r.studentId || r.studentIdNumber || r.student_id || r.studentID,
+            reporter: r.student_name || r.studentName,
+            student_id: r.student_id_number || r.studentId,
             description: r.description || 'No description provided',
-            timestamp: new Date(r.timestamp),
-            image_url: r.imageUrl || r.image_url || null
+            timestamp: new Date(r.created_at || r.timestamp),
+            image_url: r.image_url || r.imageUrl || null,
+            is_anonymous: r.is_anonymous
         }));
     } else {
         allIncidents = [];
     }
-    
     loadAndDisplayReports();
     updateStats();
 }
 
-// Get reports based on view mode
+// ============ REAL-TIME SUBSCRIPTION ============
+let isInitialLoad = true;
+
+function setupRealtimeSubscription() {
+    if (realtimeSubscription) return;
+    
+    console.log('Setting up real-time subscription for incident table...');
+    
+    realtimeSubscription = supabase
+        .channel('incident-changes')
+        .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'incident' },
+            (payload) => {
+                console.log('Real-time update received:', payload.eventType);
+                // Real-time handles sync — no notifications to prevent spam
+                loadIncidents();
+            }
+        )
+        .subscribe();
+    
+    setTimeout(() => {
+        isInitialLoad = false;
+    }, 3000);
+}
+
 function getReportsToDisplay() {
+    if (!currentStudent) return [];
     if (viewMode === 'my') {
         return allIncidents.filter(inc => String(inc.student_id) === String(currentStudent?.studentId));
     } else {
@@ -136,6 +266,11 @@ function loadAndDisplayReports() {
 function displayIncidents(reports) {
     const container = document.getElementById('incidentsContainer');
     if (!container) return;
+    
+    const incidentsCount = document.getElementById('incidentsCount');
+    if (incidentsCount) {
+        incidentsCount.textContent = `${reports.length} ${reports.length === 1 ? 'report' : 'reports'}`;
+    }
     
     if (reports.length === 0) {
         let emptyMessage = '';
@@ -188,7 +323,7 @@ function createIncidentCard(report) {
     const stat = statusColors[report.status] || statusColors.pending;
     
     const timeAgo = getTimeAgo(new Date(report.timestamp));
-    const isYourReport = String(report.student_id) === String(currentStudent?.studentId);
+    const isYourReport = currentStudent ? String(report.student_id) === String(currentStudent?.studentId) : false;
     const canSeeDetails = canStudentSeeDescription(report);
     const safeTitle = getSafeTitle(report);
     const safeLocation = getSafeLocation(report);
@@ -198,9 +333,10 @@ function createIncidentCard(report) {
     else if (report.status === 'in-progress') statusClass = 'progress';
     else if (report.status === 'resolved') statusClass = 'resolved';
     
-    // Add safety warning badge for sensitive reports
     const safetyBadge = (!canSeeDetails && !isYourReport) ? 
         '<span class="badge safety">🔒 Restricted</span>' : '';
+    
+    const reporterDisplay = report.is_anonymous === 'true' ? 'Anonymous Reporter' : (report.reporter || 'Student');
     
     return `
         <div class="incident-card" onclick="viewIncident(${report.id})">
@@ -210,16 +346,16 @@ function createIncidentCard(report) {
                     <span class="badge ${report.category}">${cat.label}</span>
                     <span class="badge ${report.priority}">${pri.label}</span>
                     <span class="badge ${statusClass}">${stat.label}</span>
-                    ${isYourReport ? '<span class="badge your">Your Report</span>' : '<span class="badge other">By: ' + escapeHtml(report.reporter || 'Student') + '</span>'}
+                    ${isYourReport ? '<span class="badge your">Your Report</span>' : '<span class="badge other">By: ' + escapeHtml(reporterDisplay) + '</span>'}
                     ${safetyBadge}
                 </div>
             </div>
-            <div class="incident-location">📍 ${escapeHtml(safeLocation)}</div>
+            <div class="incident-location">${safeLocation}</div>
             <div class="card-footer">
                 <div class="reporter-info">
                     ${!canSeeDetails && !isYourReport ? 
                         '🔒 Sensitive report - details restricted to security personnel' : 
-                        `👤 ${isYourReport ? 'Reported by you' : `Reported by: ${escapeHtml(report.reporter || 'Another Student')}`}`}
+                        `👤 ${isYourReport ? 'Reported by you' : `Reported by: ${escapeHtml(reporterDisplay)}`}`}
                 </div>
                 <div class="timestamp">${timeAgo}</div>
             </div>
@@ -227,11 +363,17 @@ function createIncidentCard(report) {
     `;
 }
 
+// ========== UPDATE STATS ==========
 function updateStats() {
-    const myReports = allIncidents.filter(inc => String(inc.student_id) === String(currentStudent?.studentId));
+    if (!currentStudent) {
+        console.log('No current student, skipping stats update');
+        return;
+    }
+    
+    const myReports = allIncidents.filter(inc => String(inc.student_id) === String(currentStudent.studentId));
     
     const total = myReports.length;
-    const inProgressCount = myReports.filter(r => r.status === 'in-progress').length;
+    const inProgressCount = myReports.filter(r => r.status === 'in-progress' || r.status === 'pending').length;
     const resolvedCount = myReports.filter(r => r.status === 'resolved').length;
     const totalCampus = allIncidents.length;
     
@@ -244,6 +386,8 @@ function updateStats() {
     if (inProgressEl) inProgressEl.textContent = inProgressCount;
     if (resolvedEl) resolvedEl.textContent = resolvedCount;
     if (totalReportsEl) totalReportsEl.textContent = totalCampus;
+    
+    console.log('Stats updated:', { total, inProgressCount, resolvedCount, totalCampus });
 }
 
 function getTimeAgo(date) {
@@ -298,6 +442,7 @@ function toggleViewMode() {
     loadAndDisplayReports();
 }
 
+// ========== VIEW INCIDENT MODAL ==========
 window.viewIncident = function(id) {
     const inc = allIncidents.find(i => i.id === id);
     if (!inc) return;
@@ -308,36 +453,38 @@ window.viewIncident = function(id) {
         modal = document.getElementById('incidentModal');
     }
     
-    const isYourReport = String(inc.student_id) === String(currentStudent?.studentId);
+    const isYourReport = currentStudent ? String(inc.student_id) === String(currentStudent?.studentId) : false;
     const canSeeDetails = canStudentSeeDescription(inc);
     const safeTitle = getSafeTitle(inc);
     const safeLocation = getSafeLocation(inc);
     
     document.getElementById('modalTitle').innerText = safeTitle;
-    document.getElementById('modalLocation').innerText = safeLocation;
+    document.getElementById('modalLocation').innerHTML = safeLocation;
     document.getElementById('modalCategory').innerHTML = `<span class="badge ${inc.category}">${inc.category}</span>`;
     document.getElementById('modalPriority').innerHTML = `<span class="badge ${inc.priority}">${inc.priority}</span>`;
     
     let statusClass = '';
-    if (inc.status === 'pending') statusClass = 'pending';
-    else if (inc.status === 'in-progress') statusClass = 'progress';
-    else if (inc.status === 'resolved') statusClass = 'resolved';
-    
-    let statusLabel = inc.status === 'in-progress' ? 'In Progress' : inc.status.charAt(0).toUpperCase() + inc.status.slice(1);
+    let statusLabel = '';
+    if (inc.status === 'pending') {
+        statusClass = 'pending';
+        statusLabel = 'Pending';
+    } else if (inc.status === 'in-progress') {
+        statusClass = 'progress';
+        statusLabel = 'In Progress';
+    } else {
+        statusClass = 'resolved';
+        statusLabel = 'Resolved';
+    }
     document.getElementById('modalStatus').innerHTML = `<span class="badge ${statusClass}">${statusLabel}</span>`;
     
-    // Handle description with safety restrictions
     const descriptionElement = document.getElementById('modalDescription');
-    if (canSeeDetails) {
-        descriptionElement.innerText = inc.description;
-    } else if (isYourReport) {
-        descriptionElement.innerText = inc.description;
+    if (isYourReport || canSeeDetails) {
+        descriptionElement.innerHTML = `<div style="padding: 8px 0;">${escapeHtml(inc.description || 'No description provided')}</div>`;
     } else {
         descriptionElement.innerHTML = `
             <div style="background: #FEF2F2; padding: 16px; border-radius: 12px; border-left: 4px solid #DC2626;">
                 <strong style="color: #DC2626;">⚠️ Security Restriction</strong><br>
-                <span style="color: #475569;">This report contains sensitive safety information. Campus security has been notified and is handling the situation.</span><br><br>
-                <span style="font-size: 13px; color: #64748B;">If you have direct knowledge of this incident, please report to the Campus Security Office or Dean's Office immediately.</span>
+                <span style="color: #475569;">This report contains sensitive safety information. Campus security has been notified and is handling the situation.</span>
             </div>
         `;
     }
@@ -346,10 +493,11 @@ window.viewIncident = function(id) {
     
     const modalReporter = document.getElementById('modalReporter');
     if (modalReporter) {
+        const reporterDisplay = inc.is_anonymous === 'true' ? 'Anonymous Reporter' : (inc.reporter || 'Another Student');
         if (!canSeeDetails && !isYourReport) {
             modalReporter.innerHTML = `<span class="badge safety">🔒 Confidential - Restricted Access</span>`;
         } else {
-            modalReporter.innerHTML = `<span class="badge other">${isYourReport ? 'You' : escapeHtml(inc.reporter || 'Another Student')}</span>`;
+            modalReporter.innerHTML = `<span class="badge other">${isYourReport ? 'You' : escapeHtml(reporterDisplay)}</span>`;
         }
     }
     
@@ -422,6 +570,14 @@ function createModal() {
             .badge.progress { background: #EFF6FF; color: #2563EB; }
             .badge.resolved { background: #D1FAE5; color: #059669; }
             .badge.pending { background: #FEF3C7; color: #D97706; }
+            .location-restricted {
+                background: #DC2626;
+                color: white;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                display: inline-block;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -434,22 +590,42 @@ function getReports() {
 }
 
 function saveReports(reports) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+    // Student dashboard is read-only — external callers should not write campus_care_reports.
+    // This function is kept for API compatibility but is intentionally a no-op here.
+    console.warn('saveReports() called on student dashboard — write is suppressed to prevent cross-tab loop.');
 }
 
-// ========== DRAWER & UI FUNCTIONS ==========
+// ========== PROFILE FUNCTIONS ==========
 function loadStudentFromLogin() {
-    if (!currentStudent) return;
+    if (!currentStudent) {
+        console.log('No current student to load');
+        const stored = localStorage.getItem('currentStudent');
+        if (stored) {
+            try {
+                currentStudent = JSON.parse(stored);
+                console.log('Loaded student from localStorage fallback:', currentStudent);
+            } catch(e) {
+                console.error('Failed to parse stored student:', e);
+            }
+        }
+        return;
+    }
+    
+    console.log('Loading student to UI:', currentStudent);
     
     const studentNameElements = document.querySelectorAll('#studentName, .drawer-name');
     studentNameElements.forEach(el => {
-        if (el) el.textContent = currentStudent.name;
+        if (el) {
+            el.textContent = currentStudent.name || 'Student';
+            console.log('Updated element:', el.id || el.className, 'to:', currentStudent.name);
+        }
     });
     
-    const welcomeHeader = document.querySelector('.hero-title');
+    const welcomeHeader = document.getElementById('welcomeMessage');
     if (welcomeHeader) {
-        const firstName = currentStudent.name.split(' ')[0];
+        const firstName = currentStudent.name ? currentStudent.name.split(' ')[0] : 'Student';
         welcomeHeader.innerHTML = `Welcome back, ${firstName}! 👋`;
+        console.log('Updated welcome message to:', `Welcome back, ${firstName}! 👋`);
     }
     
     const currentDateEl = document.getElementById('currentDate');
@@ -539,9 +715,7 @@ function setupDrawerReportButton() {
     }
 }
 
-// SETTINGS NAVIGATION 
 function setupSettingsNavigation() {
-    // Find settings button in drawer (by data-page or text content)
     const settingsBtn = document.querySelector('.drawer-item[data-page="settings"]');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', (e) => {
@@ -550,7 +724,6 @@ function setupSettingsNavigation() {
         });
     }
     
-    // Also check for any element with id "settingsNav"
     const settingsNav = document.getElementById('settingsNav');
     if (settingsNav) {
         settingsNav.addEventListener('click', (e) => {
@@ -559,7 +732,6 @@ function setupSettingsNavigation() {
         });
     }
     
-    // Check for settings button in main content
     const mainSettingsBtn = document.querySelector('[data-page="settings"], .settings-btn, #settingsBtn');
     if (mainSettingsBtn) {
         mainSettingsBtn.addEventListener('click', (e) => {
@@ -667,6 +839,7 @@ function addDrawerStyles() {
         #viewModeToggle { transition: all 0.2s ease; }
         .incident-card {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
         }
         .incident-card:hover {
             transform: translateY(-2px);
@@ -698,21 +871,93 @@ function setupUI() {
     });
 }
 
-function init() {
-    if (!checkAuth()) return;
+// ========== INITIALIZATION ==========
+async function init() {
+    console.log('Initializing dashboard...');
+    
+    const authSuccess = await checkAuth();
+    console.log('Auth success:', authSuccess);
     
     loadStudentFromLogin();
-    loadIncidents();
+    await loadIncidents();
     setupUI();
-    window.addEventListener('storage', (e) => {
-        if (e.key === STORAGE_KEY) {
-            console.log('Storage event detected - reloading incidents');
-            loadIncidents();
-            showNotification('📢 Your report status has been updated!');
-        }
-    });
+    setupRealtimeSubscription();
 }
 
 // Export functions
 window.getReports = getReports;
 window.saveReports = saveReports;
+
+(function() {
+    // Get current page path
+    const currentPath = window.location.pathname;
+    
+    // Highlight active nav item based on current page
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    const drawerItems = document.querySelectorAll('.drawer-item');
+    
+    function setActiveNav(activePage) {
+        bottomNavItems.forEach(item => {
+            const itemPage = item.dataset.page;
+            if (itemPage === activePage) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+        
+        drawerItems.forEach(item => {
+            const itemPage = item.dataset.page;
+            if (itemPage === activePage) {
+                item.classList.add('active');
+            } else if (itemPage !== 'my-reports' && itemPage !== 'settings') {
+                item.classList.remove('active');
+            }
+        });
+    }
+    
+    // Handle bottom nav clicks
+    bottomNavItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const page = item.dataset.page;
+            
+            if (page === 'dashboard') {
+                window.location.href = '/Assets/Student_dashboard/SDB.html';
+            } else if (page === 'report') {
+                const storedStudent = localStorage.getItem('currentStudent');
+                if (storedStudent) {
+                    localStorage.setItem('currentStudent', storedStudent);
+                }
+                window.location.href = '/Assets/Student_reporting/report.html';
+            } else if (page === 'my-reports') {
+                // Switch to "My Reports" view in dashboard
+                if (typeof toggleViewMode === 'function') {
+                    const toggleBtn = document.getElementById('viewModeToggle');
+                    if (toggleBtn && toggleBtn.textContent.includes('View My')) {
+                        // Already in my reports mode
+                    } else {
+                        toggleViewMode();
+                    }
+                    if (window.closeDrawer) window.closeDrawer();
+                } else {
+                    window.location.href = '/Assets/Student_dashboard/SDB.html?view=my';
+                }
+            } else if (page === 'settings') {
+                window.location.href = '/Assets/Student_dashboard/setting/setting.html';
+            }
+        });
+    });
+    
+    // Determine which nav is active based on URL
+    if (currentPath.includes('SDB.html') || currentPath.includes('dashboard')) {
+        if (window.location.search === '?view=my') {
+            setActiveNav('my-reports');
+        } else {
+            setActiveNav('dashboard');
+        }
+    } else if (currentPath.includes('report.html')) {
+        setActiveNav('report');
+    } else if (currentPath.includes('setting.html')) {
+        setActiveNav('settings');
+    }
+})();

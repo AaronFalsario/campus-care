@@ -534,6 +534,182 @@ input:checked + .toggle-slider:before {
     to { transform: translateX(0); opacity: 1; }
 }
 
+/* ============ MODAL - DESKTOP VERSION (NORMAL SIZE) ============ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-overlay.active .modal-container {
+    transform: scale(1);
+}
+
+.modal-header {
+    padding: 18px 24px;
+    background: #2563EB;
+    color: white;
+    border-radius: 24px 24px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-row {
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.modal-label {
+    width: 90px;
+    font-weight: 600;
+    color: #64748B;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-value {
+    flex: 1;
+    font-size: 14px;
+    color: #1E293B;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #E2E8F0;
+}
+
+.modal-btn {
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.modal-btn-primary {
+    background: #1D9E75;
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background: #085041;
+}
+
+/* ============ MODAL - MOBILE ONLY SMALLER VERSION ============ */
+@media (max-width: 768px) {
+    .modal-container {
+        max-width: 360px;
+        border-radius: 20px;
+    }
+    
+    .modal-header {
+        padding: 14px 18px;
+    }
+    
+    .modal-header h3 {
+        font-size: 16px;
+    }
+    
+    .modal-close {
+        width: 28px;
+        height: 28px;
+        font-size: 20px;
+    }
+    
+    .modal-body {
+        padding: 16px 18px;
+    }
+    
+    .modal-row {
+        margin-bottom: 12px;
+    }
+    
+    .modal-label {
+        width: 75px;
+        font-size: 10px;
+    }
+    
+    .modal-value {
+        font-size: 13px;
+    }
+    
+    .modal-footer {
+        padding: 12px 18px;
+    }
+    
+    .modal-btn {
+        padding: 7px 16px;
+        font-size: 12px;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .drawer { transform: translateX(-100%); width: 280px; }
@@ -546,4 +722,34 @@ input:checked + .toggle-slider:before {
     .form-row { flex-direction: column; gap: 0; }
     .form-row .form-group { margin-bottom: 20px; }
     .form-actions button { width: 100%; justify-content: center; }
+    
+    /* Mobile logout button */
+    .mobile-logout-btn {
+        display: flex;
+        width: 100%;
+        background: linear-gradient(135deg, #DC2626, #B91C1C);
+        color: white;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .mobile-logout-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-logout-btn {
+        display: none;
+    }
 }

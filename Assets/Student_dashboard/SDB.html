@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
 <title>Campus Care — Student Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
@@ -32,6 +32,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
             New Report
         </button>
+        <button class="drawer-item" data-page="my-reports">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            My Reports
+        </button>
     <hr class="drawer-divider">
     <button class="drawer-item" onclick="window.location.href='/Assets/Student_dashboard/setting/setting.html'">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -55,7 +59,7 @@
         <img src="/Assets/Images/logo.png" alt="Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http:/www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%232563EB\'%3E%3Cpath d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/%3E%3C/svg%3E'">
         <span class="brand-name">CampusCare</span>
     </div>
-    <a class="report-btn" href="/Assets/Student_reporting/report.html">+ New Incident Report</a>
+    <!-- REMOVED - New Incident Report Button -->
 </header>
 
 <div class="main-content">
@@ -113,7 +117,34 @@
     <div class="incidents-grid" id="incidentsContainer"></div>
 </div>
 
-<script src="/Assets/Student_dashboard/SDB.js"></script>
+<!-- ============ BOTTOM NAVIGATION BAR (LIKE MOBILE APP) ============ -->
+<nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item active" data-page="dashboard">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Home</span>
+    </button>
+    <button class="bottom-nav-item" data-page="report">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 5v14M5 12h14"/>
+            <circle cx="12" cy="12" r="9"/>
+        </svg>
+        <span>Report</span>
+    </button>
+    <button class="bottom-nav-item" data-page="settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+        <span>Settings</span>
+    </button>
+</nav>
+
+<script type="module" src="/Assets/Student_dashboard/SDB.js"></script>
 
 <!-- INCIDENT DETAIL MODAL -->
 <div id="incidentModal" class="modal-overlay">
@@ -131,5 +162,7 @@
         <div class="modal-footer"><button class="modal-btn modal-btn-primary" onclick="closeModal()">Close</button></div>
     </div>
 </div>
+
+<script type="module" src="/Assets/Student_dashboard/SDB.js"></script>
 </body>
 </html>

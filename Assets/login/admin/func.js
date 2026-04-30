@@ -22,8 +22,6 @@ const SPECIFIC_APPROVED_EMAILS = [
     
     document.addEventListener('keydown', function(e) {
         const key = e.key.toUpperCase();
-        
-        // Check if NOT typing in an input field
         const activeElement = document.activeElement;
         const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
         
@@ -605,6 +603,119 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') adminLogin();
         });
     }
+
+    // SECRET PASSCODES FOR ADMIN REGISTRATION
+const SECRET_PASSCODES = [
+    'SU',      // Existing - S then U
+    'ADMIN',   // New - type A D M I N
+    'CAMPUS',  // New - type C A M P U S
+    '7890',    // New - type 7 8 9 0
+    '#123#'    // New - type # 1 2 3 #
+];
+
+// Updated secret trigger function
+(function() {
+    let keySequence = [];
+    let sequenceTimeout;
+    let currentExpectedSequence = null;
+    
+    // Function to check if any secret matches
+    function checkSecret(input) {
+        const upperInput = input.toUpperCase();
+        
+        // Check against all secrets
+        for (let secret of SECRET_PASSCODES) {
+            if (upperInput === secret || upperInput === secret.toUpperCase()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        const key = e.key.toUpperCase();
+        
+        // Check if NOT typing in an input field
+        const activeElement = document.activeElement;
+        const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
+        
+        if (!isTyping) {
+            // For single key sequences (S, then U)
+            if (key === 'S') {
+                keySequence = ['S'];
+                if (sequenceTimeout) clearTimeout(sequenceTimeout);
+                sequenceTimeout = setTimeout(() => { keySequence = []; }, 2000);
+            }
+            else if (key === 'U' && keySequence[0] === 'S') {
+                console.log('🎉 SU TRIGGER ACTIVATED!');
+                showRegistration();
+                keySequence = [];
+                if (sequenceTimeout) clearTimeout(sequenceTimeout);
+            }
+            else {
+                // For longer passcodes, accumulate
+                if (keySequence.length === 0 && key !== 'S') {
+                    keySequence = [key];
+                } else if (keySequence.length > 0) {
+                    keySequence.push(key);
+                }
+                
+                if (sequenceTimeout) clearTimeout(sequenceTimeout);
+                sequenceTimeout = setTimeout(() => { keySequence = []; }, 2000);
+                
+                // Check accumulated sequence
+                const currentSequence = keySequence.join('');
+                if (checkSecret(currentSequence)) {
+                    console.log(`🎉 Secret "${currentSequence}" TRIGGER ACTIVATED!`);
+                    showRegistration();
+                    keySequence = [];
+                    if (sequenceTimeout) clearTimeout(sequenceTimeout);
+                }
+            }
+        }
+    });
+    
+    function showRegistration() {
+        const loginCard = document.getElementById('adminLoginCard');
+        const signupCard = document.getElementById('adminSignupCard');
+        
+        if (loginCard && signupCard) {
+            loginCard.style.display = 'none';
+            signupCard.style.display = 'block';
+            
+            // Show toast message
+            const toast = document.createElement('div');
+            toast.textContent = '🔐 Secret access granted! Opening registration...';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '100px';
+            toast.style.right = '20px';
+            toast.style.background = '#1e293b';
+            toast.style.color = '#10b981';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '12px';
+            toast.style.fontSize = '14px';
+            toast.style.fontFamily = 'monospace';
+            toast.style.zIndex = '9999';
+            toast.style.opacity = '1';
+            toast.style.transition = 'opacity 0.3s';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+            
+            // Update signup message
+            const signupMsg = document.getElementById('signupMessage');
+            if (signupMsg) {
+                signupMsg.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
+                signupMsg.style.color = '#10b981';
+            }
+        }
+    }
+    
+    console.log('%c✅ SECRET PASSCODES ACTIVE! Try typing: SU, ADMIN, CAMPUS, 7890, #123#', 'color: #10b981; font-size: 14px; font-weight: bold;');
+})();
 
     // Check if already logged in
     const alreadyLoggedIn = localStorage.getItem('isAdminLoggedIn');
