@@ -13,6 +13,242 @@ let mobilenetModel = null;
 // ========== ADDED: Store uploaded image data ==========
 let uploadedImageData = null;
 
+// ========== ADDED: Urgent Alert Notification System ==========
+// Function to check if report is urgent (fire or emergency)
+function isUrgentReport(category, priority, title, description) {
+    const urgentKeywords = [
+        'fire', 'smoke', 'burning', 'flame', 'emergency', 'danger', 
+        'urgent', 'critical', 'hazard', 'explosion', 'chemical spill',
+        'gas leak', 'electrical fire', 'alarm', 'evacuation'
+    ];
+    
+    // Check category
+    if (category === 'security' && priority === 'high') return true;
+    
+    // Check priority
+    if (priority === 'high') {
+        const textToCheck = `${title} ${description}`.toLowerCase();
+        for (const keyword of urgentKeywords) {
+            if (textToCheck.includes(keyword)) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+// Send notifications to ALL other students and admins
+async function sendUrgentNotifications(report, currentUser, isAnonymous) {
+    console.log('🚨 SENDING URGENT NOTIFICATIONS...', report);
+    
+    // Get ALL users from Supabase
+    const { data: allUsers, error } = await supabase
+        .from('users')
+        .select('id, email, name, role, phone, fcm_token');
+    
+    if (error) {
+        console.error('Failed to fetch users:', error);
+        return;
+    }
+    
+    // Filter out the reporter
+    const usersToNotify = allUsers.filter(user => user.id !== currentUser.id);
+    const students = usersToNotify.filter(u => u.role === 'STUDENT');
+    const admins = usersToNotify.filter(u => u.role === 'ADMIN');
+    
+    console.log(`📢 Notifying ${students.length} students and ${admins.length} admins`);
+    
+    // Prepare notification data
+    const notificationData = {
+        id: report.id,
+        title: report.title,
+        location: report.location,
+        category: report.category,
+        priority: report.priority,
+        description: report.description,
+        reporterName: isAnonymous ? 'Anonymous Reporter' : report.studentName,
+        reporterId: currentUser.id,
+        timestamp: new Date().toISOString()
+    };
+    
+    // Send to all students (except reporter)
+    for (const student of students) {
+        await sendNotificationToUser(student, notificationData, 'STUDENT');
+    }
+    
+    // Send to all admins
+    for (const admin of admins) {
+        await sendNotificationToUser(admin, notificationData, 'ADMIN');
+    }
+    
+    // Store in localStorage for real-time display
+    storeUrgentAlert(notificationData);
+    
+    // Show local browser notification for current user if they're not the reporter
+    const currentUserData = getCurrentStudent();
+    if (currentUser.id !== currentUserData.id) {
+        showBrowserNotification(notificationData);
+        createUrgentAlertBanner(notificationData);
+    }
+}
+
+// Send notification to individual user
+async function sendNotificationToUser(user, alertData, role) {
+    try {
+        // Store in notifications table
+        await supabase
+            .from('notifications')
+            .insert([{
+                alert_id: alertData.id,
+                user_id: user.id,
+                user_role: role,
+                channel: 'IN_APP',
+                status: 'SENT',
+                sent_at: new Date().toISOString()
+            }]);
+        
+        console.log(`✅ Notification sent to ${user.name} (${role})`);
+    } catch (error) {
+        console.error(`Failed to send to ${user.name}:`, error);
+    }
+}
+
+// Store urgent alert in localStorage for real-time display
+function storeUrgentAlert(alertData) {
+    const urgentAlerts = JSON.parse(localStorage.getItem('campus_care_urgent_alerts') || '[]');
+    urgentAlerts.unshift({
+        ...alertData,
+        isActive: true,
+        notifiedAt: new Date().toISOString()
+    });
+    // Keep only last 10 alerts
+    while (urgentAlerts.length > 10) urgentAlerts.pop();
+    localStorage.setItem('campus_care_urgent_alerts', JSON.stringify(urgentAlerts));
+}
+
+// Show browser notification
+function showBrowserNotification(alertData) {
+    if (Notification.permission === 'granted') {
+        new Notification('🚨 URGENT CAMPUS ALERT', {
+            body: `${alertData.category.toUpperCase()} reported at ${alertData.location}. ${alertData.title}`,
+            icon: '/Assets/urgent_icon.png',
+            requireInteraction: true,
+            tag: 'urgent-alert',
+            vibrate: [200, 100, 200]
+        });
+        
+        // Play alarm sound
+        const audio = new Audio('/Assets/emergency_alarm.mp3');
+        audio.play().catch(e => console.log('Audio play failed:', e));
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+}
+
+// Create floating alert banner for real-time display
+function createUrgentAlertBanner(alertData) {
+    // Remove existing banner if any
+    const existingBanner = document.getElementById('urgentAlertBanner');
+    if (existingBanner) existingBanner.remove();
+    
+    const banner = document.createElement('div');
+    banner.id = 'urgentAlertBanner';
+    banner.innerHTML = `
+        <div style="background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); color: white; padding: 15px 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); animation: slideDown 0.3s ease;">
+            <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <span style="font-size: 24px;">🚨</span>
+                    <div>
+                        <strong style="font-size: 18px;">URGENT: ${alertData.category.toUpperCase()} ALERT</strong>
+                        <div style="font-size: 14px; margin-top: 4px;">
+                            📍 ${alertData.location} | Reported by: ${alertData.reporterName}
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.viewAlertDetails('${alertData.id}')" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                        View Details
+                    </button>
+                    <button onclick="window.dismissAlertBanner()" style="background: rgba(0,0,0,0.3); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.prepend(banner);
+    
+    // Add body padding to prevent content hiding under banner
+    document.body.style.paddingTop = '80px';
+}
+
+// Dismiss alert banner
+window.dismissAlertBanner = function() {
+    const banner = document.getElementById('urgentAlertBanner');
+    if (banner) banner.remove();
+    document.body.style.paddingTop = '0';
+};
+
+// View alert details
+window.viewAlertDetails = function(alertId) {
+    const alerts = JSON.parse(localStorage.getItem('campus_care_urgent_alerts') || '[]');
+    const alert = alerts.find(a => a.id == alertId);
+    if (alert) {
+        alert(`
+🚨 URGENT ALERT DETAILS 🚨
+
+Type: ${alert.category}
+Priority: ${alert.priority}
+Location: ${alert.location}
+Reported by: ${alert.reporterName}
+Time: ${new Date(alert.timestamp).toLocaleString()}
+
+Description: ${alert.description}
+
+⚠️ Please follow safety protocols and evacuate if necessary.
+        `);
+    }
+};
+
+// Check for existing urgent alerts on page load (for non-reporters)
+function checkForExistingUrgentAlerts() {
+    const urgentAlerts = JSON.parse(localStorage.getItem('campus_care_urgent_alerts') || '[]');
+    const activeAlert = urgentAlerts.find(alert => alert.isActive === true);
+    
+    if (activeAlert) {
+        // Check if alert is less than 1 hour old
+        const alertTime = new Date(activeAlert.timestamp);
+        const now = new Date();
+        const hoursDiff = (now - alertTime) / (1000 * 60 * 60);
+        
+        if (hoursDiff < 1) {
+            createUrgentAlertBanner(activeAlert);
+        } else {
+            // Alert expired, mark as inactive
+            activeAlert.isActive = false;
+            localStorage.setItem('campus_care_urgent_alerts', JSON.stringify(urgentAlerts));
+        }
+    }
+}
+
+// Listen for urgent alerts from other tabs/windows (using storage event)
+window.addEventListener('storage', (e) => {
+    if (e.key === 'campus_care_urgent_alerts') {
+        const newAlerts = JSON.parse(e.newValue || '[]');
+        const latestAlert = newAlerts[0];
+        
+        if (latestAlert && latestAlert.isActive) {
+            // Check if this is a new alert (not seen before)
+            const currentUser = getCurrentStudent();
+            if (latestAlert.reporterId !== currentUser.id) {
+                createUrgentAlertBanner(latestAlert);
+                showBrowserNotification(latestAlert);
+            }
+        }
+    }
+});
+
 // Function to get current logged-in student
 function getCurrentStudent() {
     const stored = localStorage.getItem('currentStudent');
@@ -752,7 +988,7 @@ async function initializeAI() {
     console.log('AI initialization complete!');
 }
 
-// ========== FIXED: Form submission with base64 image ==========
+// ========== FIXED: Form submission with base64 image and URGENT ALERTS ==========
 document.addEventListener('DOMContentLoaded', async () => {
     const reportForm = document.getElementById('reportForm');
     const categoryInput = document.getElementById('category');
@@ -764,6 +1000,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeAI();
     setupImageUpload();
     setupAnonymousToggle();
+    checkForExistingUrgentAlerts(); // Check for existing alerts on page load
     
     if (reportForm) {
         reportForm.addEventListener('submit', async (e) => {
@@ -816,6 +1053,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     imageUrl: imageUrl,  // Base64 image
                     studentName: finalStudentName,
                     studentId: currentStudent.studentId,  // FIXED: Changed from studentIdNumber to studentId
+                    reporterId: currentStudent.id, // ADDED: Store reporter ID for notification filtering
                     status: 'pending',
                     timestamp: new Date().toISOString()
                 };
@@ -828,7 +1066,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 existingReports.unshift(localReport);
                 localStorage.setItem('campus_care_reports', JSON.stringify(existingReports));
                 
-                // Also try to save to Supabase (optional, don't fail if it errors)
+                // ========== NEW: Check if this is an URGENT report ==========
+                const isUrgent = isUrgentReport(category, priority, title, description);
+                
+                if (isUrgent) {
+                    console.log('🔥 URGENT REPORT DETECTED! Sending notifications to all students and admins...');
+                    
+                    // Send notifications to ALL other students and admins
+                    await sendUrgentNotifications(localReport, currentStudent, isAnonymous);
+                    
+                    // Show special confirmation for urgent reports
+                    showNotification('🚨 URGENT REPORT SUBMITTED! Notifications sent to all students and admins.', 'warning');
+                } else {
+                    showNotification('✅ Report submitted successfully!', 'success');
+                }
+                
+
                 try {
                     const supabaseData = {
                         title: title,
@@ -853,13 +1106,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.log('Supabase save skipped:', supabaseError.message);
                 }
                 
-                const successMessage = isAnonymous ? 
-                    '✅ Report submitted anonymously! Your identity is protected.' : 
-                    '✅ Report submitted successfully!';
-                showNotification(successMessage, 'success');
-                
                 setTimeout(() => {
-                    window.location.href = '/Assets/Student_dashboard/SDB.html';
+                    window.history.back();
                 }, 2000);
                 
             } catch (error) {

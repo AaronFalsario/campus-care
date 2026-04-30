@@ -34,8 +34,10 @@ html, body {
     line-height: 1.5;
 }
 
-/* DRAWER - ALWAYS VISIBLE */
-.drawer-overlay { display: none; }
+/* DRAWER */
+.drawer-overlay { 
+    display: none; 
+}
 
 .drawer {
     position: fixed; 
@@ -205,7 +207,8 @@ html, body {
 
 /* MAIN CONTENT */
 .users-section {
-    margin-left: 260px; width: calc(100% - 260px);
+    margin-left: 260px; 
+    width: calc(100% - 260px);
     padding: 24px 32px 48px;
     max-width: 1200px;
 }
@@ -404,7 +407,7 @@ tr:hover {
 .action-btn:hover { background: var(--blue-light); border-color: var(--blue); }
 .action-btn.del:hover { background: var(--red-light); border-color: var(--red); }
 
- /* Modal */
+/* Modal */
 .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.5); z-index: 1000; display: flex;
@@ -478,23 +481,119 @@ tr:hover {
     to { transform: translateX(0); opacity: 1; }
 }
 
-/* Mobile Responsive */
-    @media (max-width: 768px) {
-        .drawer { width: 80px; transform: translateX(-100%); }
-        .drawer.open { transform: translateX(0); }
-        .drawer-name, .drawer-role, .drawer-item span, .drawer-badge { display: none; }
-        .drawer-item { justify-content: center; padding: 14px; }
-        .topbar, .users-section { margin-left: 0; width: 100%; }
-        .hamburger { display: flex; }
-        .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .users-section { padding: 16px; }
-        .page-title { font-size: 22px; }
-        .section-hdr { flex-direction: column; align-items: flex-start; }
-        .add-student-btn { width: 100%; justify-content: center; }
-        .drawer-overlay {
-        display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-        z-index: 250; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .drawer-overlay.open { opacity: 1; pointer-events: all; }
-        }
-    @media (min-width: 769px) { .hamburger { display: none; } }
+/* ========== FIXED MOBILE RESPONSIVE - ONLY CHANGES DRAWER BEHAVIOR ========== */
+@media (max-width: 768px) {
+    /* Drawer hidden by default on mobile */
+    .drawer {
+        transform: translateX(-100%);
+        width: 280px;
+        z-index: 1000;
+    }
+    
+    /* Drawer open state */
+    .drawer.open {
+        transform: translateX(0);
+    }
+    
+    /* Show all content when drawer is open */
+    .drawer.open .drawer-name,
+    .drawer.open .drawer-role,
+    .drawer.open .drawer-item span,
+    .drawer.open .drawer-badge {
+        display: block;
+    }
+    
+    .drawer.open .drawer-item {
+        justify-content: flex-start;
+        padding: 12px 20px;
+    }
+    
+    /* Regular closed state - hide text on closed drawer (optional) */
+    .drawer-name, 
+    .drawer-role, 
+    .drawer-item span, 
+    .drawer-badge {
+        display: none;
+    }
+    
+    .drawer-item {
+        justify-content: center;
+        padding: 14px;
+    }
+    
+    /* Overlay for mobile */
+    .drawer-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .drawer-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Topbar adjustments */
+    .topbar {
+        margin-left: 0;
+        width: 100%;
+        padding: 0 16px;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    /* Main content */
+    .users-section {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+    }
+    
+    /* Stats grid */
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    /* Page title */
+    .page-title {
+        font-size: 22px;
+    }
+    
+    /* Section header */
+    .section-hdr {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .add-student-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+    .hamburger {
+        display: none;
+    }
+    
+    .drawer-name, 
+    .drawer-role, 
+    .drawer-item span, 
+    .drawer-badge {
+        display: block !important;
+    }
+    
+    .drawer-item {
+        justify-content: flex-start !important;
+        padding: 12px 20px !important;
+    }
+}

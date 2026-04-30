@@ -34,8 +34,10 @@ html, body {
     line-height: 1.5;
 }
 
-/* DRAWER - ALWAYS VISIBLE */
-.drawer-overlay { display: none; }
+/* ========== DRAWER - ADMIN STYLE (ALWAYS VISIBLE ON DESKTOP) ========== */
+.drawer-overlay { 
+    display: none; 
+}
 
 .drawer {
     position: fixed;
@@ -56,6 +58,7 @@ html, body {
     background: #162d4d; 
     padding: 24px 20px 20px; 
 }
+
 .drawer-avatar {
     width: 52px; 
     height: 52px; 
@@ -66,6 +69,12 @@ html, body {
     align-items: center; 
     justify-content: center; 
     margin-bottom: 12px;
+}
+
+.drawer-avatar img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
 }
 
 .drawer-name { 
@@ -91,7 +100,11 @@ html, body {
     border-radius: 20px;
 }
 
-.drawer-nav { flex: 1; padding: 12px 0; }
+.drawer-nav { 
+    flex: 1; 
+    padding: 12px 0; 
+}
+
 .drawer-item {
     display: flex; 
     align-items: center; 
@@ -107,6 +120,7 @@ html, body {
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .drawer-item:hover { 
     background: rgba(255,255,255,0.06); 
     color: #fff; 
@@ -116,6 +130,11 @@ html, body {
     color: #fff; 
     border-left-color: var(--teal); 
     background: rgba(255,255,255,0.08); 
+}
+
+.drawer-item i, .drawer-logout i {
+    width: 20px;
+    font-size: 18px;
 }
 
 .drawer-divider {
@@ -132,7 +151,7 @@ html, body {
 .drawer-logout {
     display: flex; 
     align-items: center; 
-    gap: 10px; 
+    gap: 12px; 
     color: rgba(255,255,255,0.5);
     background: none; 
     border: none; 
@@ -140,13 +159,14 @@ html, body {
     width: 100%; 
     padding: 8px 0;
     transition: color 0.2s;
+    font-size: 13px;
 }
 
 .drawer-logout:hover { 
     color: #fff; 
 }
 
-/* TOPBAR */
+/* ========== TOPBAR ========== */
 .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -161,6 +181,7 @@ html, body {
     margin-left: 260px;
     width: calc(100% - 260px);
 }
+
 .hamburger {
     display: none; 
     flex-direction: column; 
@@ -168,14 +189,21 @@ html, body {
     background: none; 
     border: none; 
     cursor: pointer; 
-    padding: 4px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.hamburger:hover {
+    background: var(--bg);
 }
 
 .hamburger span { 
-    width: 22px; 
+    width: 24px; 
     height: 2px; 
     background: var(--text); 
     border-radius: 2px; 
+    transition: all 0.3s;
 }
 
 .brand { 
@@ -212,12 +240,14 @@ html, body {
     cursor: pointer;
 }
 
-/* MAIN CONTENT */
+/* ========== MAIN CONTENT ========== */
 main {
-    margin-left: 260px; width: calc(100% - 260px);
+    margin-left: 260px;
+    width: calc(100% - 260px);
     padding: 24px 32px 48px;
     max-width: 1400px;
 }
+
 .page-header {
     background: linear-gradient(130deg, #1D9E75 0%, #0D7A65 55%, #085041 100%);
     border-radius: 20px; 
@@ -236,13 +266,15 @@ main {
     color: rgba(255,255,255,0.75);
     margin-top: 6px; 
 }
- /* Stats Row */
+
+/* Stats Row */
 .stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
+
 .stat-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -253,6 +285,7 @@ main {
     gap: 14px;
     transition: transform 0.2s;
 }
+
 .stat-card:hover { 
     transform: translateY(-2px); 
     box-shadow: 0 8px 20px rgba(0,0,0,0.06); 
@@ -311,6 +344,7 @@ main {
     font-weight: 600;
     color: var(--muted);
 }
+
 .filter-select, .filter-input {
     padding: 8px 14px;
     border: 1px solid var(--border);
@@ -356,6 +390,7 @@ table {
     border-collapse: collapse;
     min-width: 900px;
 }
+
 th {
     text-align: left;
     padding: 14px 16px;
@@ -389,8 +424,12 @@ tr:hover {
 }
 
 .inc-icon-sm {
-    width: 34px; height: 34px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
+    width: 34px; 
+    height: 34px; 
+    border-radius: 10px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
     font-size: 16px;
 }
 
@@ -413,7 +452,8 @@ tr:hover {
 
 .action-btns { display: flex; gap: 6px; }
 .action-btn {
-    width: 30px; height: 30px;
+    width: 30px; 
+    height: 30px;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--surface);
@@ -448,11 +488,39 @@ tr:hover {
     padding: 14px;
 }
 
-.m-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.m-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.m-field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted); }
-.m-card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); }
-.m-timestamp { font-size: 10px; color: var(--hint); }
+.m-card-top { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 12px; 
+}
+
+.m-card-body { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px; 
+    margin-bottom: 12px; 
+}
+
+.m-field-label { 
+    font-size: 10px; 
+    font-weight: 600; 
+    text-transform: uppercase; 
+    color: var(--muted); 
+}
+
+.m-card-footer { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding-top: 10px; 
+    border-top: 1px solid var(--border); 
+}
+
+.m-timestamp { 
+    font-size: 10px; 
+    color: var(--hint); 
+}
 
 /* Pagination */
 .pagination {
@@ -478,13 +546,17 @@ tr:hover {
     color: white;
     border-color: var(--blue);
 }
+
 .page-btn:hover:not(.active) { background: var(--bg); }
 .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Modal */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
     background: rgba(0,0,0,0.6);
     z-index: 2000;
     display: flex;
@@ -544,6 +616,7 @@ tr:hover {
 }
 
 .modal-close:hover { opacity: 0.7; }
+
 .modal-body {
     padding: 24px;
     display: grid;
@@ -561,6 +634,7 @@ tr:hover {
     border: 1px solid var(--border);
     overflow: hidden;
 }
+
 .modal-image-section img {
     max-width: 100%;
     max-height: 250px;
@@ -644,6 +718,7 @@ tr:hover {
 }
 
 .btn-cancel:hover { background: #E5E7EB; }
+
 .btn-save {
     padding: 10px 24px;
     background: var(--teal);
@@ -659,25 +734,141 @@ tr:hover {
 
 .btn-save:hover { background: var(--teal-dark); }
 
-    @media (max-width: 768px) {
-        .drawer { width: 80px; transform: translateX(-100%); }
-        .drawer.open { transform: translateX(0); }
-        .drawer-name, .drawer-role, .drawer-item span, .drawer-badge { display: none; }
-        .drawer-item { justify-content: center; padding: 14px; }
-        .topbar, main { margin-left: 0; width: 100%; }
-        .hamburger { display: flex; }
-        .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .filter-bar { flex-direction: column; align-items: stretch; }
-        .filter-group { justify-content: space-between; }
-        .table-wrap { display: none; }
-        .mobile-cards { display: flex; }
-        main { padding: 16px; }
-        .drawer-overlay {
-            display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-            z-index: 250; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .drawer-overlay.open { opacity: 1; pointer-events: all; }
-        .modal-body { grid-template-columns: 1fr; gap: 16px; }
-        .info-label { width: 100px; }
-        }
-    @media (min-width: 769px) { .hamburger { display: none; } }
+/* ========== MOBILE RESPONSIVE (MAKES DRAWER LIKE ADMIN PANEL) ========== */
+@media (max-width: 768px) {
+    /* Drawer hidden by default on mobile */
+    .drawer {
+        width: 280px;
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+    
+    .drawer.open {
+        transform: translateX(0);
+    }
+    
+    /* Show text on mobile when drawer is open */
+    .drawer.open .drawer-name,
+    .drawer.open .drawer-role,
+    .drawer.open .drawer-item span,
+    .drawer.open .drawer-badge {
+        display: block;
+    }
+    
+    .drawer.open .drawer-item {
+        justify-content: flex-start;
+        padding: 12px 20px;
+    }
+    
+    /* Overlay for mobile */
+    .drawer-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 900;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .drawer-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Topbar adjustments */
+    .topbar {
+        margin-left: 0;
+        width: 100%;
+        padding: 0 16px;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    .brand-name {
+        font-size: 16px;
+    }
+    
+    .admin-pill {
+        padding: 4px 12px;
+        font-size: 10px;
+    }
+    
+    /* Main content */
+    main {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+    }
+    
+    /* Stats grid */
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 12px;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .stat-number {
+        font-size: 22px;
+    }
+    
+    /* Filter bar */
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        justify-content: space-between;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    /* Hide table on mobile, show cards */
+    .table-wrap {
+        display: none;
+    }
+    
+    .mobile-cards {
+        display: flex;
+    }
+    
+    /* Modal on mobile */
+    .modal-body {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .info-label {
+        width: 90px;
+    }
+    
+    .page-header {
+        padding: 16px 20px;
+    }
+    
+    .page-title {
+        font-size: 20px;
+    }
+}
+
+/* Desktop: hide mobile cards */
+@media (min-width: 769px) {
+    .hamburger {
+        display: none;
+    }
+}
