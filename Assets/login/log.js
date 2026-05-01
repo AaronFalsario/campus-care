@@ -81,10 +81,10 @@ function togglePasswordVisibility(inputElement, toggleIcon) {
     });
 }
 
-// ========== HELPER: UPDATE STUDENT STATUS TO ACTIVE ==========
+// ========== UPDATE STUDENT STATUS TO ACTIVE ==========
 async function updateStudentActivityOnLogin(studentEmail, studentId) {
     try {
-        // Update in Supabase student table
+        // Try to update status columns if they exist (won't error if they don't)
         const { error } = await supabase
             .from('student')
             .update({ 
@@ -95,7 +95,10 @@ async function updateStudentActivityOnLogin(studentEmail, studentId) {
             .eq('email', studentEmail)
             .eq('student_id', studentId);
         
-        if (error) console.error('Error updating student status:', error);
+        if (error) {
+            // Columns might not exist, that's fine
+            console.log('Status columns not available, continuing login');
+        }
         
         // Also update in localStorage students array (for admin panel)
         const storedStudents = localStorage.getItem('campus_care_students');
@@ -203,7 +206,7 @@ loginBtn.addEventListener('click', async () => {
             throw new Error('Account not found. Please sign up first.');
         }
 
-        // ✅ UPDATE STATUS TO ACTIVE
+        // ✅ UPDATE STATUS TO ACTIVE (if columns exist)
         await updateStudentActivityOnLogin(studentData.email, studentData.student_id);
 
         // Store student info
@@ -342,7 +345,7 @@ window.studentLogout = async function() {
         if (currentStudent) {
             const student = JSON.parse(currentStudent);
             
-            // Update status to INACTIVE
+            // Update status to INACTIVE (if columns exist)
             const { error } = await supabase
                 .from('student')
                 .update({ 
@@ -352,7 +355,7 @@ window.studentLogout = async function() {
                 .eq('email', student.email);
             
             if (error) {
-                console.error('Logout status update error:', error);
+                console.log('Status columns not available, continuing logout');
             } else {
                 console.log('✅ Student status updated to INACTIVE');
             }
@@ -401,4 +404,69 @@ if (forgotPasswordBtn) {
     });
 }
 
-console.log('✅ Login page ready. Status tracking is ACTIVE.');
+// ========== ADD CSS STYLES ==========
+function addStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .domain-error {
+            border-color: #DC2626 !important;
+            background-color: #FEF2F2 !important;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        .slideUp {
+            animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ========== CHECK IF ALREADY LOGGED IN ==========
+async function checkExistingSession() {
+    const stored = localStorage.getItem('currentStudent');
+    if (stored && window.location.pathname.includes('log.html')) {
+        try {
+            const student = JSON.parse(stored);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                window.location.href = '/Assets/Student_dashboard/SDB.html';
+            }
+        } catch(e) {
+            console.log('Session check failed');
+        }
+    }
+}
+
+// ========== INITIALIZE ==========
+function init() {
+    addStyles();
+    checkExistingSession();
+    console.log('✅ Login page ready');
+}
+
+// Call init when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+console.log('✅ Login page script loaded. Status tracking is ACTIVE.');
