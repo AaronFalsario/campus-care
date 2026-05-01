@@ -8,7 +8,7 @@ Features
 --------------------------------------------------------------------------------------------------------------------------
 Technologies Used
 Frontend: HTML, CSS, JavaScript
-Backend: Node.js / laravel / Python 
+Backend: Node.js  
 Database: Supabase
 Version Control: Git
 -------------------------------------------------------------------------------------------------------------------------
