@@ -719,7 +719,7 @@ async function init() {
             console.log('Storage event from another tab - reloading incidents');
             loadIncidentsFromSupabase(); 
         } 
-    });
+    }); 
 }
 
 // Start the dashboard

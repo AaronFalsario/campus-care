@@ -33,11 +33,11 @@ function showEmailError(inputElement, isValid) {
 }
 
 function showLoader() {
-    loaderOverlay.classList.add('show');
+    if (loaderOverlay) loaderOverlay.classList.add('show');
 }
 
 function hideLoader() {
-    loaderOverlay.classList.remove('show');
+    if (loaderOverlay) loaderOverlay.classList.remove('show');
 }
 
 function showNotification(message, isError = false) {
@@ -79,6 +79,42 @@ function togglePasswordVisibility(inputElement, toggleIcon) {
         toggleIcon.classList.toggle('fa-eye');
         toggleIcon.classList.toggle('fa-eye-slash');
     });
+}
+
+// ========== HELPER: UPDATE STUDENT STATUS TO ACTIVE ==========
+async function updateStudentActivityOnLogin(studentEmail, studentId) {
+    try {
+        // Update in Supabase student table
+        const { error } = await supabase
+            .from('student')
+            .update({ 
+                is_active: true,
+                last_login: new Date().toISOString(),
+                status: 'active'
+            })
+            .eq('email', studentEmail)
+            .eq('student_id', studentId);
+        
+        if (error) console.error('Error updating student status:', error);
+        
+        // Also update in localStorage students array (for admin panel)
+        const storedStudents = localStorage.getItem('campus_care_students');
+        if (storedStudents) {
+            const students = JSON.parse(storedStudents);
+            const studentIndex = students.findIndex(s => s.email === studentEmail);
+            if (studentIndex !== -1) {
+                students[studentIndex].status = 'active';
+                students[studentIndex].last_login = new Date().toISOString();
+                localStorage.setItem('campus_care_students', JSON.stringify(students));
+            }
+        }
+        
+        console.log(`✅ Student ${studentEmail} marked as ACTIVE`);
+        return true;
+    } catch (error) {
+        console.error('Error updating student status:', error);
+        return false;
+    }
 }
 
 // Real-time email validation for login
@@ -131,7 +167,7 @@ if (signupPasswordInput && toggleSignupPassword) {
     togglePasswordVisibility(signupPasswordInput, toggleSignupPassword);
 }
 
-// ========== SIMPLE LOGIN FUNCTION WITH STATUS UPDATE ==========
+// ========== LOGIN FUNCTION ==========
 loginBtn.addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -167,21 +203,8 @@ loginBtn.addEventListener('click', async () => {
             throw new Error('Account not found. Please sign up first.');
         }
 
-        // ============ UPDATE STATUS TO ACTIVE ============
-        const { error: updateError } = await supabase
-            .from('student')
-            .update({ 
-                status: 'active',
-                is_active: true,
-                last_login: new Date().toISOString()
-            })
-            .eq('id', data.user.id);
-        
-        if (updateError) {
-            console.error('Status update error:', updateError);
-        } else {
-            console.log('✅ Student status updated to ACTIVE');
-        }
+        // ✅ UPDATE STATUS TO ACTIVE
+        await updateStudentActivityOnLogin(studentData.email, studentData.student_id);
 
         // Store student info
         const studentInfo = {
@@ -312,7 +335,7 @@ signupBtn.addEventListener('click', async () => {
     }
 });
 
-// ========== SIMPLE LOGOUT FUNCTION ==========
+// ========== LOGOUT FUNCTION ==========
 window.studentLogout = async function() {
     try {
         const currentStudent = localStorage.getItem('currentStudent');
@@ -378,4 +401,4 @@ if (forgotPasswordBtn) {
     });
 }
 
-console.log('Login page ready. Status tracking is ACTIVE.');
+console.log('✅ Login page ready. Status tracking is ACTIVE.');

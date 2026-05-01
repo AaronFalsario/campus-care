@@ -140,17 +140,17 @@ html, body {
 
 /* TOPBAR */
 .topbar {
-    background: var(--surface);
+    background: var(--surface); 
     border-bottom: 1px solid var(--border);
-    height: 64px;
-    display: flex;
-    align-items: center;
+    height: 58px; 
+    display: flex; 
+    align-items: center; 
     justify-content: space-between;
-    padding: 0 28px;
-    position: sticky;
-    top: 0;
+    padding: 0 24px; 
+    position: sticky; 
+    top: 0; 
     z-index: 100;
-    margin-left: 260px;
+    margin-left: 260px; 
     width: calc(100% - 260px);
 }
 .topbar-left {

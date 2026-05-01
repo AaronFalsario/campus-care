@@ -6,6 +6,7 @@ let currentAdmin = null;
 // Supabase configuration
 const supabaseUrl = 'https://opjyksksnccurdwyskiu.supabase.co';
 const supabaseKey = 'sb_publishable_l7mKNQVJ6WesiTM4GJCxQg_oXxTN3it';
+const supabase = window.supabase || null;
 
 // ============ LOAD ADMIN PROFILE ============
 function loadAdminProfile() {
@@ -47,42 +48,17 @@ function loadAdminProfile() {
 // ============ LOAD STUDENTS ============
 async function loadStudents() {
     try {
-        // First try to load from localStorage (where status is updated)
         const stored = localStorage.getItem('campus_care_students');
         
         if (stored && stored !== '[]') {
             students = JSON.parse(stored);
             console.log('Loaded students from localStorage:', students.length);
         } else {
-            // Fallback to Supabase
-            const { data, error } = await supabase
-                .from('student')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            if (!error && data && data.length > 0) {
-                students = data.map(s => ({
-                    id: s.id,
-                    name: s.full_name || 'Unknown',
-                    idNumber: s.student_id || 'N/A',
-                    email: s.email || '',
-                    course: 'N/A',
-                    year: '1',
-                    status: s.is_active ? 'active' : 'inactive',
-                    reports: 0,
-                    last_login: s.last_login || s.created_at,
-                    created_at: s.created_at
-                }));
-            } else {
-                // Default students
-                students = getDefaultStudents();
-            }
+            students = getDefaultStudents();
             saveToLocalStorage();
         }
         
-        // Auto-update inactive status for students who haven't logged in recently
         autoUpdateInactiveStatus();
-        
         renderStudents();
         updateStats();
         
@@ -102,13 +78,12 @@ function autoUpdateInactiveStatus() {
     students.forEach(student => {
         if (student.status === 'active' && student.last_login) {
             const lastLogin = new Date(student.last_login);
-            const hoursSinceLogin = (now - lastLogin) / (1000 * 60 * 60);
+            const daysSinceLogin = (now - lastLogin) / (1000 * 60 * 60 * 24);
             
-            // If student hasn't logged in for more than 24 hours, mark as inactive
-            if (hoursSinceLogin > 24) {
+            if (daysSinceLogin > 7) {
                 student.status = 'inactive';
                 hasChanges = true;
-                console.log(`Auto-marked ${student.name} as inactive (last login: ${hoursSinceLogin.toFixed(1)} hours ago)`);
+                console.log(`Auto-marked ${student.name} as inactive`);
             }
         }
     });
@@ -117,20 +92,6 @@ function autoUpdateInactiveStatus() {
         saveToLocalStorage();
     }
 }
-
-// ============ AUTO UPDATE ACTIVE STATUS ON ACTIVITY ============
-// This function should be called whenever a student does any activity
-window.updateStudentActivity = function(email) {
-    const student = students.find(s => s.email === email);
-    if (student) {
-        student.status = 'active';
-        student.last_login = new Date().toISOString();
-        saveToLocalStorage();
-        renderStudents();
-        updateStats();
-        console.log(`Updated ${student.name} status to ACTIVE`);
-    }
-};
 
 // ============ DEFAULT STUDENTS ============
 function getDefaultStudents() {
@@ -192,33 +153,48 @@ function renderStudents() {
     tbody.innerHTML = students.map(student => `
         <tr data-id="${student.id}">
             <td><div class="student-info"><div class="student-avatar">${getInitials(student.name)}</div><div><div class="student-name">${escapeHtml(student.name)}</div><div class="student-detail">${escapeHtml(student.email)}</div></div></div></td>
-            <td><strong>${escapeHtml(student.idNumber)}</strong></span></td>
+            <td><strong>${escapeHtml(student.idNumber)}</strong></td>
             <td>${escapeHtml(student.course)} - ${student.year}${getYearSuffix(student.year)} Year</span></td>
-            <td><span class="badge-active">${student.reports || 0} reports</span></span></td>
+            <td><span class="badge-active">${student.reports || 0} reports</span></td>
             <td><span class="status-badge ${student.status === 'active' ? 'status-active' : 'status-inactive'}">
                 ${student.status === 'active' ? '🟢 Active' : '⚫ Inactive'}
-            </span></span></td>
+            </span></td>
             <td><span class="last-login">${formatDate(student.last_login)}</span></td>
             <td><div class="action-btns">
                 <button class="action-btn edit-student" data-id="${student.id}" title="Edit Student">✏️</button>
                 <button class="action-btn toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
                 <button class="action-btn del delete-student" data-id="${student.id}" title="Delete Student">🗑️</button>
-             </div></span></td>
+             </div></td>
         </tr>
     `).join('');
     
+    // Attach event listeners
     document.querySelectorAll('.edit-student').forEach(btn => {
-        btn.addEventListener('click', () => editStudent(btn.dataset.id));
+        btn.removeEventListener('click', () => {});
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            editStudent(btn.dataset.id);
+        });
     });
+    
     document.querySelectorAll('.delete-student').forEach(btn => {
-        btn.addEventListener('click', () => deleteStudent(btn.dataset.id));
+        btn.removeEventListener('click', () => {});
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            deleteStudent(btn.dataset.id);
+        });
     });
+    
     document.querySelectorAll('.toggle-status').forEach(btn => {
-        btn.addEventListener('click', () => toggleStudentStatus(btn.dataset.id));
+        btn.removeEventListener('click', () => {});
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleStudentStatus(btn.dataset.id);
+        });
     });
 }
 
-// ============ TOGGLE STUDENT STATUS MANUALLY ============
+// ============ TOGGLE STUDENT STATUS ============
 function toggleStudentStatus(id) {
     const student = students.find(s => s.id == id);
     if (student) {
@@ -272,14 +248,16 @@ function updateStats() {
 function showNotification(message, type = 'info') {
     const n = document.createElement('div');
     n.textContent = message;
-    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'success' ? '#10B981' : type === 'error' ? '#DC2626' : '#1E3A5F'};color:white;padding:10px 18px;border-radius:40px;z-index:2000;`;
+    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'success' ? '#10B981' : type === 'error' ? '#DC2626' : '#1E3A5F'};color:white;padding:10px 18px;border-radius:40px;z-index:2000;box-shadow:0 4px 12px rgba(0,0,0,0.15);`;
     document.body.appendChild(n);
     setTimeout(() => n.remove(), 3000);
 }
 
 // ============ ADD CSS FOR STATUS BADGES ============
 function addStatusStyles() {
+    if (document.getElementById('student-status-styles')) return;
     const style = document.createElement('style');
+    style.id = 'student-status-styles';
     style.textContent = `
         .status-badge {
             display: inline-flex;
@@ -310,6 +288,15 @@ function addStatusStyles() {
             background: #f1f5f9;
             transform: scale(1.05);
         }
+        .badge-active {
+            background: #E1F5EE;
+            color: #085041;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -326,9 +313,11 @@ function closeModal() {
     if (modal) modal.classList.remove('active');
     const form = document.getElementById('studentForm');
     if (form) form.reset();
-    document.getElementById('studentId').value = '';
+    const studentId = document.getElementById('studentId');
+    if (studentId) studentId.value = '';
     editingStudentId = null;
-    document.getElementById('modalTitle').textContent = 'Add New Student';
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) modalTitle.textContent = 'Add New Student';
     document.body.style.overflow = '';
 }
 
@@ -336,14 +325,23 @@ function editStudent(id) {
     const student = students.find(s => s.id == id);
     if (!student) return;
     editingStudentId = id;
-    document.getElementById('studentId').value = student.id;
-    document.getElementById('studentFullName').value = student.name;
-    document.getElementById('studentIdNumber').value = student.idNumber;
-    document.getElementById('studentCourse').value = student.course;
-    document.getElementById('studentYear').value = student.year;
-    document.getElementById('studentEmail').value = student.email;
-    document.getElementById('studentStatus').value = student.status;
-    document.getElementById('modalTitle').textContent = 'Edit Student';
+    const studentIdInput = document.getElementById('studentId');
+    const fullNameInput = document.getElementById('studentFullName');
+    const idNumberInput = document.getElementById('studentIdNumber');
+    const courseSelect = document.getElementById('studentCourse');
+    const yearSelect = document.getElementById('studentYear');
+    const emailInput = document.getElementById('studentEmail');
+    const statusSelect = document.getElementById('studentStatus');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    if (studentIdInput) studentIdInput.value = student.id;
+    if (fullNameInput) fullNameInput.value = student.name;
+    if (idNumberInput) idNumberInput.value = student.idNumber;
+    if (courseSelect) courseSelect.value = student.course;
+    if (yearSelect) yearSelect.value = student.year;
+    if (emailInput) emailInput.value = student.email;
+    if (statusSelect) statusSelect.value = student.status;
+    if (modalTitle) modalTitle.textContent = 'Edit Student';
     openModal();
 }
 
@@ -402,15 +400,66 @@ if (studentForm) {
     });
 }
 
-// ============ NAVIGATION & UI SETUP ============
+// ============ FIXED: NAVIGATION & UI SETUP ============
 function setupNavigation() {
-    document.querySelectorAll('.drawer-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const page = this.dataset.page;
-            if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
-            else if (page === 'users') { /* already here */ }
-            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+    console.log('Setting up navigation...');
+    
+    // Drawer navigation
+    const drawerItems = document.querySelectorAll('.drawer-item');
+    console.log('Found drawer items:', drawerItems.length);
+    
+    drawerItems.forEach(item => {
+        // Clone to remove existing listeners
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            console.log('Drawer clicked:', page);
+            
+            // Close drawer first
+            const drawer = document.getElementById('drawer');
+            const overlay = document.getElementById('overlay');
+            if (drawer) drawer.classList.remove('open');
+            if (overlay) overlay.classList.remove('open');
+            
+            // Navigate
+            if (page === 'dashboard') {
+                window.location.href = '/Assets/Admin_dashboard/Admin.html';
+            } else if (page === 'incidents') {
+                window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            } else if (page === 'settings') {
+                window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+            }
+            // users page - stay here
+        });
+    });
+}
+
+// ============ BOTTOM NAVIGATION ============
+function setupBottomNav() {
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    console.log('Bottom nav items:', bottomNavItems.length);
+    
+    bottomNavItems.forEach(item => {
+        // Clone to remove existing listeners
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = newItem.getAttribute('data-page');
+            console.log('Bottom nav clicked:', page);
+            
+            if (page === 'dashboard') {
+                window.location.href = '/Assets/Admin_dashboard/Admin.html';
+            } else if (page === 'incidents') {
+                window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            } else if (page === 'settings') {
+                window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+            }
+            // users page - stay here
         });
     });
 }
@@ -421,9 +470,24 @@ function setupUI() {
     const hamburger = document.getElementById('hamburger');
     const adminPill = document.getElementById('adminPill');
     
-    if (hamburger) hamburger.onclick = () => { drawer.classList.toggle('open'); overlay.classList.toggle('open'); };
-    if (overlay) overlay.onclick = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
-    if (adminPill) adminPill.onclick = () => { drawer.classList.toggle('open'); overlay.classList.toggle('open'); };
+    if (hamburger) {
+        hamburger.onclick = () => { 
+            if (drawer) drawer.classList.toggle('open'); 
+            if (overlay) overlay.classList.toggle('open'); 
+        };
+    }
+    if (overlay) {
+        overlay.onclick = () => { 
+            if (drawer) drawer.classList.remove('open'); 
+            if (overlay) overlay.classList.remove('open'); 
+        };
+    }
+    if (adminPill) {
+        adminPill.onclick = () => { 
+            if (drawer) drawer.classList.toggle('open'); 
+            if (overlay) overlay.classList.toggle('open'); 
+        };
+    }
     
     const addBtn = document.getElementById('addStudentBtn');
     if (addBtn) addBtn.addEventListener('click', openModal);
@@ -442,7 +506,10 @@ function setupUI() {
     
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
+        const newLogoutBtn = logoutBtn.cloneNode(true);
+        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+        
+        newLogoutBtn.addEventListener('click', () => {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('currentStudent');
                 localStorage.removeItem('currentAdmin');
@@ -464,7 +531,7 @@ function escapeHtml(text) {
 }
 
 // ============ AUTO REFRESH EVERY 30 SECONDS ============
-setInterval(() => {
+let refreshInterval = setInterval(() => {
     autoUpdateInactiveStatus();
     renderStudents();
     updateStats();
@@ -473,11 +540,13 @@ setInterval(() => {
 // ============ INITIALIZE ============
 async function init() {
     console.log('Initializing Student Management...');
-    loadAdminProfile();
     addStatusStyles();
+    loadAdminProfile();
     await loadStudents();
     setupNavigation();
+    setupBottomNav();
     setupUI();
 }
 
+// Start the application
 init();

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Reset Password - CampusCare</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
+    <link rel="stylesheet" href="/Assets/password/reset.css">
+</head>
+<body>
+    <div class="reset-container" id="resetContainer">
+        <div class="logo">
+            <img src="/Assets/Images/logo.png" alt="CampusCare">
+        </div>
+        <h1>Reset Password</h1>
+        <div class="subtitle" id="subtitle">Enter your email to receive reset instructions</div>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="resetForm">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="resetEmail" placeholder="student@gordoncollege.edu.ph" required>
+            </div>
+            <button type="submit" class="btn" id="resetBtn">Send Reset Link</button>
+        </form>
+        
+        <div class="back-link">
+            <a href="/Assets/login/log.html">← Back to Login</a>
+        </div>
+    </div>
+
+    <script type="module" src="/Assets/password/reset.js"></script>
+</body>
+</html>

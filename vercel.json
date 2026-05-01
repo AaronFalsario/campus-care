@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/Assets/Landing_page/land.html" },
+    { "source": "/(.*)", "destination": "/Assets/$1" }
+  ]
+}
