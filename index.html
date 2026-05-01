@@ -4,62 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campus Care</title>
+    <meta http-equiv="refresh" content="0; url=/Assets/Landing_page/land.html">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
         }
-        .container {
+        .loader {
             text-align: center;
-            padding: 40px;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
-        }
-        h1 {
             color: white;
-            font-size: 32px;
-            margin-bottom: 16px;
         }
-        p {
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 32px;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
-        .btn {
-            display: inline-block;
-            padding: 12px 28px;
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">🏫</div>
-        <h1>Campus Care</h1>
-        <p>Making Campus Safer Together</p>
-        <a href="/Assets/Landing_page/land.html" class="btn">Enter Campus Care</a>
+    <div class="loader">
+        <div class="spinner"></div>
+        <p>Loading Campus Care...</p>
     </div>
+    <script>
+        // Redirect to landing page
+        window.location.href = '/Assets/Landing_page/land.html';
+    </script>
 </body>
 </html>

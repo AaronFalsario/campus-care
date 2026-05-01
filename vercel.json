@@ -1,3 +1,5 @@
 {
-  "outputDirectory": "."
+  "rewrites": [
+    { "source": "/Assets/(.*)", "destination": "/Assets/$1" }
+  ]
 }
