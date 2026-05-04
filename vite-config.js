@@ -6,7 +6,7 @@ export default defineConfig({
     port: 3000,
     open: true
   },
-  base: '/', // Important for Vercel
+  base: './', 
   root: '.',
   build: {
     outDir: 'dist',

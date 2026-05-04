@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>CampusCare</title>
+    <title>CampusCare - Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
     
@@ -74,11 +74,6 @@
             font-weight: 400;
             letter-spacing: 0.3px;
         }
-        
-        /* Hide everything initially on desktop */
-        .desktop-hide {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -92,36 +87,25 @@
 
     <script>
         // ===========================================
-        // DEVICE DETECTION - MUST RUN FIRST
+        // DEVICE DETECTION & REDIRECT
         // ===========================================
         
         function isMobileDevice() {
-            // Check user agent for mobile devices
             const userAgent = navigator.userAgent.toLowerCase();
             const mobileKeywords = /android|webos|iphone|ipad|ipod|blackberry|windows phone|opera mini|iemobile|mobile/i;
-            
-            // Check screen width
             const isSmallScreen = window.innerWidth <= 768;
-            
             return mobileKeywords.test(userAgent) || isSmallScreen;
         }
         
-        // Check if device is mobile
         const isMobile = isMobileDevice();
         
-        // If NOT mobile (desktop), redirect immediately to landing page
-        // This must happen BEFORE any animation code runs
+        // DESKTOP: Redirect to landing page immediately
         if (!isMobile) {
-            // Immediate redirect - no animation on desktop
             window.location.replace('/Assets/Landing_page/land.html');
-        }
-        
-        // ===========================================
-        // MOBILE ANIMATION CODE (Only runs on mobile)
-        // ===========================================
-        
-        // Only proceed with animation if on mobile
-        if (isMobile) {
+            // Stop all code execution for desktop
+        } 
+        // MOBILE: Run animation then redirect
+        else {
             // Wait for DOM to be ready
             document.addEventListener('DOMContentLoaded', function() {
                 const circle = document.getElementById('circle');
@@ -142,7 +126,7 @@
                     { scale: 0,   duration: 1550 },   
                 ];
 
-                let currentFrame = 0;
+                let currentFrame = -1;
 
                 function runFrame() {
                     currentFrame++;
@@ -151,7 +135,7 @@
                     const f = frames[currentFrame];
 
                     if (currentFrame === frames.length - 1) {
-                        // Last frame - fade out animation
+                        // Last frame - fade out and redirect to mobile dashboard
                         circle.style.transition = 'transform 0.28s ease-in, opacity 0.28s ease-in';
                         circle.style.opacity = '0';
                         circle.style.transform = 'translate(-50%, -50%) scale(0)';
@@ -161,8 +145,8 @@
                             setTimeout(() => {
                                 content.style.opacity = '1';
                                 setTimeout(() => {
-                                    // Redirect to landing page after animation
-                                    window.location.href = '/Assets/Landing_page/land.html';
+                                    // MOBILE: Redirect to mobile dashboard (change this to your actual mobile page)
+                                    window.location.href = '/Assets/Mobile_dashboard/mobile.html';
                                 }, 4000);
                             }, 200);
                         }, 180);
@@ -176,7 +160,7 @@
                 }
                 
                 // Start animation after short delay
-                setTimeout(runFrame, 300);
+                setTimeout(runFrame, 100);
             });
         }
     </script>
