@@ -6,6 +6,7 @@ export default defineConfig({
     port: 3000,
     open: true
   },
+  base: '/', // Important for Vercel
   root: '.',
   build: {
     outDir: 'dist',
@@ -19,14 +20,19 @@ export default defineConfig({
         login: resolve(__dirname, 'Assets/login/admin/admin.html'),
         landing: resolve(__dirname, 'Assets/Landing_page/land.html')
       }
-    }
+    },
+    // Ensure assets are copied correctly
+    assetsInlineLimit: 0,
+    copyPublicDir: true
   },
-  // Add this to handle assets correctly
-  publicDir: 'Assets',
+  // Don't use publicDir - keep default 'public' folder instead
+  // Move your Assets folder to 'public' or use proper imports
+  publicDir: 'public',
   resolve: {
     alias: {
       '@': resolve(__dirname, './Assets'),
       '@components': resolve(__dirname, './Assets/Admin_dashboard'),
+      '@assets': resolve(__dirname, './Assets')
     }
   }
 })
