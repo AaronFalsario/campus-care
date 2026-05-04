@@ -21,13 +21,11 @@ export default defineConfig({
         landing: resolve(__dirname, 'Assets/Landing_page/land.html')
       }
     },
-    // Ensure assets are copied correctly
     assetsInlineLimit: 0,
     copyPublicDir: true
   },
-  // Don't use publicDir - keep default 'public' folder instead
-  // Move your Assets folder to 'public' or use proper imports
-  publicDir: 'public',
+  // FIXED: Set publicDir to false and use copyPublicDir
+  publicDir: false,
   resolve: {
     alias: {
       '@': resolve(__dirname, './Assets'),
