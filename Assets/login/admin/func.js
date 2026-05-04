@@ -1,7 +1,7 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://opjyksksnccurdwyskiu.supabase.co'
-const supabaseKey = 'sb_publishable_l7mKNQVJ6WesiTM4GJCxQg_oXxTN3it'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // List of approved email domains (any email with these domains can register)
@@ -15,6 +15,146 @@ const SPECIFIC_APPROVED_EMAILS = [
     'admin@campuscaredemo.com'
 ];
 
+// ========== BEAUTIFUL TOAST NOTIFICATION SYSTEM ==========
+function showToast(message, isError = false, duration = 3000) {
+    // Remove existing toast
+    const existingToast = document.querySelector('.admin-custom-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast container
+    const toast = document.createElement('div');
+    toast.className = 'admin-custom-toast';
+    
+    // Create icon based on type
+    const icon = document.createElement('div');
+    icon.className = 'admin-toast-icon';
+    if (isError) {
+        icon.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+            </svg>
+        `;
+    } else {
+        icon.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            </svg>
+        `;
+    }
+    
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'admin-toast-message';
+    messageContainer.textContent = message;
+    
+    // Create progress bar
+    const progressBar = document.createElement('div');
+    progressBar.className = 'admin-toast-progress';
+    
+    toast.appendChild(icon);
+    toast.appendChild(messageContainer);
+    toast.appendChild(progressBar);
+    document.body.appendChild(toast);
+    
+    // Add styles if not already added
+    if (!document.querySelector('#admin-toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'admin-toast-styles';
+        style.textContent = `
+            .admin-custom-toast {
+                position: fixed;
+                bottom: 24px;
+                left: 16px;
+                right: 16px;
+                max-width: 400px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                padding: 14px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.05);
+                z-index: 10000;
+                animation: adminToastSlideUp 0.3s ease-out;
+                border-left: 4px solid;
+                border-left-color: ${isError ? '#EF4444' : '#10B981'};
+            }
+            
+            .admin-custom-toast .admin-toast-icon {
+                flex-shrink: 0;
+                color: ${isError ? '#EF4444' : '#10B981'};
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .admin-custom-toast .admin-toast-message {
+                flex: 1;
+                font-size: 13px;
+                font-weight: 500;
+                color: #1e293b;
+                line-height: 1.4;
+            }
+            
+            .admin-custom-toast .admin-toast-progress {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 3px;
+                background: ${isError ? '#EF4444' : '#10B981'};
+                border-bottom-left-radius: 12px;
+                animation: adminToastProgress ${duration}ms linear forwards;
+            }
+            
+            @keyframes adminToastSlideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes adminToastProgress {
+                from {
+                    width: 100%;
+                }
+                to {
+                    width: 0%;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .admin-custom-toast {
+                    left: 12px;
+                    right: 12px;
+                    padding: 12px 14px;
+                    bottom: 20px;
+                }
+                
+                .admin-custom-toast .admin-toast-message {
+                    font-size: 12px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.style.animation = 'adminToastSlideUp 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
 // SU TRIGGER - MOVED OUTSIDE DOMContentLoaded FOR IMMEDIATE EXECUTION
 (function() {
     let suSequence = [];
@@ -25,24 +165,19 @@ const SPECIFIC_APPROVED_EMAILS = [
         const activeElement = document.activeElement;
         const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
         
-        console.log('🔑 Key pressed:', key, '| Is typing:', isTyping);
-        
         if (!isTyping) {
             if (key === 'S') {
                 suSequence = ['S'];
-                console.log('✅ S pressed - waiting for U...');
                 
                 if (suTimeout) clearTimeout(suTimeout);
                 
                 suTimeout = setTimeout(function() {
                     suSequence = [];
-                    console.log('⏰ Sequence reset after timeout');
                 }, 2000);
             }
             else if (key === 'U' && suSequence[0] === 'S') {
                 console.log('🎉 SU TRIGGER ACTIVATED! Showing signup form...');
                 
-                // Show signup form
                 const loginCard = document.getElementById('adminLoginCard');
                 const signupCard = document.getElementById('adminSignupCard');
                 
@@ -50,31 +185,8 @@ const SPECIFIC_APPROVED_EMAILS = [
                     loginCard.style.display = 'none';
                     signupCard.style.display = 'block';
                     
-                    // Show toast message
-                    const toast = document.createElement('div');
-                    toast.textContent = '🔐 Secret access granted! Opening registration...';
-                    toast.style.position = 'fixed';
-                    toast.style.bottom = '100px';
-                    toast.style.right = '20px';
-                    toast.style.background = '#1e293b';
-                    toast.style.color = '#10b981';
-                    toast.style.padding = '12px 20px';
-                    toast.style.borderRadius = '12px';
-                    toast.style.fontSize = '14px';
-                    toast.style.fontFamily = 'monospace';
-                    toast.style.zIndex = '9999';
-                    toast.style.opacity = '1';
-                    toast.style.transition = 'opacity 0.3s';
-                    document.body.appendChild(toast);
+                    showToast('🔐 Secret access granted! Opening registration...', false, 2000);
                     
-                    setTimeout(function() {
-                        toast.style.opacity = '0';
-                        setTimeout(function() {
-                            toast.remove();
-                        }, 300);
-                    }, 2000);
-                    
-                    // Update signup message
                     const signupMsg = document.getElementById('signupMessage');
                     if (signupMsg) {
                         signupMsg.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
@@ -82,7 +194,6 @@ const SPECIFIC_APPROVED_EMAILS = [
                     }
                 }
                 
-                // Reset sequence
                 suSequence = [];
                 if (suTimeout) clearTimeout(suTimeout);
             }
@@ -104,39 +215,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const showAdminLogin = document.getElementById('showAdminLogin');
     const showAdminForgotPassword = document.getElementById('showAdminForgotPassword');
 
-    // Toast notification function
-    function showToast(message, isSuccess = true) {
-        let toast = document.getElementById('adminToast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'adminToast';
-            toast.className = 'admin-toast';
-            document.body.appendChild(toast);
-        }
-        toast.textContent = message;
-        toast.style.color = isSuccess ? '#10b981' : '#ef4444';
-        toast.style.opacity = '1';
-        setTimeout(() => {
-            toast.style.opacity = '0';
-        }, 2000);
-    }
-
     // Function to check if email is approved
     function isEmailApproved(email) {
-        // Check specific emails first
         if (SPECIFIC_APPROVED_EMAILS.includes(email.toLowerCase())) {
             return true;
         }
-        // Check if email domain is approved
         return APPROVED_DOMAINS.some(domain => 
             email.toLowerCase().endsWith(domain)
         );
     }
 
+    // ============ CHECK IF ADMIN EMAIL EXISTS IN DATABASE ============
+    async function checkAdminEmailExists(email) {
+        try {
+            const { data, error } = await supabase
+                .from('admin')
+                .select('email, name, role')
+                .eq('email', email.toLowerCase().trim())
+                .maybeSingle();
+            
+            if (error) {
+                console.error('Error checking admin email:', error);
+                return { exists: false, error: error.message };
+            }
+            
+            return { exists: !!data, adminData: data };
+        } catch (error) {
+            console.error('Admin email check failed:', error);
+            return { exists: false, error: error.message };
+        }
+    }
+
     // ============ CREATE ADMIN TABLE IF NOT EXISTS ============
     async function ensureAdminTableExists() {
         try {
-            // Check if admin table exists by trying to select from it
             const { error } = await supabase
                 .from('admin')
                 .select('count')
@@ -144,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (error && error.message.includes('relation') && error.message.includes('does not exist')) {
                 console.log('Admin table does not exist. Please create it in Supabase SQL editor.');
-                console.log('Run this SQL: CREATE TABLE admin (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email VARCHAR(255) UNIQUE NOT NULL, name VARCHAR(255) NOT NULL, role VARCHAR(50) DEFAULT admin, is_active BOOLEAN DEFAULT true, created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW())');
                 return false;
             }
             return true;
@@ -176,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         signupMessage.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
                         signupMessage.style.color = '#10b981';
                     }
-                    showToast('📝 Secret access granted! Opening registration...', true);
+                    showToast('📝 Secret access granted! Opening registration...', false, 2000);
                 }
                 logoTapCount = 0;
             }
@@ -199,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         signupMessage.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
                         signupMessage.style.color = '#10b981';
                     }
-                    showToast('📝 Secret access granted! Opening registration...', true);
+                    showToast('📝 Secret access granted! Opening registration...', false, 2000);
                 }
             }, 3000);
         });
@@ -223,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         signupMessage.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
                         signupMessage.style.color = '#10b981';
                     }
-                    showToast('📝 Secret access granted! Opening registration...', true);
+                    showToast('📝 Secret access granted! Opening registration...', false, 2000);
                 }
             }, 3000);
         });
@@ -255,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         signupMessage.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
                         signupMessage.style.color = '#10b981';
                     }
-                    showToast('📝 Secret access granted! Opening registration...', true);
+                    showToast('📝 Secret access granted! Opening registration...', false, 2000);
                 }
                 twoFingerTap = false;
             }
@@ -310,13 +421,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPasswordToggle('adminSignupPassword');
     setupPasswordToggle('adminConfirmPassword');
 
-    // ============ ADMIN LOGIN FUNCTION (FIXED) ============
+    // ============ ADMIN LOGIN FUNCTION ============
     async function adminLogin() {
         const email = document.getElementById('adminEmail').value.trim();
         const password = document.getElementById('adminPasswordInput').value;
         const messageEl = document.getElementById('loginMessage');
         
         if (!email || !password) {
+            showToast('Please fill in all fields', true);
             messageEl.textContent = 'Please fill in all fields';
             messageEl.style.color = '#DC2626';
             return;
@@ -325,8 +437,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             adminLoginBtn.disabled = true;
             adminLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
-            messageEl.textContent = 'Checking credentials...';
-            messageEl.style.color = '#10b981';
             
             const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
                 email: email,
@@ -372,7 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // If admin doesn't exist in table, create them
             if (adminError || !adminData) {
-                // Only auto-create if email is approved
                 if (isEmailApproved(email)) {
                     try {
                         const { data: newAdmin, error: insertError } = await supabase
@@ -389,7 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (insertError) {
                             console.error('Insert error details:', insertError);
                             
-                            // Check for specific errors
                             if (insertError.code === '42P01') {
                                 throw new Error('Admin table does not exist. Please run the database setup SQL in Supabase.');
                             } else if (insertError.message.includes('row-level security')) {
@@ -422,9 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('currentAdmin', JSON.stringify(adminSession));
             localStorage.setItem('isAdminLoggedIn', 'true');
             
-            messageEl.textContent = 'Login successful! Redirecting...';
-            adminLoginBtn.style.backgroundColor = '#059669';
-            adminLoginBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
+            showToast('Login successful! Redirecting...', false, 1000);
             
             setTimeout(() => {
                 window.location.href = '/Assets/Admin_dashboard/Admin.html';
@@ -432,6 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Login error:', error);
+            showToast(error.message, true);
             messageEl.textContent = error.message;
             messageEl.style.color = '#DC2626';
             
@@ -442,11 +549,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             adminLoginBtn.disabled = false;
             adminLoginBtn.innerHTML = 'Login';
-            adminLoginBtn.style.backgroundColor = '#10b981';
         }
     }
 
-    // ADMIN SIGNUP - Allows multiple accounts 
+    // ============ ADMIN SIGNUP FUNCTION ============
     async function adminSignup() {
         const name = document.getElementById('adminName').value.trim();
         const email = document.getElementById('adminSignupEmail').value.trim();
@@ -454,27 +560,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmPassword = document.getElementById('adminConfirmPassword').value;
         const messageEl = document.getElementById('signupMessage');
         
-        // Validation
         if (!name || !email || !password || !confirmPassword) {
+            showToast('Please fill in all fields', true);
             messageEl.textContent = 'Please fill in all fields';
             messageEl.style.color = '#DC2626';
             return;
         }
         
         if (password.length < 6) {
+            showToast('Password must be at least 6 characters', true);
             messageEl.textContent = 'Password must be at least 6 characters';
             messageEl.style.color = '#DC2626';
             return;
         }
         
         if (password !== confirmPassword) {
+            showToast('Passwords do not match', true);
             messageEl.textContent = 'Passwords do not match';
             messageEl.style.color = '#DC2626';
             return;
         }
         
-        // Check if email is approved (domain or specific list)
         if (!isEmailApproved(email)) {
+            showToast(`Only ${APPROVED_DOMAINS.join(', ')} email addresses are authorized for admin access.`, true);
             messageEl.textContent = `Only ${APPROVED_DOMAINS.join(', ')} email addresses are authorized for admin access.`;
             messageEl.style.color = '#DC2626';
             return;
@@ -483,10 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             adminSignupBtn.disabled = true;
             adminSignupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            messageEl.textContent = 'Creating your account...';
-            messageEl.style.color = '#10b981';
             
-            // Check if user already exists in Supabase Auth
             const { data: existingUser } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: 'dummy-check'
@@ -496,7 +601,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('An account with this email already exists. Please login.');
             }
             
-            // Sign up with Supabase Auth
             const { data: authData, error: signUpError } = await supabase.auth.signUp({
                 email: email,
                 password: password,
@@ -514,7 +618,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (authData.user) {
-                // Check if admin already exists in admin table
                 const { data: existingAdmin } = await supabase
                     .from('admin')
                     .select('id')
@@ -522,7 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     .single();
                 
                 if (!existingAdmin) {
-                    // Add to admin table (pending email confirmation)
                     const { error: insertError } = await supabase
                         .from('admin')
                         .insert([{
@@ -537,19 +639,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
+                showToast('Registration successful! Please check your email to confirm your account.', false, 5000);
                 messageEl.innerHTML = '✓ <strong>Registration successful!</strong><br><br>A confirmation link has been sent to your email address.<br><br>Please check your inbox and click the link to confirm your account.<br><br>After confirmation, you will be able to login.';
                 messageEl.style.color = '#10b981';
                 
-                adminSignupBtn.style.backgroundColor = '#059669';
                 adminSignupBtn.innerHTML = '<i class="fas fa-check"></i> Email Sent!';
                 
-                // Clear form
                 document.getElementById('adminName').value = '';
                 document.getElementById('adminSignupEmail').value = '';
                 document.getElementById('adminSignupPassword').value = '';
                 document.getElementById('adminConfirmPassword').value = '';
                 
-                // Show login form after 5 seconds
                 setTimeout(() => {
                     adminSignupCard.style.display = 'none';
                     adminLoginCard.style.display = 'block';
@@ -560,30 +660,241 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Signup error:', error);
+            showToast(error.message, true);
             messageEl.innerHTML = '❌ ' + error.message;
             messageEl.style.color = '#DC2626';
             
             adminSignupBtn.disabled = false;
             adminSignupBtn.innerHTML = 'Request Access';
-            adminSignupBtn.style.backgroundColor = '#10b981';
         }
     }
 
-    //  FORGOT PASSWORD 
-    async function forgotPassword() {
-        const email = prompt('Please enter your admin email address:');
-        if (!email) return;
-        
-        try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/Assets/login/admin/reset-password.html'
+    // ============ CUSTOM EMAIL PROMPT MODAL ============
+    function showAdminEmailPrompt() {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'admin-email-prompt-modal';
+            modal.innerHTML = `
+                <div class="admin-email-prompt-overlay"></div>
+                <div class="admin-email-prompt-container">
+                    <div class="admin-email-prompt-header">
+                        <h3>Admin Password Reset</h3>
+                        <button class="admin-email-prompt-close">&times;</button>
+                    </div>
+                    <div class="admin-email-prompt-body">
+                        <p>Enter your registered admin email address to receive a password reset link.</p>
+                        <input type="email" id="adminPromptEmail" placeholder="admin@gordoncollege.edu.ph" autocomplete="off">
+                        <div class="admin-email-hint">
+                            <span>⚠️ Only registered admin emails will receive a reset link</span>
+                        </div>
+                    </div>
+                    <div class="admin-email-prompt-footer">
+                        <button class="admin-email-prompt-cancel">Cancel</button>
+                        <button class="admin-email-prompt-submit">Send Reset Link</button>
+                    </div>
+                </div>
+            `;
+            
+            // Add styles for modal
+            if (!document.querySelector('#admin-prompt-styles')) {
+                const style = document.createElement('style');
+                style.id = 'admin-prompt-styles';
+                style.textContent = `
+                    .admin-email-prompt-modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: 20000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        animation: adminFadeIn 0.2s ease;
+                    }
+                    .admin-email-prompt-overlay {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.5);
+                    }
+                    .admin-email-prompt-container {
+                        position: relative;
+                        background: white;
+                        border-radius: 16px;
+                        width: 90%;
+                        max-width: 340px;
+                        overflow: hidden;
+                        animation: adminSlideUp 0.3s ease;
+                    }
+                    .admin-email-prompt-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 16px 16px 12px;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .admin-email-prompt-header h3 {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #1e293b;
+                        margin: 0;
+                    }
+                    .admin-email-prompt-close {
+                        background: none;
+                        border: none;
+                        font-size: 24px;
+                        cursor: pointer;
+                        color: #94a3b8;
+                        padding: 0;
+                        line-height: 1;
+                    }
+                    .admin-email-prompt-body {
+                        padding: 16px;
+                    }
+                    .admin-email-prompt-body p {
+                        font-size: 13px;
+                        color: #64748b;
+                        margin-bottom: 12px;
+                    }
+                    .admin-email-prompt-body input {
+                        width: 100%;
+                        padding: 10px 12px;
+                        border: 1.5px solid #e2e8f0;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        font-family: inherit;
+                    }
+                    .admin-email-prompt-body input:focus {
+                        outline: none;
+                        border-color: #10b981;
+                    }
+                    .admin-email-prompt-footer {
+                        display: flex;
+                        gap: 12px;
+                        padding: 12px 16px 16px;
+                        border-top: 1px solid #f1f5f9;
+                    }
+                    .admin-email-prompt-cancel, .admin-email-prompt-submit {
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    }
+                    .admin-email-prompt-cancel {
+                        background: #f1f5f9;
+                        border: none;
+                        color: #64748b;
+                    }
+                    .admin-email-prompt-submit {
+                        background: #10b981;
+                        border: none;
+                        color: white;
+                    }
+                    .admin-email-prompt-submit:hover {
+                        background: #059669;
+                    }
+                    .admin-email-hint {
+                        font-size: 11px;
+                        color: #64748b;
+                        margin-top: 8px;
+                    }
+                    @keyframes adminFadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes adminSlideUp {
+                        from { transform: translateY(20px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(modal);
+            
+            const input = modal.querySelector('#adminPromptEmail');
+            const submitBtn = modal.querySelector('.admin-email-prompt-submit');
+            const cancelBtn = modal.querySelector('.admin-email-prompt-cancel');
+            const closeBtn = modal.querySelector('.admin-email-prompt-close');
+            
+            const cleanup = () => modal.remove();
+            
+            submitBtn.onclick = () => {
+                const email = input.value.trim();
+                cleanup();
+                resolve(email || null);
+            };
+            
+            cancelBtn.onclick = () => {
+                cleanup();
+                resolve(null);
+            };
+            
+            closeBtn.onclick = () => {
+                cleanup();
+                resolve(null);
+            };
+            
+            modal.querySelector('.admin-email-prompt-overlay').onclick = () => {
+                cleanup();
+                resolve(null);
+            };
+            
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const email = input.value.trim();
+                    cleanup();
+                    resolve(email || null);
+                }
             });
             
-            if (error) throw error;
+            input.focus();
+        });
+    }
+
+    // ============ FORGOT PASSWORD FUNCTION (UPDATED WITH EMAIL CHECK) ============
+    async function forgotPassword() {
+        const email = await showAdminEmailPrompt();
+        
+        if (email && email.trim()) {
+            const trimmedEmail = email.trim().toLowerCase();
             
-            alert('Password reset link has been sent to your email. Please check your inbox.');
-        } catch (error) {
-            alert('Error: ' + error.message);
+            showToast('Verifying email address...', false, 2000);
+            
+            try {
+                // CHECK IF ADMIN EMAIL EXISTS IN DATABASE FIRST
+                const { exists, adminData, error: checkError } = await checkAdminEmailExists(trimmedEmail);
+                
+                if (checkError) {
+                    throw new Error('Unable to verify email. Please try again.');
+                }
+                
+                if (!exists) {
+                    showToast('❌ Admin email not found. Please contact super administrator.', true, 4000);
+                    return;
+                }
+                
+                // Email exists, send reset link
+                console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
+                
+                const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+                    redirectTo: `${window.location.origin}/Assets/Admin/reset-password.html?type=admin`
+                });
+                
+                if (error) throw error;
+                
+                showToast(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
+                
+            } catch (error) {
+                console.error('Password reset error:', error);
+                showToast(error.message || 'Failed to send reset email. Please try again.', true);
+            }
         }
     }
 
@@ -605,117 +916,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // SECRET PASSCODES FOR ADMIN REGISTRATION
-const SECRET_PASSCODES = [
-    'SU',      // Existing - S then U
-    'ADMIN',   // New - type A D M I N
-    'CAMPUS',  // New - type C A M P U S
-    '7890',    // New - type 7 8 9 0
-    '#123#'    // New - type # 1 2 3 #
-];
+    const SECRET_PASSCODES = [
+        'SU', 'ADMIN', 'CAMPUS', '7890', '#123#'
+    ];
 
-// Updated secret trigger function
-(function() {
-    let keySequence = [];
-    let sequenceTimeout;
-    let currentExpectedSequence = null;
-    
-    // Function to check if any secret matches
-    function checkSecret(input) {
-        const upperInput = input.toUpperCase();
+    (function() {
+        let keySequence = [];
+        let sequenceTimeout;
         
-        // Check against all secrets
-        for (let secret of SECRET_PASSCODES) {
-            if (upperInput === secret || upperInput === secret.toUpperCase()) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    document.addEventListener('keydown', function(e) {
-        const key = e.key.toUpperCase();
-        
-        // Check if NOT typing in an input field
-        const activeElement = document.activeElement;
-        const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
-        
-        if (!isTyping) {
-            // For single key sequences (S, then U)
-            if (key === 'S') {
-                keySequence = ['S'];
-                if (sequenceTimeout) clearTimeout(sequenceTimeout);
-                sequenceTimeout = setTimeout(() => { keySequence = []; }, 2000);
-            }
-            else if (key === 'U' && keySequence[0] === 'S') {
-                console.log('🎉 SU TRIGGER ACTIVATED!');
-                showRegistration();
-                keySequence = [];
-                if (sequenceTimeout) clearTimeout(sequenceTimeout);
-            }
-            else {
-                // For longer passcodes, accumulate
-                if (keySequence.length === 0 && key !== 'S') {
-                    keySequence = [key];
-                } else if (keySequence.length > 0) {
-                    keySequence.push(key);
+        function checkSecret(input) {
+            const upperInput = input.toUpperCase();
+            for (let secret of SECRET_PASSCODES) {
+                if (upperInput === secret || upperInput === secret.toUpperCase()) {
+                    return true;
                 }
-                
-                if (sequenceTimeout) clearTimeout(sequenceTimeout);
-                sequenceTimeout = setTimeout(() => { keySequence = []; }, 2000);
-                
-                // Check accumulated sequence
-                const currentSequence = keySequence.join('');
-                if (checkSecret(currentSequence)) {
-                    console.log(`🎉 Secret "${currentSequence}" TRIGGER ACTIVATED!`);
+            }
+            return false;
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            const key = e.key.toUpperCase();
+            const activeElement = document.activeElement;
+            const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT');
+            
+            if (!isTyping) {
+                if (key === 'S') {
+                    keySequence = ['S'];
+                    if (sequenceTimeout) clearTimeout(sequenceTimeout);
+                    sequenceTimeout = setTimeout(() => { keySequence = []; }, 2000);
+                }
+                else if (key === 'U' && keySequence[0] === 'S') {
+                    console.log('🎉 SU TRIGGER ACTIVATED!');
                     showRegistration();
                     keySequence = [];
                     if (sequenceTimeout) clearTimeout(sequenceTimeout);
                 }
+                else {
+                    if (keySequence.length === 0 && key !== 'S') {
+                        keySequence = [key];
+                    } else if (keySequence.length > 0) {
+                        keySequence.push(key);
+                    }
+                    
+                    if (sequenceTimeout) clearTimeout(sequenceTimeout);
+                    sequenceTimeout = setTimeout(() => { keySequence = []; }, 2000);
+                    
+                    const currentSequence = keySequence.join('');
+                    if (checkSecret(currentSequence)) {
+                        console.log(`🎉 Secret "${currentSequence}" TRIGGER ACTIVATED!`);
+                        showRegistration();
+                        keySequence = [];
+                        if (sequenceTimeout) clearTimeout(sequenceTimeout);
+                    }
+                }
             }
-        }
-    });
-    
-    function showRegistration() {
-        const loginCard = document.getElementById('adminLoginCard');
-        const signupCard = document.getElementById('adminSignupCard');
+        });
         
-        if (loginCard && signupCard) {
-            loginCard.style.display = 'none';
-            signupCard.style.display = 'block';
+        function showRegistration() {
+            const loginCard = document.getElementById('adminLoginCard');
+            const signupCard = document.getElementById('adminSignupCard');
             
-            // Show toast message
-            const toast = document.createElement('div');
-            toast.textContent = '🔐 Secret access granted! Opening registration...';
-            toast.style.position = 'fixed';
-            toast.style.bottom = '100px';
-            toast.style.right = '20px';
-            toast.style.background = '#1e293b';
-            toast.style.color = '#10b981';
-            toast.style.padding = '12px 20px';
-            toast.style.borderRadius = '12px';
-            toast.style.fontSize = '14px';
-            toast.style.fontFamily = 'monospace';
-            toast.style.zIndex = '9999';
-            toast.style.opacity = '1';
-            toast.style.transition = 'opacity 0.3s';
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 2000);
-            
-            // Update signup message
-            const signupMsg = document.getElementById('signupMessage');
-            if (signupMsg) {
-                signupMsg.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
-                signupMsg.style.color = '#10b981';
+            if (loginCard && signupCard) {
+                loginCard.style.display = 'none';
+                signupCard.style.display = 'block';
+                showToast('🔐 Secret access granted! Opening registration...', false, 2000);
+                
+                const signupMsg = document.getElementById('signupMessage');
+                if (signupMsg) {
+                    signupMsg.innerHTML = '🔐 <strong>Secret portal activated!</strong><br>Registration form unlocked.';
+                    signupMsg.style.color = '#10b981';
+                }
             }
         }
-    }
-    
-    console.log('%c✅ SECRET PASSCODES ACTIVE! Try typing: SU, ADMIN, CAMPUS, 7890, #123#', 'color: #10b981; font-size: 14px; font-weight: bold;');
-})();
+        
+        console.log('%c✅ SECRET PASSCODES ACTIVE! Try typing: SU, ADMIN, CAMPUS, 7890, #123#', 'color: #10b981; font-size: 14px; font-weight: bold;');
+    })();
 
     // Check if already logged in
     const alreadyLoggedIn = localStorage.getItem('isAdminLoggedIn');

@@ -8,6 +8,7 @@
     <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Admin_dashboard/settings/setting.css">
+    <base href="/">
 </head>
 <body>
 
@@ -16,7 +17,7 @@
 <nav class="drawer" id="drawer">
     <div class="drawer-header">
         <div class="drawer-avatar" id="drawerAvatar">
-            <span id="drawerInitials" style="font-size: 18px; font-weight: 600;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <span id="drawerInitials"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
         </div>
         <div class="drawer-info">
             <div class="drawer-name" id="drawerAdminName">Administrator</div>
@@ -62,19 +63,149 @@
             <span class="brand-name">CampusCare</span>
         </div>
     </div>
-    <div class="admin-indicator" id="adminPill">
-        <i class="fas fa-user-shield"></i>
-        <span class="admin-text" id="topAdminName">Admin</span>
+    <div class="topbar-right">
+        <button id="darkModeToggle" class="dark-mode-toggle" title="Dark Mode">
+            <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+            </svg>
+            <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display:none">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </button>
+        
+        <button id="notificationBell" class="notification-bell" title="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span id="notificationBadge" class="notification-badge" style="display:none">0</span>
+        </button>
+        
+        <div class="admin-indicator" id="adminPill">
+            <i class="fas fa-user-shield"></i>
+            <span class="admin-text" id="topAdminName">Admin</span>
+        </div>
     </div>
 </header>
 
 <main>
     <div class="page-header">
-        <h1 class="page-title">⚙️ Admin Settings</h1>
-        <p class="page-sub">Manage your account, system preferences, and data</p>
+        <h1 class="page-title">⚙️ Settings</h1>
+        <p class="page-sub">Manage your account and preferences</p>
     </div>
 
-    <div class="settings-container">
+    <!-- MOBILE SETTINGS LIST -->
+    <div class="settings-list-mobile">
+        <!-- Account Section -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <i class="fas fa-user-circle"></i>
+                <span>Account</span>
+            </div>
+            <div class="settings-item" onclick="openProfileModal()">
+                <div class="settings-item-left">
+                    <i class="fas fa-user"></i>
+                    <div>
+                        <div class="settings-item-title">Your account</div>
+                        <div class="settings-item-sub" id="mobileAdminName">Administrator</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-left">
+                    <i class="fas fa-moon"></i>
+                    <div>
+                        <div class="settings-item-title">Dark Mode</div>
+                        <div class="settings-item-sub">Switch between light and dark theme</div>
+                    </div>
+                </div>
+                <label class="mobile-toggle-switch">
+                    <input type="checkbox" id="mobileDarkModeToggle">
+                    <span class="mobile-toggle-slider"></span>
+                </label>
+            </div>
+            <div class="settings-item" onclick="openNotificationsSettings()">
+                <div class="settings-item-left">
+                    <i class="fas fa-bell"></i>
+                    <div>
+                        <div class="settings-item-title">Notifications</div>
+                        <div class="settings-item-sub" id="notificationStatus">Allowed</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="settings-item" onclick="openLanguageModal()">
+                <div class="settings-item-left">
+                    <i class="fas fa-globe"></i>
+                    <div>
+                        <div class="settings-item-title">Language</div>
+                        <div class="settings-item-sub" id="selectedLanguage">English</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <i class="fas fa-info-circle"></i>
+                <span>About us</span>
+            </div>
+            <div class="settings-item" onclick="window.open('https://github.com', '_blank')">
+                <div class="settings-item-left">
+                    <i class="fab fa-github"></i>
+                    <div>
+                        <div class="settings-item-title">Rate us</div>
+                        <div class="settings-item-sub">Write about us in your store</div>
+                    </div>
+                </div>
+                <i class="fas fa-external-link-alt"></i>
+            </div>
+            <div class="settings-item" onclick="openFeedbackModal()">
+                <div class="settings-item-left">
+                    <i class="fas fa-comment"></i>
+                    <div>
+                        <div class="settings-item-title">Feedback</div>
+                        <div class="settings-item-sub">Write your opinion for us</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Danger Zone</span>
+            </div>
+            <div class="settings-item danger" onclick="confirmLogout()">
+                <div class="settings-item-left">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <div>
+                        <div class="settings-item-title">Log out</div>
+                        <div class="settings-item-sub">Sign out of your account</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <div class="settings-footer">
+            <p>CampusCare © 2024 v2.0</p>
+        </div>
+    </div>
+
+    <!-- DESKTOP SETTINGS PANEL -->
+    <div class="settings-container desktop-only">
         <div class="settings-sidebar">
             <button class="settings-sidebar-item active" data-tab="profile">
                 <i class="fas fa-user-circle"></i> Profile Settings
@@ -94,81 +225,59 @@
         </div>
 
         <div class="settings-panel" id="settingsPanel">
-            <!-- Profile Settings Tab -->
             <div class="tab-content" id="tab-profile">
-                <h2 class="panel-title"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Profile Settings</h2>
+                <h2 class="panel-title"><i class="fas fa-user-circle"></i> Profile Settings</h2>
                 <p class="panel-sub">Update your personal information</p>
-                
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" id="adminFullName" placeholder="Enter your full name">
                 </div>
-                
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" id="adminEmail" disabled>
-                    <p style="font-size: 11px; color: var(--muted); margin-top: 5px;">Email cannot be changed</p>
                 </div>
-                
                 <div class="form-group">
                     <label>Role</label>
                     <input type="text" id="adminRole" disabled>
                 </div>
-                
-                <div class="form-group">
-                    <label>Account Created</label>
-                    <input type="text" id="adminCreatedAt" disabled>
-                </div>
-                
                 <button class="btn-primary" id="saveProfileBtn">💾 Save Changes</button>
             </div>
 
-            <!-- Security Tab -->
             <div class="tab-content" id="tab-security" style="display: none;">
-                <h2 class="panel-title">🔒 Security Settings</h2>
-                <p class="panel-sub">Manage your password and security preferences</p>
-                
+                <h2 class="panel-title"><i class="fas fa-lock"></i> Security Settings</h2>
+                <p class="panel-sub">Manage your password</p>
                 <div class="form-group">
                     <label>Current Password</label>
                     <input type="password" id="currentPassword" placeholder="Enter current password">
                 </div>
-                
                 <div class="form-group">
                     <label>New Password</label>
                     <input type="password" id="newPassword" placeholder="Enter new password (min. 6 characters)">
                 </div>
-                
                 <div class="form-group">
                     <label>Confirm New Password</label>
                     <input type="password" id="confirmPassword" placeholder="Confirm new password">
                 </div>
-                
                 <button class="btn-primary" id="changePasswordBtn">🔑 Change Password</button>
             </div>
 
-            <!-- Preferences Tab -->
             <div class="tab-content" id="tab-preferences" style="display: none;">
-                <h2 class="panel-title">⚙️ Preferences</h2>
-                <p class="panel-sub">Customize your dashboard experience</p>
-                
+                <h2 class="panel-title"><i class="fas fa-bell"></i> Preferences</h2>
+                <p class="panel-sub">Customize your experience</p>
                 <div class="form-group">
                     <label>📧 Email Notifications</label>
                     <label class="toggle-switch">
                         <input type="checkbox" id="emailNotifications">
                         <span class="toggle-slider"></span>
                     </label>
-                    <p style="font-size: 12px; color: var(--muted); margin-top: 8px;">Receive email alerts for new incidents</p>
                 </div>
-                
                 <div class="form-group">
                     <label>🔔 Push Notifications</label>
                     <label class="toggle-switch">
                         <input type="checkbox" id="pushNotifications">
                         <span class="toggle-slider"></span>
                     </label>
-                    <p style="font-size: 12px; color: var(--muted); margin-top: 8px;">Receive browser notifications for updates</p>
                 </div>
-                
                 <div class="form-group">
                     <label>📊 Default Dashboard View</label>
                     <select id="defaultView">
@@ -177,71 +286,45 @@
                         <option value="analytics">Analytics</option>
                     </select>
                 </div>
-                
                 <button class="btn-primary" id="savePreferencesBtn">💾 Save Preferences</button>
             </div>
 
-            <!-- Data Management Tab -->
             <div class="tab-content" id="tab-data" style="display: none;">
-                <h2 class="panel-title">🗄️ Data Management</h2>
-                <p class="panel-sub">Manage your application data</p>
-                
+                <h2 class="panel-title"><i class="fas fa-database"></i> Data Management</h2>
+                <p class="panel-sub">Manage your data</p>
                 <div class="info-box">
                     <h4>📊 Data Statistics</h4>
                     <p>Total Incidents: <strong id="statTotalIncidents">0</strong></p>
                     <p>Total Students: <strong id="statTotalStudents">0</strong></p>
                     <p>Storage Used: <strong id="storageUsed">0 KB</strong></p>
                 </div>
-                
-                <div class="form-group" style="margin-top: 24px;">
+                <div class="form-group">
                     <label>📤 Export Data</label>
                     <button class="btn-secondary" id="exportIncidentsBtn">Export Incidents (CSV)</button>
-                    <button class="btn-secondary" id="exportStudentsBtn" style="margin-left: 10px;">Export Students (CSV)</button>
+                    <button class="btn-secondary" id="exportStudentsBtn">Export Students (CSV)</button>
                 </div>
-                
                 <div class="form-group">
                     <label>🗑️ Clear All Data</label>
                     <button class="btn-danger" id="clearDataBtn">⚠️ Clear All Incidents</button>
-                    <p style="font-size: 12px; color: var(--muted); margin-top: 8px;">This will delete all incident reports. This action cannot be undone.</p>
                 </div>
             </div>
 
-            <!-- System Info Tab -->
             <div class="tab-content" id="tab-system" style="display: none;">
-                <h2 class="panel-title">ℹ️ System Information</h2>
-                <p class="panel-sub">Application version and system status</p>
-                
+                <h2 class="panel-title"><i class="fas fa-server"></i> System Information</h2>
+                <p class="panel-sub">Application info</p>
                 <div class="info-box">
                     <h4>📱 Application Info</h4>
                     <p>Version: <strong>v2.0.0</strong></p>
-                    <p>Last Updated: <strong>April 2026</strong></p>
-                    <p>Developer: <strong>CampusCare Team</strong></p>
+                    <p>Last Updated: <strong>May 2026</strong></p>
                 </div>
-                
-                <div class="info-box" style="margin-top: 16px;">
+                <div class="info-box">
                     <h4>🟢 System Status</h4>
                     <p>Supabase: <strong id="supabaseStatus">Checking...</strong></p>
                     <p>Local Storage: <strong id="localStorageStatus">Checking...</strong></p>
                 </div>
-                
-                <div class="info-box" style="margin-top: 16px;">
-                    <h4>👨‍💻 About</h4>
-                    <p>CampusCare - Making Campus Safer Together</p>
-                    <p>© 2026 CampusCare. All rights reserved.</p>
-                </div>
             </div>
         </div>
     </div>
-    
-    <!-- MOBILE LOGOUT BUTTON -->
-    <button class="mobile-logout-btn" id="mobileLogoutBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        Logout
-    </button>
 </main>
 
 <!-- BOTTOM NAVIGATION FOR MOBILE -->
@@ -259,8 +342,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
         </svg>
         <span>Incidents</span>
     </button>
@@ -282,6 +363,111 @@
     </button>
 </nav>
 
+<!-- Notification Dropdown -->
+<div id="notificationDropdown" class="notification-dropdown"></div>
+
+<!-- ========== BEAUTIFUL MODALS ========== -->
+
+<!-- Profile Edit Modal -->
+<div class="modal-overlay" id="profileModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Edit Profile</h3>
+            <button class="modal-close" onclick="closeProfileModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="mobileFullName" placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="mobileEmail" disabled>
+                <p style="font-size: 11px; color: var(--muted); margin-top: 6px;">Email cannot be changed</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeProfileModal()">Cancel</button>
+            <button class="btn-save" onclick="saveMobileProfile()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications Settings Modal -->
+<div class="modal-overlay" id="notificationsModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fas fa-bell"></i> Notifications</h3>
+            <button class="modal-close" onclick="closeNotificationsModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>📧 Email Notifications</label>
+                <label class="toggle-switch" style="display: block;">
+                    <input type="checkbox" id="mobileEmailNotifications">
+                    <span class="toggle-slider"></span>
+                </label>
+                <p style="font-size: 11px; color: var(--muted); margin-top: 6px;">Receive email alerts for new incidents</p>
+            </div>
+            <div class="form-group">
+                <label>🔔 Push Notifications</label>
+                <label class="toggle-switch" style="display: block;">
+                    <input type="checkbox" id="mobilePushNotifications">
+                    <span class="toggle-slider"></span>
+                </label>
+                <p style="font-size: 11px; color: var(--muted); margin-top: 6px;">Receive browser notifications for updates</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeNotificationsModal()">Cancel</button>
+            <button class="btn-save" onclick="saveMobileNotifications()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Language Modal -->
+<div class="modal-overlay" id="languageModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fas fa-globe"></i> Select Language</h3>
+            <button class="modal-close" onclick="closeLanguageModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="language-option" onclick="selectLanguage('English')">
+                <span>🇺🇸 English</span>
+                <i class="fas fa-check" id="checkEnglish" style="display: none;"></i>
+            </div>
+            <div class="language-option" onclick="selectLanguage('Filipino')">
+                <span>🇵🇭 Filipino</span>
+                <i class="fas fa-check" id="checkFilipino" style="display: none;"></i>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeLanguageModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fas fa-comment-dots"></i> Send Feedback</h3>
+            <button class="modal-close" onclick="closeFeedbackModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Your Feedback</label>
+                <textarea id="feedbackText" rows="4" placeholder="Write your opinion about CampusCare..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeFeedbackModal()">Cancel</button>
+            <button class="btn-save" onclick="sendFeedback()">Send Feedback</button>
+        </div>
+    </div>
+</div>
+
 <!-- Confirmation Modal -->
 <div class="modal-overlay" id="confirmationModal">
     <div class="modal-container">
@@ -291,7 +477,7 @@
         <h3 class="modal-title">Confirm Action</h3>
         <p class="modal-message" id="modalMessage">Are you sure you want to proceed?</p>
         <div class="modal-buttons">
-            <button class="btn-secondary" id="modalCancelBtn">Cancel</button>
+            <button class="btn-cancel" id="modalCancelBtn">Cancel</button>
             <button class="btn-danger" id="modalConfirmBtn">Confirm</button>
         </div>
     </div>

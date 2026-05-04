@@ -1,21 +1,338 @@
-// Student Dashboard JavaScript
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from '@supabase/supabase-js'
 
-// Supabase configuration
-const supabaseUrl = 'https://opjyksksnccurdwyskiu.supabase.co'
-const supabaseKey = 'sb_publishable_l7mKNQVJ6WesiTM4GJCxQg_oXxTN3it'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 const STORAGE_KEY = 'campus_care_reports';
 let currentStudent = null;
 let currentFilter = 'all';
 let allIncidents = [];
-let viewMode = 'my';
+let viewMode = 'all';  
 let refreshInterval = null;
 let realtimeSubscription = null;
 
 // Sensitive categories
 const SENSITIVE_CATEGORIES = ['weapon', 'violence', 'threat', 'danger', 'security', 'harassment', 'bullying'];
+
+// ========== NOTIFICATION SYSTEM ==========
+let notifications = [];
+let unreadCount = 0;
+
+// Load notifications from localStorage
+function loadNotifications() {
+    const saved = localStorage.getItem('student_notifications');
+    if (saved) {
+        notifications = JSON.parse(saved);
+        updateNotificationBadge();
+    }
+}
+
+// Save notifications to localStorage
+function saveNotifications() {
+    localStorage.setItem('student_notifications', JSON.stringify(notifications));
+}
+
+// Add new notification
+function addNotification(title, message, type = 'info') {
+    const notification = {
+        id: Date.now(),
+        title: title,
+        message: message,
+        type: type,
+        timestamp: new Date().toISOString(),
+        read: false
+    };
+    
+    notifications.unshift(notification);
+    saveNotifications();
+    updateNotificationBadge();
+    
+    // Show toast notification
+    showNotificationToast(title, message);
+    
+    // Keep only last 50 notifications
+    if (notifications.length > 50) {
+        notifications = notifications.slice(0, 50);
+        saveNotifications();
+    }
+}
+
+// Update notification badge count
+function updateNotificationBadge() {
+    unreadCount = notifications.filter(n => !n.read).length;
+    const badge = document.getElementById('notificationBadge');
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Show toast notification
+function showNotificationToast(title, message) {
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(message)}</p>
+        </div>
+    `;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: var(--surface);
+        border-left: 4px solid var(--primary);
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+        color: var(--text);
+        border: 1px solid var(--border);
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// Render notification panel
+function renderNotificationPanel() {
+    const panel = document.getElementById('notificationPanel');
+    const list = document.getElementById('notificationList');
+    
+    if (!panel || !list) return;
+    
+    if (notifications.length === 0) {
+        list.innerHTML = `
+            <div class="notification-empty">
+                <div>🔔</div>
+                <p>No notifications yet</p>
+                <small>You'll see updates here when reports are updated</small>
+            </div>
+        `;
+        return;
+    }
+    
+    list.innerHTML = notifications.map(notif => `
+        <div class="notification-item ${!notif.read ? 'unread' : ''}" data-id="${notif.id}">
+            <div class="notification-title">${escapeHtml(notif.title)}</div>
+            <div class="notification-message">${escapeHtml(notif.message)}</div>
+            <div class="notification-time">${getTimeAgo(new Date(notif.timestamp))}</div>
+        </div>
+    `).join('');
+    
+    // Add click handlers for notifications
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = parseInt(item.dataset.id);
+            markNotificationAsRead(id);
+        });
+    });
+}
+
+// Mark notification as read
+function markNotificationAsRead(id) {
+    const notif = notifications.find(n => n.id === id);
+    if (notif && !notif.read) {
+        notif.read = true;
+        saveNotifications();
+        updateNotificationBadge();
+        renderNotificationPanel();
+    }
+}
+
+// Clear all notifications
+function clearAllNotifications() {
+    if (confirm('Clear all notifications?')) {
+        notifications = [];
+        saveNotifications();
+        updateNotificationBadge();
+        renderNotificationPanel();
+        showNotification('All notifications cleared');
+    }
+}
+
+// Create notification panel in DOM
+function createNotificationPanel() {
+    if (document.getElementById('notificationPanel')) return;
+    
+    const panelHTML = `
+        <div id="notificationPanel" class="notification-panel">
+            <div class="notification-header">
+                <h4>🔔 Notifications</h4>
+                <button class="notification-clear" id="clearNotificationsBtn">Clear all</button>
+            </div>
+            <div id="notificationList" class="notification-list"></div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', panelHTML);
+    
+    // Setup clear button
+    const clearBtn = document.getElementById('clearNotificationsBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllNotifications);
+    }
+    
+    renderNotificationPanel();
+}
+
+// Setup notification button
+function setupNotificationSystem() {
+    createNotificationPanel();
+    loadNotifications();
+    
+    const notifBtn = document.getElementById('notificationBtn');
+    const panel = document.getElementById('notificationPanel');
+    
+    if (notifBtn) {
+        // Remove existing listeners
+        const newNotifBtn = notifBtn.cloneNode(true);
+        notifBtn.parentNode.replaceChild(newNotifBtn, notifBtn);
+        
+        newNotifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.toggle('active');
+            renderNotificationPanel();
+        });
+    }
+    
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+        const panelEl = document.getElementById('notificationPanel');
+        const btnEl = document.getElementById('notificationBtn');
+        if (panelEl && !panelEl.contains(e.target) && btnEl && !btnEl.contains(e.target)) {
+            panelEl.classList.remove('active');
+        }
+    });
+}
+
+// ========== DARK MODE SYSTEM ==========
+function initDarkMode() {
+    console.log('Initializing dark mode...');
+    
+    // Check for saved dark mode preference
+    const savedMode = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedMode === 'enabled' || (!savedMode && prefersDark)) {
+        enableDarkMode();
+    } else {
+        disableDarkMode();
+    }
+    
+    // Setup toggle button
+    const toggleBtn = document.getElementById('darkModeToggle');
+    if (toggleBtn) {
+        // Remove existing listeners
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+        
+        newToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleDarkMode();
+        });
+        console.log('Dark mode button setup complete');
+    } else {
+        console.log('Dark mode toggle button not found');
+    }
+}
+
+function toggleDarkMode() {
+    const isDark = document.body.classList.contains('dark-mode');
+    if (isDark) {
+        disableDarkMode();
+    } else {
+        enableDarkMode();
+    }
+}
+
+function enableDarkMode() {
+    document.body.classList.add('dark-mode');
+    localStorage.setItem('darkMode', 'enabled');
+    updateDarkModeIcons(true);
+    showNotification('Dark mode enabled 🌙', 'success');
+}
+
+function disableDarkMode() {
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('darkMode', 'disabled');
+    updateDarkModeIcons(false);
+    showNotification('Light mode enabled ☀️', 'success');
+}
+
+function updateDarkModeIcons(isDark) {
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (sunIcon && moonIcon) {
+        if (isDark) {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        }
+    }
+}
+
+// ========== AUTO-NOTIFICATIONS FOR REPORT UPDATES ==========
+let lastIncidentCount = 0;
+let lastStatusUpdates = {};
+
+function checkForUpdates() {
+    if (!currentStudent) return;
+    
+    // Check for status changes in student's reports
+    const myReports = allIncidents.filter(inc => 
+        String(inc.student_id) === String(currentStudent?.studentId)
+    );
+    
+    // Check if new reports added
+    if (myReports.length > lastIncidentCount && lastIncidentCount !== 0) {
+        const newCount = myReports.length - lastIncidentCount;
+        addNotification(
+            'New Report Update',
+            `${newCount} new ${newCount === 1 ? 'report has' : 'reports have'} been added to your reports`,
+            'info'
+        );
+    }
+    
+    // Check for status changes in student's reports
+    myReports.forEach(report => {
+        const lastStatus = lastStatusUpdates[report.id];
+        if (lastStatus && lastStatus !== report.status) {
+            let statusMessage = '';
+            if (report.status === 'in-progress') {
+                statusMessage = 'Your report is now being processed';
+            } else if (report.status === 'resolved') {
+                statusMessage = 'Your report has been resolved!';
+            } else if (report.status === 'pending') {
+                statusMessage = 'Your report is pending review';
+            }
+            
+            if (statusMessage) {
+                addNotification(
+                    `Report Status Update: ${report.name.substring(0, 40)}`,
+                    statusMessage,
+                    report.status === 'resolved' ? 'success' : 'info'
+                );
+            }
+        }
+        lastStatusUpdates[report.id] = report.status;
+    });
+    
+    lastIncidentCount = myReports.length;
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function startAutoRefresh() {
-    // Disabled auto-refresh to prevent spam
     console.log('Auto-refresh is disabled');
     return;
 }
@@ -35,7 +351,7 @@ window.addEventListener('beforeunload', () => {
     if (realtimeSubscription) realtimeSubscription.unsubscribe();
 });
 
-// ========== AUTHENTICATION - CONNECT TO STUDENT TABLE ==========
+// ========== AUTHENTICATION ==========
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent');
     console.log('Stored student in localStorage:', stored);
@@ -74,8 +390,6 @@ async function checkAuth() {
                 email: studentData.email,
                 role: 'student'
             };
-            // FIX: This write does NOT use the guarded saveToStorage helper because it's
-            // writing currentStudent (a different key), not STORAGE_KEY. It's safe as-is.
             localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
         }
         
@@ -135,7 +449,7 @@ function getSafeTitle(incident) {
     return '⚠️ Safety Alert - Details Restricted';
 }
 
-// ========== LOAD INCIDENTS FROM INCIDENT TABLE ==========
+// ========== LOAD INCIDENTS ==========
 async function loadIncidents() {
     try {
         console.log('Loading incidents from Supabase incident table...');
@@ -150,8 +464,6 @@ async function loadIncidents() {
             loadFromLocalStorage();
             return;
         }
-        
-        console.log('Raw incidents from Supabase:', incidents);
         
         if (incidents && incidents.length > 0) {
             allIncidents = incidents.map(r => ({
@@ -169,9 +481,6 @@ async function loadIncidents() {
                 is_anonymous: r.is_anonymous
             }));
             
-            // FIX: Student dashboard is READ-ONLY. Never write campus_care_reports here.
-            // Writing it caused a cross-tab ping-pong loop with the admin dashboard.
-            // Supabase real-time handles live sync — no localStorage backup needed.
             console.log(`Loaded ${allIncidents.length} incidents from Supabase`);
         } else {
             allIncidents = [];
@@ -187,11 +496,8 @@ async function loadIncidents() {
     }
 }
 
-// Fallback to localStorage
 function loadFromLocalStorage() {
     const stored = localStorage.getItem(STORAGE_KEY);
-    console.log('Loading from localStorage:', stored);
-    
     if (stored && stored !== '[]') {
         const reports = JSON.parse(stored);
         allIncidents = reports.map(r => ({
@@ -229,7 +535,6 @@ function setupRealtimeSubscription() {
             { event: '*', schema: 'public', table: 'incident' },
             (payload) => {
                 console.log('Real-time update received:', payload.eventType);
-                // Real-time handles sync — no notifications to prevent spam
                 loadIncidents();
             }
         )
@@ -386,8 +691,6 @@ function updateStats() {
     if (inProgressEl) inProgressEl.textContent = inProgressCount;
     if (resolvedEl) resolvedEl.textContent = resolvedCount;
     if (totalReportsEl) totalReportsEl.textContent = totalCampus;
-    
-    console.log('Stats updated:', { total, inProgressCount, resolvedCount, totalCampus });
 }
 
 function getTimeAgo(date) {
@@ -536,51 +839,6 @@ function createModal() {
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    if (!document.getElementById('modal-styles')) {
-        const style = document.createElement('style');
-        style.id = 'modal-styles';
-        style.textContent = `
-            .modal-overlay {
-                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5); z-index: 1000; display: flex;
-                align-items: center; justify-content: center; opacity: 0;
-                visibility: hidden; transition: all 0.3s; backdrop-filter: blur(4px);
-            }
-            .modal-overlay.active { opacity: 1; visibility: visible; }
-            .modal-container {
-                background: white; border-radius: 24px; width: 90%; max-width: 500px;
-                max-height: 80vh; overflow-y: auto; transform: scale(0.9); transition: transform 0.3s;
-            }
-            .modal-overlay.active .modal-container { transform: scale(1); }
-            .modal-header {
-                padding: 20px 24px; background: #2563EB; color: white;
-                border-radius: 24px 24px 0 0; display: flex; justify-content: space-between;
-            }
-            .modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-            .modal-body { padding: 24px; }
-            .modal-row { margin-bottom: 16px; display: flex; flex-wrap: wrap; }
-            .modal-label { width: 100px; font-weight: 600; color: #64748B; font-size: 12px; text-transform: uppercase; }
-            .modal-value { flex: 1; font-size: 14px; color: #1E293B; }
-            .modal-footer { padding: 16px 24px; display: flex; justify-content: flex-end; border-top: 1px solid #E2E8F0; }
-            .modal-btn { padding: 8px 20px; border-radius: 30px; border: none; cursor: pointer; font-family: inherit; }
-            .modal-btn-primary { background: #2368AF; color: white; }
-            .badge.other { background: #E2E8F0; color: #475569; }
-            .badge.safety { background: #FEF2F2; color: #DC2626; }
-            .badge.progress { background: #EFF6FF; color: #2563EB; }
-            .badge.resolved { background: #D1FAE5; color: #059669; }
-            .badge.pending { background: #FEF3C7; color: #D97706; }
-            .location-restricted {
-                background: #DC2626;
-                color: white;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                display: inline-block;
-            }
-        `;
-        document.head.appendChild(style);
-    }
 }
 
 function getReports() {
@@ -590,20 +848,15 @@ function getReports() {
 }
 
 function saveReports(reports) {
-    // Student dashboard is read-only — external callers should not write campus_care_reports.
-    // This function is kept for API compatibility but is intentionally a no-op here.
     console.warn('saveReports() called on student dashboard — write is suppressed to prevent cross-tab loop.');
 }
 
-// ========== PROFILE FUNCTIONS ==========
 function loadStudentFromLogin() {
     if (!currentStudent) {
-        console.log('No current student to load');
         const stored = localStorage.getItem('currentStudent');
         if (stored) {
             try {
                 currentStudent = JSON.parse(stored);
-                console.log('Loaded student from localStorage fallback:', currentStudent);
             } catch(e) {
                 console.error('Failed to parse stored student:', e);
             }
@@ -611,23 +864,30 @@ function loadStudentFromLogin() {
         return;
     }
     
-    console.log('Loading student to UI:', currentStudent);
-    
+    // Update student name
     const studentNameElements = document.querySelectorAll('#studentName, .drawer-name');
     studentNameElements.forEach(el => {
         if (el) {
             el.textContent = currentStudent.name || 'Student';
-            console.log('Updated element:', el.id || el.className, 'to:', currentStudent.name);
         }
     });
     
+    // FIXED: Display student number in drawer
+    const studentNumberEl = document.getElementById('studentNumber');
+    if (studentNumberEl && currentStudent.studentId) {
+        studentNumberEl.textContent = `ID: ${currentStudent.studentId}`;
+    } else if (studentNumberEl) {
+        studentNumberEl.textContent = 'ID: Not assigned';
+    }
+    
+    // Update welcome message
     const welcomeHeader = document.getElementById('welcomeMessage');
     if (welcomeHeader) {
         const firstName = currentStudent.name ? currentStudent.name.split(' ')[0] : 'Student';
         welcomeHeader.innerHTML = `Welcome back, ${firstName}! 👋`;
-        console.log('Updated welcome message to:', `Welcome back, ${firstName}! 👋`);
     }
     
+    // Update date
     const currentDateEl = document.getElementById('currentDate');
     if (currentDateEl) {
         currentDateEl.textContent = new Date().toLocaleDateString('en-US', {
@@ -683,64 +943,6 @@ function setupAvatarUpload() {
     });
 }
 
-function transformReportButtonToStudentButton() {
-    const topbar = document.querySelector('.topbar');
-    if (!topbar) return;
-    
-    const reportBtn = topbar.querySelector('.report-btn');
-    if (reportBtn) {
-        const newBtn = reportBtn.cloneNode(true);
-        reportBtn.parentNode.replaceChild(newBtn, reportBtn);
-        
-        newBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-            window.location.href = '/Assets/Student_reporting/report.html';
-        });
-    }
-}
-
-function setupDrawerReportButton() {
-    const reportNavItem = document.querySelector('.drawer-item[data-page="report"]');
-    if (reportNavItem) {
-        const newItem = reportNavItem.cloneNode(true);
-        reportNavItem.parentNode.replaceChild(newItem, reportNavItem);
-        
-        newItem.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.closeDrawer) window.closeDrawer();
-            localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-            window.location.href = '/Assets/Student_reporting/report.html';
-        });
-    }
-}
-
-function setupSettingsNavigation() {
-    const settingsBtn = document.querySelector('.drawer-item[data-page="settings"]');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/Assets/Student_dashboard/setting/setting.html';
-        });
-    }
-    
-    const settingsNav = document.getElementById('settingsNav');
-    if (settingsNav) {
-        settingsNav.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/Assets/Student_dashboard/setting/setting.html';
-        });
-    }
-    
-    const mainSettingsBtn = document.querySelector('[data-page="settings"], .settings-btn, #settingsBtn');
-    if (mainSettingsBtn) {
-        mainSettingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/Assets/Student_dashboard/setting/setting.html';
-        });
-    }
-}
-
 function setupFilters() {
     document.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -752,6 +954,7 @@ function setupFilters() {
     });
 }
 
+// FIXED: Changed initial button text to match viewMode = 'all'
 function addViewModeToggle() {
     const filterBar = document.querySelector('.filter-bar');
     if (filterBar && !document.getElementById('viewModeToggle')) {
@@ -760,7 +963,7 @@ function addViewModeToggle() {
         toggleBtn.className = 'filter-chip';
         toggleBtn.style.background = '#2563EB';
         toggleBtn.style.color = 'white';
-        toggleBtn.innerHTML = '🌐 View All Reports';
+        toggleBtn.innerHTML = '📋 View My Reports';  
         toggleBtn.onclick = () => toggleViewMode();
         filterBar.appendChild(toggleBtn);
     }
@@ -852,9 +1055,6 @@ function addDrawerStyles() {
 function setupUI() {
     initializeDrawer();
     addDrawerStyles();
-    transformReportButtonToStudentButton();
-    setupDrawerReportButton();
-    setupSettingsNavigation();  
     setupAvatarUpload();
     setupFilters();
     addViewModeToggle();
@@ -871,28 +1071,8 @@ function setupUI() {
     });
 }
 
-// ========== INITIALIZATION ==========
-async function init() {
-    console.log('Initializing dashboard...');
-    
-    const authSuccess = await checkAuth();
-    console.log('Auth success:', authSuccess);
-    
-    loadStudentFromLogin();
-    await loadIncidents();
-    setupUI();
-    setupRealtimeSubscription();
-}
-
-// Export functions
-window.getReports = getReports;
-window.saveReports = saveReports;
-
-(function() {
-    // Get current page path
-    const currentPath = window.location.pathname;
-    
-    // Highlight active nav item based on current page
+// Setup bottom navigation
+function setupBottomNav() {
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     const drawerItems = document.querySelectorAll('.drawer-item');
     
@@ -916,7 +1096,6 @@ window.saveReports = saveReports;
         });
     }
     
-    // Handle bottom nav clicks
     bottomNavItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const page = item.dataset.page;
@@ -929,19 +1108,6 @@ window.saveReports = saveReports;
                     localStorage.setItem('currentStudent', storedStudent);
                 }
                 window.location.href = '/Assets/Student_reporting/report.html';
-            } else if (page === 'my-reports') {
-                // Switch to "My Reports" view in dashboard
-                if (typeof toggleViewMode === 'function') {
-                    const toggleBtn = document.getElementById('viewModeToggle');
-                    if (toggleBtn && toggleBtn.textContent.includes('View My')) {
-                        // Already in my reports mode
-                    } else {
-                        toggleViewMode();
-                    }
-                    if (window.closeDrawer) window.closeDrawer();
-                } else {
-                    window.location.href = '/Assets/Student_dashboard/SDB.html?view=my';
-                }
             } else if (page === 'settings') {
                 window.location.href = '/Assets/Student_dashboard/setting/setting.html';
             }
@@ -949,15 +1115,41 @@ window.saveReports = saveReports;
     });
     
     // Determine which nav is active based on URL
+    const currentPath = window.location.pathname;
     if (currentPath.includes('SDB.html') || currentPath.includes('dashboard')) {
-        if (window.location.search === '?view=my') {
-            setActiveNav('my-reports');
-        } else {
-            setActiveNav('dashboard');
-        }
+        setActiveNav('dashboard');
     } else if (currentPath.includes('report.html')) {
         setActiveNav('report');
     } else if (currentPath.includes('setting.html')) {
         setActiveNav('settings');
     }
-})();
+}
+
+// ========== INITIALIZATION ==========
+async function init() {
+    console.log('Initializing dashboard...');
+    
+    const authSuccess = await checkAuth();
+    console.log('Auth success:', authSuccess);
+    
+    loadStudentFromLogin();
+    await loadIncidents();
+    setupUI();
+    setupRealtimeSubscription();
+    setupNotificationSystem();
+    initDarkMode();
+    setupBottomNav();
+    
+    // Auto-check for updates every 10 seconds
+    setInterval(() => {
+        if (allIncidents.length > 0) {
+            checkForUpdates();
+        }
+    }, 10000);
+}
+
+// Export functions
+window.getReports = getReports;
+window.saveReports = saveReports;
+window.viewIncident = viewIncident;
+window.closeModal = closeModal;

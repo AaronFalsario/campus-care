@@ -1,8 +1,7 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from '@supabase/supabase-js'
 
-// Supabase Configuration
-const supabaseUrl = 'https://opjyksksnccurdwyskiu.supabase.co'
-const supabaseKey = 'sb_publishable_l7mKNQVJ6WesiTM4GJCxQg_oXxTN3it'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // DOM Elements
@@ -40,29 +39,144 @@ function hideLoader() {
     if (loaderOverlay) loaderOverlay.classList.remove('show');
 }
 
-function showNotification(message, isError = false) {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${isError ? '#EF4444' : '#10B981'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 40px;
-        font-size: 14px;
-        font-weight: 500;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: fadeInUp 0.3s ease;
-    `;
-    document.body.appendChild(notification);
+// ========== BEAUTIFUL TOAST NOTIFICATION ==========
+function showNotification(message, isError = false, duration = 3000) {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast container
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    
+    // Create icon based on type
+    const icon = document.createElement('div');
+    icon.className = 'toast-icon';
+    if (isError) {
+        icon.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+            </svg>
+        `;
+    } else {
+        icon.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            </svg>
+        `;
+    }
+    
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'toast-message';
+    messageContainer.textContent = message;
+    
+    // Create progress bar
+    const progressBar = document.createElement('div');
+    progressBar.className = 'toast-progress';
+    
+    toast.appendChild(icon);
+    toast.appendChild(messageContainer);
+    toast.appendChild(progressBar);
+    document.body.appendChild(toast);
+    
+    // Add styles if not already added
+    if (!document.querySelector('#toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .custom-toast {
+                position: fixed;
+                bottom: 24px;
+                left: 16px;
+                right: 16px;
+                max-width: 400px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                padding: 14px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.05);
+                z-index: 10000;
+                animation: toastSlideUp 0.3s ease-out;
+                border-left: 4px solid;
+                border-left-color: ${isError ? '#EF4444' : '#10B981'};
+            }
+            
+            .custom-toast .toast-icon {
+                flex-shrink: 0;
+                color: ${isError ? '#EF4444' : '#10B981'};
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .custom-toast .toast-message {
+                flex: 1;
+                font-size: 13px;
+                font-weight: 500;
+                color: #1e293b;
+                line-height: 1.4;
+            }
+            
+            .custom-toast .toast-progress {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 3px;
+                background: ${isError ? '#EF4444' : '#10B981'};
+                border-radius: 0 0 0 12px;
+                animation: toastProgress ${duration}ms linear forwards;
+            }
+            
+            @keyframes toastSlideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes toastProgress {
+                from {
+                    width: 100%;
+                }
+                to {
+                    width: 0%;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .custom-toast {
+                    left: 12px;
+                    right: 12px;
+                    padding: 12px 14px;
+                    bottom: 20px;
+                }
+                
+                .custom-toast .toast-message {
+                    font-size: 12px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Auto remove after duration
     setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+        toast.style.animation = 'toastSlideUp 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
 }
 
 function applySlideUpAnimation(element) {
@@ -81,10 +195,30 @@ function togglePasswordVisibility(inputElement, toggleIcon) {
     });
 }
 
+// ========== CHECK IF EMAIL EXISTS IN DATABASE ==========
+async function checkEmailExists(email) {
+    try {
+        const { data, error } = await supabase
+            .from('student')
+            .select('email, full_name')
+            .eq('email', email.toLowerCase().trim())
+            .maybeSingle();
+        
+        if (error) {
+            console.error('Error checking email:', error);
+            return { exists: false, error: error.message };
+        }
+        
+        return { exists: !!data, userData: data };
+    } catch (error) {
+        console.error('Email check failed:', error);
+        return { exists: false, error: error.message };
+    }
+}
+
 // ========== UPDATE STUDENT STATUS TO ACTIVE ==========
 async function updateStudentActivityOnLogin(studentEmail, studentId) {
     try {
-        // Try to update status columns if they exist (won't error if they don't)
         const { error } = await supabase
             .from('student')
             .update({ 
@@ -96,11 +230,9 @@ async function updateStudentActivityOnLogin(studentEmail, studentId) {
             .eq('student_id', studentId);
         
         if (error) {
-            // Columns might not exist, that's fine
             console.log('Status columns not available, continuing login');
         }
         
-        // Also update in localStorage students array (for admin panel)
         const storedStudents = localStorage.getItem('campus_care_students');
         if (storedStudents) {
             const students = JSON.parse(storedStudents);
@@ -189,12 +321,10 @@ loginBtn.addEventListener('click', async () => {
     showLoader();
 
     try {
-        // Sign in with Supabase
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         if (!data.user) throw new Error('Login failed - no user returned');
 
-        // Get student data
         const { data: studentData, error: dbError } = await supabase
             .from('student')
             .select('*')
@@ -206,10 +336,8 @@ loginBtn.addEventListener('click', async () => {
             throw new Error('Account not found. Please sign up first.');
         }
 
-        // ✅ UPDATE STATUS TO ACTIVE (if columns exist)
         await updateStudentActivityOnLogin(studentData.email, studentData.student_id);
 
-        // Store student info
         const studentInfo = {
             name: studentData.full_name,
             studentId: studentData.student_id,
@@ -219,11 +347,11 @@ loginBtn.addEventListener('click', async () => {
         };
         localStorage.setItem('currentStudent', JSON.stringify(studentInfo));
         
-        showNotification('Login successful! Redirecting...');
+        showNotification('Login successful! Redirecting...', false, 1500);
         
         setTimeout(() => {
             window.location.href = '/Assets/Student_dashboard/SDB.html';
-        }, 500);
+        }, 1500);
 
     } catch (error) {
         console.error('Login error:', error);
@@ -258,7 +386,6 @@ signupBtn.addEventListener('click', async () => {
     showLoader();
 
     try {
-        // Check if student ID already exists
         const { data: existingStudent } = await supabase
             .from('student')
             .select('student_id')
@@ -271,7 +398,6 @@ signupBtn.addEventListener('click', async () => {
             return;
         }
 
-        // Check if email already exists
         const { data: existingEmail } = await supabase
             .from('student')
             .select('email')
@@ -284,7 +410,6 @@ signupBtn.addEventListener('click', async () => {
             return;
         }
 
-        // Create auth user
         const { data, error } = await supabase.auth.signUp({ 
             email, 
             password,
@@ -299,7 +424,6 @@ signupBtn.addEventListener('click', async () => {
         if (error) throw error;
         if (!data.user) throw new Error('Signup failed.');
 
-        // Insert into student table with ACTIVE status
         const { error: dbError } = await supabase
             .from('student')
             .insert([{ 
@@ -315,7 +439,6 @@ signupBtn.addEventListener('click', async () => {
 
         if (dbError) throw dbError;
         
-        // Store student info
         const studentInfo = {
             name: fullName,
             studentId: studentId,
@@ -325,11 +448,11 @@ signupBtn.addEventListener('click', async () => {
         };
         localStorage.setItem('currentStudent', JSON.stringify(studentInfo));
         
-        showNotification('Account created successfully! Redirecting...');
+        showNotification('Account created successfully! Redirecting...', false, 1500);
         
         setTimeout(() => {
             window.location.href = '/Assets/Student_dashboard/SDB.html';
-        }, 500);
+        }, 1500);
 
     } catch (error) {
         console.error('Signup error:', error);
@@ -345,7 +468,6 @@ window.studentLogout = async function() {
         if (currentStudent) {
             const student = JSON.parse(currentStudent);
             
-            // Update status to INACTIVE (if columns exist)
             const { error } = await supabase
                 .from('student')
                 .update({ 
@@ -361,13 +483,8 @@ window.studentLogout = async function() {
             }
         }
         
-        // Sign out from Supabase
         await supabase.auth.signOut();
-        
-        // Clear localStorage
         localStorage.removeItem('currentStudent');
-        
-        // Redirect to login page
         window.location.href = '/Assets/login/log.html';
         
     } catch (error) {
@@ -377,30 +494,247 @@ window.studentLogout = async function() {
     }
 };
 
-// ========== FORGOT PASSWORD HANDLER ==========
+// ========== FORGOT PASSWORD HANDLER (WITH EMAIL EXISTENCE CHECK) ==========
 const forgotPasswordBtn = document.getElementById('showForgotPassword');
 if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', async () => {
-        const email = prompt('Please enter your @gordoncollege.edu.ph email address to reset your password:');
+        // Show custom email prompt
+        const email = await showEmailPrompt();
         
-        if (email) {
-            if (!isValidGordonEmail(email)) {
+        if (email && email.trim()) {
+            const trimmedEmail = email.trim().toLowerCase();
+            
+            // First validate domain
+            if (!isValidGordonEmail(trimmedEmail)) {
                 showNotification('Invalid email domain! Please use your @gordoncollege.edu.ph email.', true);
                 return;
             }
             
             showLoader();
+            
             try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/reset-password.html'
+                // CHECK IF EMAIL EXISTS IN DATABASE FIRST
+                const { exists, userData, error: checkError } = await checkEmailExists(trimmedEmail);
+                
+                if (checkError) {
+                    throw new Error('Unable to verify email. Please try again.');
+                }
+                
+                if (!exists) {
+                    hideLoader();
+                    showNotification('❌ Email not found. Please sign up first or use a registered email.', true, 4000);
+                    return;
+                }
+                
+                // Email exists, send reset link
+                console.log(`✅ Email verified: ${trimmedEmail} belongs to ${userData?.full_name}`);
+                
+                const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+                    redirectTo: `${window.location.origin}/Assets/login/reset-password.html`
                 });
+                
                 if (error) throw error;
-                showNotification('Password reset email sent! Check your inbox.');
+                
+                showNotification(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
+                
             } catch (error) {
-                showNotification(error.message || 'Failed to send reset email', true);
+                console.error('Password reset error:', error);
+                showNotification(error.message || 'Failed to send reset email. Please try again.', true);
+            } finally {
+                hideLoader();
             }
-            hideLoader();
         }
+    });
+}
+
+// Custom email prompt modal (better than browser prompt)
+function showEmailPrompt() {
+    return new Promise((resolve) => {
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'email-prompt-modal';
+        modal.innerHTML = `
+            <div class="email-prompt-overlay"></div>
+            <div class="email-prompt-container">
+                <div class="email-prompt-header">
+                    <h3>Reset Password</h3>
+                    <button class="email-prompt-close">&times;</button>
+                </div>
+                <div class="email-prompt-body">
+                    <p>Enter your registered @gordoncollege.edu.ph email address to receive a password reset link.</p>
+                    <input type="email" id="promptEmail" placeholder="student@gordoncollege.edu.ph" autocomplete="off">
+                    <div class="email-hint" style="font-size: 11px; color: #64748b; margin-top: 8px;">
+                        <span>⚠️ Only registered emails will receive a reset link</span>
+                    </div>
+                </div>
+                <div class="email-prompt-footer">
+                    <button class="email-prompt-cancel">Cancel</button>
+                    <button class="email-prompt-submit">Send Reset Link</button>
+                </div>
+            </div>
+        `;
+        
+        // Add styles
+        if (!document.querySelector('#prompt-styles')) {
+            const style = document.createElement('style');
+            style.id = 'prompt-styles';
+            style.textContent = `
+                .email-prompt-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 20000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.2s ease;
+                }
+                .email-prompt-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                }
+                .email-prompt-container {
+                    position: relative;
+                    background: white;
+                    border-radius: 16px;
+                    width: 90%;
+                    max-width: 340px;
+                    overflow: hidden;
+                    animation: slideUp 0.3s ease;
+                }
+                .email-prompt-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 16px 16px 12px;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                .email-prompt-header h3 {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #1e293b;
+                    margin: 0;
+                }
+                .email-prompt-close {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: #94a3b8;
+                    padding: 0;
+                    line-height: 1;
+                }
+                .email-prompt-body {
+                    padding: 16px;
+                }
+                .email-prompt-body p {
+                    font-size: 13px;
+                    color: #64748b;
+                    margin-bottom: 12px;
+                }
+                .email-prompt-body input {
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: 1.5px solid #e2e8f0;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-family: inherit;
+                }
+                .email-prompt-body input:focus {
+                    outline: none;
+                    border-color: #2563eb;
+                }
+                .email-prompt-footer {
+                    display: flex;
+                    gap: 12px;
+                    padding: 12px 16px 16px;
+                    border-top: 1px solid #f1f5f9;
+                }
+                .email-prompt-cancel, .email-prompt-submit {
+                    flex: 1;
+                    padding: 10px;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .email-prompt-cancel {
+                    background: #f1f5f9;
+                    border: none;
+                    color: #64748b;
+                }
+                .email-prompt-submit {
+                    background: #2563eb;
+                    border: none;
+                    color: white;
+                }
+                .email-prompt-submit:hover {
+                    background: #1d4ed8;
+                }
+                .email-hint {
+                    font-size: 11px;
+                    color: #64748b;
+                    margin-top: 8px;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(modal);
+        
+        const input = modal.querySelector('#promptEmail');
+        const submitBtn = modal.querySelector('.email-prompt-submit');
+        const cancelBtn = modal.querySelector('.email-prompt-cancel');
+        const closeBtn = modal.querySelector('.email-prompt-close');
+        
+        const cleanup = () => modal.remove();
+        
+        submitBtn.onclick = () => {
+            const email = input.value.trim();
+            cleanup();
+            resolve(email || null);
+        };
+        
+        cancelBtn.onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+        
+        closeBtn.onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+        
+        modal.querySelector('.email-prompt-overlay').onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+        
+        // Enter key support
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const email = input.value.trim();
+                cleanup();
+                resolve(email || null);
+            }
+        });
+        
+        input.focus();
     });
 }
 
@@ -411,16 +745,6 @@ function addStyles() {
         .domain-error {
             border-color: #DC2626 !important;
             background-color: #FEF2F2 !important;
-        }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translate(-50%, 20px);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
         }
         .slideUp {
             animation: slideUp 0.4s ease-out;
@@ -459,7 +783,7 @@ async function checkExistingSession() {
 function init() {
     addStyles();
     checkExistingSession();
-    console.log('✅ Login page ready');
+    console.log('✅ Login page ready - Password reset includes email verification');
 }
 
 // Call init when DOM is loaded
@@ -469,4 +793,4 @@ if (document.readyState === 'loading') {
     init();
 }
 
-console.log('✅ Login page script loaded. Status tracking is ACTIVE.');
+console.log('✅ Login page script loaded. Password reset now checks if email exists in database.');

@@ -1,15 +1,21 @@
-// ========== STUDENT MANAGEMENT SYSTEM ==========
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
+
 let students = [];
 let editingStudentId = null;
 let currentAdmin = null;
+let realtimeSubscription = null;
 
-// Supabase configuration
-const supabaseUrl = 'https://opjyksksnccurdwyskiu.supabase.co';
-const supabaseKey = 'sb_publishable_l7mKNQVJ6WesiTM4GJCxQg_oXxTN3it';
-const supabase = window.supabase || null;
+// ========== NOTIFICATION SYSTEM ==========
+let notifications = [];
+let notificationIdCounter = 0;
+let isNotificationDropdownOpen = false;
 
-// ============ LOAD ADMIN PROFILE ============
-function loadAdminProfile() {
+// ========== LOAD ADMIN TO DRAWER ==========
+function loadAdminToDrawer() {
     try {
         const storedAdmin = localStorage.getItem('currentAdmin');
         const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
@@ -21,199 +27,587 @@ function loadAdminProfile() {
         
         currentAdmin = JSON.parse(storedAdmin);
         const adminName = currentAdmin.name || currentAdmin.email;
+        const adminInitials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
         
         const drawerName = document.querySelector('.drawer-name');
         const drawerRole = document.querySelector('.drawer-role');
-        const adminPill = document.getElementById('adminPill');
         const drawerAvatar = document.querySelector('.drawer-avatar');
+        const adminPill = document.getElementById('adminPill');
         
-        if (drawerName) {
-            drawerName.textContent = adminName;
-            drawerName.style.color = 'white';
-        }
+        if (drawerName) drawerName.textContent = adminName;
         if (drawerRole) drawerRole.textContent = currentAdmin.role || 'Campus Care Admin';
         if (adminPill) adminPill.textContent = adminName.split(' ')[0] || 'Admin';
         if (drawerAvatar) {
-            const initials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials}</span>`;
+            drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${adminInitials}</span>`;
         }
         
         return true;
     } catch (error) {
-        console.error('Error loading admin profile:', error);
+        console.error('Error loading admin:', error);
         return false;
     }
 }
 
-// ============ LOAD STUDENTS ============
+// ========== DARK MODE ==========
+function initDarkMode() {
+    const savedMode = localStorage.getItem('admin_dark_mode');
+    const toggle = document.getElementById('darkModeToggle');
+    
+    if (savedMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+        if (toggle) {
+            const sunIcon = toggle.querySelector('.sun-icon');
+            const moonIcon = toggle.querySelector('.moon-icon');
+            if (sunIcon) sunIcon.style.display = 'none';
+            if (moonIcon) moonIcon.style.display = 'block';
+        }
+    }
+    
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('admin_dark_mode', isDark ? 'enabled' : 'disabled');
+            const sunIcon = toggle.querySelector('.sun-icon');
+            const moonIcon = toggle.querySelector('.moon-icon');
+            if (sunIcon && moonIcon) {
+                if (isDark) {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                } else {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                }
+            }
+        });
+    }
+}
+
+// ========== NOTIFICATION FUNCTIONS ==========
+function loadNotifications() {
+    const stored = localStorage.getItem('admin_notifications');
+    if (stored) {
+        try {
+            notifications = JSON.parse(stored);
+            notificationIdCounter = notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 0;
+        } catch (e) {
+            notifications = [];
+            notificationIdCounter = 0;
+        }
+    } else {
+        notifications = [];
+    }
+    updateNotificationBadge();
+    createNotificationDropdown();
+    updateNotificationDropdown();
+}
+
+function saveNotifications() {
+    localStorage.setItem('admin_notifications', JSON.stringify(notifications));
+    updateNotificationBadge();
+}
+
+function addInternalNotification(title, message, isUrgent = false) {
+    const notification = {
+        id: notificationIdCounter++,
+        title: title,
+        message: message,
+        timestamp: new Date().toISOString(),
+        read: false,
+        isUrgent: isUrgent
+    };
+    notifications.unshift(notification);
+    saveNotifications();
+    updateNotificationDropdown();
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+}
+
+function updateNotificationBadge() {
+    const unreadCount = notifications.filter(n => !n.read).length;
+    const urgentCount = notifications.filter(n => !n.read && n.isUrgent).length;
+    const badge = document.getElementById('notificationBadge');
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.textContent = urgentCount > 0 ? `🔥${unreadCount}` : (unreadCount > 9 ? '9+' : unreadCount);
+            badge.style.display = 'flex';
+            if (urgentCount > 0) {
+                badge.style.background = '#DC2626';
+                badge.style.animation = 'pulse 0.5s ease infinite';
+            } else {
+                badge.style.background = 'var(--red)';
+                badge.style.animation = 'none';
+            }
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function createNotificationDropdown() {
+    let dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) dropdown.remove();
+    dropdown = document.createElement('div');
+    dropdown.id = 'notificationDropdown';
+    dropdown.className = 'notification-dropdown';
+    document.body.appendChild(dropdown);
+    return dropdown;
+}
+
+function updateNotificationDropdown() {
+    let dropdown = document.getElementById('notificationDropdown');
+    if (!dropdown) dropdown = createNotificationDropdown();
+    
+    if (!notifications || notifications.length === 0) {
+        dropdown.innerHTML = `
+            <div class="notification-dropdown-header">
+                <span>🔔 Notifications</span>
+                <button class="clear-all-dropdown" onclick="clearAllNotifications()">Clear all</button>
+            </div>
+            <div class="notification-dropdown-empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <p>No notifications yet</p>
+                <p style="font-size: 11px; margin-top: 4px;">Student updates will appear here</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const unreadCount = notifications.filter(n => !n.read).length;
+    dropdown.innerHTML = `
+        <div class="notification-dropdown-header">
+            <span>🔔 Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}</span>
+            <button class="clear-all-dropdown" onclick="clearAllNotifications()">Clear all</button>
+        </div>
+        <div class="notification-dropdown-list">
+            ${notifications.slice(0, 15).map(notif => `
+                <div class="notification-dropdown-item ${!notif.read ? 'unread' : ''} ${notif.isUrgent ? 'urgent' : ''}" onclick="markNotificationRead(${notif.id})">
+                    <div class="notification-dropdown-title">${notif.isUrgent ? '🚨 ' : '📋 '}${escapeHtml(notif.title)}</div>
+                    <div class="notification-dropdown-message">${escapeHtml(notif.message)}</div>
+                    <div class="notification-dropdown-time">${getTimeAgo(notif.timestamp)}</div>
+                </div>
+            `).join('')}
+        </div>
+        ${notifications.length > 15 ? `<div class="notification-dropdown-footer">${notifications.length - 15} more notifications</div>` : ''}
+    `;
+}
+
+function toggleNotificationDropdown() {
+    let dropdown = document.getElementById('notificationDropdown');
+    if (!dropdown) {
+        dropdown = createNotificationDropdown();
+        updateNotificationDropdown();
+    }
+    
+    if (isNotificationDropdownOpen) {
+        dropdown.classList.remove('show');
+        isNotificationDropdownOpen = false;
+        document.removeEventListener('click', closeNotificationDropdownOutside);
+    } else {
+        dropdown.classList.add('show');
+        isNotificationDropdownOpen = true;
+        setTimeout(() => {
+            document.addEventListener('click', closeNotificationDropdownOutside);
+        }, 100);
+    }
+}
+
+function closeNotificationDropdownOutside(e) {
+    const dropdown = document.getElementById('notificationDropdown');
+    const bell = document.getElementById('notificationBell');
+    if (dropdown && bell && !dropdown.contains(e.target) && !bell.contains(e.target)) {
+        dropdown.classList.remove('show');
+        isNotificationDropdownOpen = false;
+        document.removeEventListener('click', closeNotificationDropdownOutside);
+    }
+}
+
+window.markNotificationRead = function(id) {
+    const notif = notifications.find(n => n.id === id);
+    if (notif) {
+        notif.read = true;
+        saveNotifications();
+        updateNotificationDropdown();
+    }
+};
+
+window.clearAllNotifications = function() {
+    notifications = [];
+    saveNotifications();
+    updateNotificationDropdown();
+    showToast('All notifications cleared', 'success');
+};
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function getTimeAgo(dateString) {
+    if (!dateString) return 'Just now';
+    const date = new Date(dateString);
+    const h = Math.floor((Date.now() - date) / 3600000);
+    if (h < 1) return 'Just now';
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+}
+
+// ========== GET STUDENT REPORT COUNT FROM INCIDENTS ==========
+async function getStudentReportCount(studentIdNumber) {
+    try {
+        console.log(`Counting reports for student ID: ${studentIdNumber}`);
+        
+        const { count, error } = await supabase
+            .from('incident')
+            .select('*', { count: 'exact', head: true })
+            .eq('student_id_number', studentIdNumber);
+        
+        if (error) {
+            console.error('Error counting incidents:', error);
+            return 0;
+        }
+        
+        console.log(`Found ${count || 0} reports for student ${studentIdNumber}`);
+        return count || 0;
+    } catch (error) {
+        console.error('Error:', error);
+        return 0;
+    }
+}
+
+// ========== DELETE AUTH USER (requires admin API) ==========
+async function deleteAuthUser(userEmail) {
+    try {
+        // Note: This requires a Supabase Edge Function or backend API
+        // since the service_role key cannot be used on the client side.
+        
+        // Option 1: Call a Supabase Edge Function
+        const response = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseKey}`
+            },
+            body: JSON.stringify({ email: userEmail })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to delete auth user:', await response.text());
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error deleting auth user:', error);
+        return false;
+    }
+}
+
+// ========== LOAD STUDENTS FROM SUPABASE WITH REPORT COUNTS ==========
 async function loadStudents() {
     try {
-        const stored = localStorage.getItem('campus_care_students');
+        console.log('Loading students from Supabase student table...');
         
-        if (stored && stored !== '[]') {
-            students = JSON.parse(stored);
-            console.log('Loaded students from localStorage:', students.length);
-        } else {
-            students = getDefaultStudents();
-            saveToLocalStorage();
+        const { data, error } = await supabase
+            .from('student')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Supabase error:', error);
+            showToast('Failed to load students', 'error');
+            return;
         }
         
-        autoUpdateInactiveStatus();
+        if (data && data.length > 0) {
+            const studentsWithReports = await Promise.all(data.map(async (s) => {
+                const reportCount = await getStudentReportCount(s.student_id);
+                return {
+                    id: s.id,
+                    name: s.full_name || 'Unknown',
+                    idNumber: s.student_id || 'N/A',
+                    email: s.email || 'N/A',
+                    course: s.course || 'Not Set',
+                    year: s.year_level || '1',
+                    status: s.status || 'active',
+                    reports: reportCount,
+                    last_login: s.last_login || s.created_at || new Date().toISOString()
+                };
+            }));
+            
+            students = studentsWithReports;
+            console.log(`✅ Loaded ${students.length} students with report counts`);
+        } else {
+            students = [];
+            console.log('No students found in Supabase');
+        }
+        
         renderStudents();
         updateStats();
-        
     } catch (error) {
         console.error('Error loading students:', error);
-        students = getDefaultStudents();
-        renderStudents();
-        updateStats();
+        showToast('Error loading students', 'error');
     }
 }
 
-// ============ AUTO UPDATE INACTIVE STATUS ============
-function autoUpdateInactiveStatus() {
-    const now = new Date();
+// ========== UPDATE REPORT COUNTS FOR ALL STUDENTS ==========
+async function updateAllReportCounts() {
+    console.log('Updating report counts...');
     let hasChanges = false;
     
-    students.forEach(student => {
-        if (student.status === 'active' && student.last_login) {
-            const lastLogin = new Date(student.last_login);
-            const daysSinceLogin = (now - lastLogin) / (1000 * 60 * 60 * 24);
-            
-            if (daysSinceLogin > 7) {
-                student.status = 'inactive';
-                hasChanges = true;
-                console.log(`Auto-marked ${student.name} as inactive`);
-            }
+    for (const student of students) {
+        const newCount = await getStudentReportCount(student.idNumber);
+        if (student.reports !== newCount) {
+            student.reports = newCount;
+            hasChanges = true;
         }
-    });
+    }
     
     if (hasChanges) {
-        saveToLocalStorage();
+        renderStudents();
+        updateStats();
+        console.log('Report counts updated');
     }
 }
 
-// ============ DEFAULT STUDENTS ============
-function getDefaultStudents() {
-    return [
-        { 
-            id: '1', 
-            name: "Test001", 
-            idNumber: "202701023", 
-            email: "202701023@gordoncollege.edu.ph",
-            course: "BSCS", 
-            year: "3", 
-            status: "active", 
-            reports: 2,
-            last_login: new Date().toISOString(),
-            created_at: "2026-04-27T14:11:20.275Z"
-        },
-        { 
-            id: '2', 
-            name: "ambatublow", 
-            idNumber: "202410213", 
-            email: "202410213@gordoncollege.edu.ph",
-            course: "BSIT", 
-            year: "2", 
-            status: "inactive", 
-            reports: 1,
-            last_login: "2026-04-27T13:55:00.541Z",
-            created_at: "2026-04-27T13:55:00.541Z"
-        },
-        { 
-            id: '3', 
-            name: "Barcoma Kyle renz", 
-            idNumber: "202411615", 
-            email: "202411615@gordoncollege.edu.ph",
-            course: "BSECE", 
-            year: "4", 
-            status: "active", 
-            reports: 3,
-            last_login: new Date().toISOString(),
-            created_at: "2026-04-27T07:42:40.904Z"
-        }
-    ];
+// ========== REAL-TIME SUBSCRIPTION ==========
+function setupRealtimeSubscription() {
+    if (realtimeSubscription) return;
+    
+    console.log('Setting up real-time subscription...');
+    
+    realtimeSubscription = supabase
+        .channel('student-management-changes')
+        .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'student' },
+            (payload) => {
+                console.log('Real-time student update:', payload.eventType);
+                loadStudents();
+                
+                if (payload.eventType === 'INSERT') {
+                    addInternalNotification('New Student Registered', `${payload.new.full_name} has created an account`, false);
+                    showToast(`📢 New student registered!`, 'info');
+                }
+            }
+        )
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'incident' },
+            (payload) => {
+                console.log('Real-time incident update:', payload.eventType);
+                updateAllReportCounts();
+            }
+        )
+        .subscribe();
 }
 
-// ============ SAVE TO LOCAL STORAGE ============
-function saveToLocalStorage() {
-    localStorage.setItem('campus_care_students', JSON.stringify(students));
-}
-
-// ============ RENDER STUDENTS TABLE ============
+// ========== RENDER STUDENTS TABLE ==========
 function renderStudents() {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
     
     if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Students will appear here</div></td></td>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:60px;">👨‍🎓 No students found</td></tr>`;
         return;
     }
     
     tbody.innerHTML = students.map(student => `
         <tr data-id="${student.id}">
-            <td><div class="student-info"><div class="student-avatar">${getInitials(student.name)}</div><div><div class="student-name">${escapeHtml(student.name)}</div><div class="student-detail">${escapeHtml(student.email)}</div></div></div></td>
+            <td>
+                <div class="student-info">
+                    <div class="student-avatar">${getInitials(student.name)}</div>
+                    <div>
+                        <div class="student-name">${escapeHtml(student.name)}</div>
+                        <div class="student-detail">${escapeHtml(student.email)}</div>
+                    </div>
+                </div>
+            </td>
             <td><strong>${escapeHtml(student.idNumber)}</strong></td>
-            <td>${escapeHtml(student.course)} - ${student.year}${getYearSuffix(student.year)} Year</span></td>
+            <td>${escapeHtml(student.course)} - ${student.year}${getYearSuffix(student.year)} Year</td>
             <td><span class="badge-active">${student.reports || 0} reports</span></td>
-            <td><span class="status-badge ${student.status === 'active' ? 'status-active' : 'status-inactive'}">
-                ${student.status === 'active' ? '🟢 Active' : '⚫ Inactive'}
-            </span></td>
-            <td><span class="last-login">${formatDate(student.last_login)}</span></td>
-            <td><div class="action-btns">
-                <button class="action-btn edit-student" data-id="${student.id}" title="Edit Student">✏️</button>
-                <button class="action-btn toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
-                <button class="action-btn del delete-student" data-id="${student.id}" title="Delete Student">🗑️</button>
-             </div></td>
+            <td>
+                <span class="status-badge ${student.status === 'active' ? 'status-active' : 'status-inactive'}">
+                    ${student.status === 'active' ? '🟢 Active' : '⚫ Inactive'}
+                </span>
+            </td>
+            <td>${formatDate(student.last_login)}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="action-btn edit-student" data-id="${student.id}" title="Edit">✏️</button>
+                    <button class="action-btn toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
+                    <button class="action-btn del delete-student" data-id="${student.id}" title="Delete">🗑️</button>
+                </div>
+            </td>
         </tr>
     `).join('');
     
-    // Attach event listeners
     document.querySelectorAll('.edit-student').forEach(btn => {
-        btn.removeEventListener('click', () => {});
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            editStudent(btn.dataset.id);
-        });
+        btn.onclick = () => editStudent(btn.dataset.id);
     });
-    
     document.querySelectorAll('.delete-student').forEach(btn => {
-        btn.removeEventListener('click', () => {});
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            deleteStudent(btn.dataset.id);
-        });
+        btn.onclick = () => deleteStudent(btn.dataset.id);
     });
-    
     document.querySelectorAll('.toggle-status').forEach(btn => {
-        btn.removeEventListener('click', () => {});
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleStudentStatus(btn.dataset.id);
-        });
+        btn.onclick = () => toggleStudentStatus(btn.dataset.id);
     });
 }
 
-// ============ TOGGLE STUDENT STATUS ============
-function toggleStudentStatus(id) {
+// ========== TOGGLE STUDENT STATUS ==========
+async function toggleStudentStatus(id) {
     const student = students.find(s => s.id == id);
-    if (student) {
-        student.status = student.status === 'active' ? 'inactive' : 'active';
-        saveToLocalStorage();
+    if (!student) return;
+    
+    const newStatus = student.status === 'active' ? 'inactive' : 'active';
+    
+    const { error } = await supabase
+        .from('student')
+        .update({ status: newStatus })
+        .eq('id', id);
+    
+    if (error) {
+        showToast('Failed to update status', 'error');
+        return;
+    }
+    
+    student.status = newStatus;
+    renderStudents();
+    updateStats();
+    addInternalNotification('Status Changed', `${student.name} is now ${newStatus}`, false);
+    showToast(`${student.name} is now ${newStatus}`, 'success');
+}
+
+// ========== DELETE STUDENT (WITH AUTH USER) ==========
+async function deleteStudent(id) {
+    const student = students.find(s => s.id == id);
+    if (!student) return;
+    
+    if (!confirm(`⚠️ WARNING: This will permanently delete "${student.name}" including their login account.\n\nThis action CANNOT be undone!\n\nAll their incident reports will remain but become orphaned.\n\nAre you absolutely sure?`)) return;
+    
+    showToast('Deleting student account...', 'info');
+    
+    try {
+        // First, try to delete the auth user
+        await deleteAuthUser(student.email);
+        
+        // Then delete from student table
+        const { error } = await supabase.from('student').delete().eq('id', id);
+        
+        if (error) {
+            showToast('Student deleted but auth user removal may have failed', 'warning');
+        } else {
+            showToast(`✓ ${student.name} has been deleted`, 'success');
+            addInternalNotification('Student Deleted', `${student.name} and their account have been removed`, false);
+        }
+        
+        students = students.filter(s => s.id != id);
         renderStudents();
         updateStats();
-        showNotification(`${student.name} is now ${student.status}`, 'success');
+        
+    } catch (error) {
+        console.error('Delete error:', error);
+        showToast('Failed to delete student', 'error');
     }
 }
 
-// ============ HELPER FUNCTIONS ============
-function getInitials(name) { 
-    if (!name) return '??';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); 
+// ========== EDIT STUDENT ==========
+function editStudent(id) {
+    const student = students.find(s => s.id == id);
+    if (!student) return;
+    
+    editingStudentId = id;
+    document.getElementById('studentId').value = student.id;
+    document.getElementById('studentFullName').value = student.name;
+    document.getElementById('studentIdNumber').value = student.idNumber;
+    document.getElementById('studentCourse').value = student.course;
+    document.getElementById('studentYear').value = student.year;
+    document.getElementById('studentEmail').value = student.email;
+    document.getElementById('studentStatus').value = student.status;
+    document.getElementById('modalTitle').textContent = 'Edit Student';
+    openModal();
 }
 
-function getYearSuffix(year) { 
-    return { 1: 'st', 2: 'nd', 3: 'rd', 4: 'th' }[year] || 'th'; 
+// ========== FORM SUBMIT ==========
+const studentForm = document.getElementById('studentForm');
+if (studentForm) {
+    studentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const studentData = {
+            full_name: document.getElementById('studentFullName')?.value.trim() || '',
+            student_id: document.getElementById('studentIdNumber')?.value.trim() || '',
+            course: document.getElementById('studentCourse')?.value || 'N/A',
+            year_level: document.getElementById('studentYear')?.value || '1',
+            email: document.getElementById('studentEmail')?.value.trim() || '',
+            status: document.getElementById('studentStatus')?.value || 'active',
+            last_login: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        if (!studentData.full_name || !studentData.student_id || !studentData.email) {
+            showToast('Please fill in all fields', 'error');
+            return;
+        }
+        
+        const existingId = document.getElementById('studentId')?.value;
+        
+        if (existingId) {
+            const { error } = await supabase
+                .from('student')
+                .update(studentData)
+                .eq('id', existingId);
+            
+            if (error) {
+                showToast('Failed to update student', 'error');
+                return;
+            }
+            showToast(`✓ ${studentData.full_name} has been updated`, 'success');
+        } else {
+            studentData.created_at = new Date().toISOString();
+            const { error } = await supabase
+                .from('student')
+                .insert([studentData]);
+            
+            if (error) {
+                showToast('Failed to add student', 'error');
+                return;
+            }
+            showToast(`✓ ${studentData.full_name} has been added`, 'success');
+        }
+        
+        await loadStudents();
+        closeModal();
+    });
+}
+
+// ========== HELPER FUNCTIONS ==========
+function openModal() {
+    const modal = document.getElementById('studentModal');
+    if (modal) modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    const modal = document.getElementById('studentModal');
+    if (modal) modal.classList.remove('active');
+    document.getElementById('studentForm')?.reset();
+    document.getElementById('studentId').value = '';
+    editingStudentId = null;
+    document.getElementById('modalTitle').textContent = 'Add New Student';
+    document.body.style.overflow = '';
+}
+
+function getInitials(name) {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function getYearSuffix(year) {
+    const suffixes = { 1: 'st', 2: 'nd', 3: 'rd', 4: 'th' };
+    return suffixes[year] || 'th';
 }
 
 function formatDate(dateString) {
@@ -226,7 +620,6 @@ function formatDate(dateString) {
     return `${Math.floor(diffHours / 24)}d ago`;
 }
 
-// ============ UPDATE STATS ============
 function updateStats() {
     const total = students.length;
     const active = students.filter(s => s.status === 'active').length;
@@ -244,222 +637,47 @@ function updateStats() {
     if (avgEl) avgEl.textContent = avgReports;
 }
 
-// ============ SHOW NOTIFICATION ============
-function showNotification(message, type = 'info') {
-    const n = document.createElement('div');
-    n.textContent = message;
-    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'success' ? '#10B981' : type === 'error' ? '#DC2626' : '#1E3A5F'};color:white;padding:10px 18px;border-radius:40px;z-index:2000;box-shadow:0 4px 12px rgba(0,0,0,0.15);`;
-    document.body.appendChild(n);
-    setTimeout(() => n.remove(), 3000);
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-// ============ ADD CSS FOR STATUS BADGES ============
-function addStatusStyles() {
-    if (document.getElementById('student-status-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'student-status-styles';
-    style.textContent = `
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .status-active {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .status-inactive {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        .action-btn {
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            transition: all 0.2s;
-        }
-        .action-btn:hover {
-            background: #f1f5f9;
-            transform: scale(1.05);
-        }
-        .badge-active {
-            background: #E1F5EE;
-            color: #085041;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// ============ MODAL FUNCTIONS ============
-function openModal() { 
-    const modal = document.getElementById('studentModal');
-    if (modal) modal.classList.add('active'); 
-    document.body.style.overflow = 'hidden'; 
-}
-
-function closeModal() {
-    const modal = document.getElementById('studentModal');
-    if (modal) modal.classList.remove('active');
-    const form = document.getElementById('studentForm');
-    if (form) form.reset();
-    const studentId = document.getElementById('studentId');
-    if (studentId) studentId.value = '';
-    editingStudentId = null;
-    const modalTitle = document.getElementById('modalTitle');
-    if (modalTitle) modalTitle.textContent = 'Add New Student';
-    document.body.style.overflow = '';
-}
-
-function editStudent(id) {
-    const student = students.find(s => s.id == id);
-    if (!student) return;
-    editingStudentId = id;
-    const studentIdInput = document.getElementById('studentId');
-    const fullNameInput = document.getElementById('studentFullName');
-    const idNumberInput = document.getElementById('studentIdNumber');
-    const courseSelect = document.getElementById('studentCourse');
-    const yearSelect = document.getElementById('studentYear');
-    const emailInput = document.getElementById('studentEmail');
-    const statusSelect = document.getElementById('studentStatus');
-    const modalTitle = document.getElementById('modalTitle');
-    
-    if (studentIdInput) studentIdInput.value = student.id;
-    if (fullNameInput) fullNameInput.value = student.name;
-    if (idNumberInput) idNumberInput.value = student.idNumber;
-    if (courseSelect) courseSelect.value = student.course;
-    if (yearSelect) yearSelect.value = student.year;
-    if (emailInput) emailInput.value = student.email;
-    if (statusSelect) statusSelect.value = student.status;
-    if (modalTitle) modalTitle.textContent = 'Edit Student';
-    openModal();
-}
-
-function deleteStudent(id) {
-    const student = students.find(s => s.id == id);
-    if (!student) return;
-    if (confirm(`Are you sure you want to delete "${student.name}"?`)) {
-        students = students.filter(s => s.id != id);
-        saveToLocalStorage();
-        renderStudents();
-        updateStats();
-        showNotification(`✓ ${student.name} has been deleted`, 'success');
-    }
-}
-
-// ============ FORM SUBMIT ============
-const studentForm = document.getElementById('studentForm');
-if (studentForm) {
-    studentForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const studentData = {
-            name: document.getElementById('studentFullName')?.value.trim() || '',
-            idNumber: document.getElementById('studentIdNumber')?.value.trim() || '',
-            course: document.getElementById('studentCourse')?.value || 'N/A',
-            year: document.getElementById('studentYear')?.value || '1',
-            email: document.getElementById('studentEmail')?.value.trim() || '',
-            status: document.getElementById('studentStatus')?.value || 'active',
-            reports: 0,
-            last_login: new Date().toISOString()
-        };
-        
-        if (!studentData.name || !studentData.idNumber || !studentData.email) {
-            showNotification('Please fill in all fields', 'error');
-            return;
-        }
-        
-        const existingId = document.getElementById('studentId')?.value;
-        
-        if (existingId) {
-            const index = students.findIndex(s => s.id == existingId);
-            if (index !== -1) {
-                students[index] = { ...students[index], ...studentData };
-                showNotification(`✓ ${studentData.name} has been updated`, 'success');
-            }
-        } else {
-            const newId = Date.now().toString();
-            students.push({ ...studentData, id: newId });
-            showNotification(`✓ ${studentData.name} has been added`, 'success');
-        }
-        
-        saveToLocalStorage();
-        renderStudents();
-        updateStats();
-        closeModal();
-    });
-}
-
-// ============ FIXED: NAVIGATION & UI SETUP ============
+// ========== NAVIGATION SETUP ==========
 function setupNavigation() {
-    console.log('Setting up navigation...');
-    
-    // Drawer navigation
     const drawerItems = document.querySelectorAll('.drawer-item');
-    console.log('Found drawer items:', drawerItems.length);
-    
     drawerItems.forEach(item => {
-        // Clone to remove existing listeners
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
         
-        newItem.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.getAttribute('data-page');
-            console.log('Drawer clicked:', page);
-            
-            // Close drawer first
+        newItem.addEventListener('click', function() {
+            const page = this.dataset.page;
             const drawer = document.getElementById('drawer');
             const overlay = document.getElementById('overlay');
             if (drawer) drawer.classList.remove('open');
             if (overlay) overlay.classList.remove('open');
             
-            // Navigate
-            if (page === 'dashboard') {
-                window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            } else if (page === 'incidents') {
-                window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
-            } else if (page === 'settings') {
-                window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
-            }
-            // users page - stay here
+            if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
+            else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
+            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
         });
     });
 }
 
-// ============ BOTTOM NAVIGATION ============
 function setupBottomNav() {
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
-    console.log('Bottom nav items:', bottomNavItems.length);
-    
     bottomNavItems.forEach(item => {
-        // Clone to remove existing listeners
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
         
-        newItem.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = newItem.getAttribute('data-page');
-            console.log('Bottom nav clicked:', page);
-            
-            if (page === 'dashboard') {
-                window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            } else if (page === 'incidents') {
-                window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
-            } else if (page === 'settings') {
-                window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
-            }
-            // users page - stay here
+        newItem.addEventListener('click', () => {
+            const page = newItem.dataset.page;
+            if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
+            else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
+            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
         });
     });
 }
@@ -467,27 +685,12 @@ function setupBottomNav() {
 function setupUI() {
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
-    const hamburger = document.getElementById('hamburger');
     const adminPill = document.getElementById('adminPill');
+    const notificationBell = document.getElementById('notificationBell');
     
-    if (hamburger) {
-        hamburger.onclick = () => { 
-            if (drawer) drawer.classList.toggle('open'); 
-            if (overlay) overlay.classList.toggle('open'); 
-        };
-    }
-    if (overlay) {
-        overlay.onclick = () => { 
-            if (drawer) drawer.classList.remove('open'); 
-            if (overlay) overlay.classList.remove('open'); 
-        };
-    }
-    if (adminPill) {
-        adminPill.onclick = () => { 
-            if (drawer) drawer.classList.toggle('open'); 
-            if (overlay) overlay.classList.toggle('open'); 
-        };
-    }
+    if (overlay) overlay.onclick = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
+    if (adminPill) adminPill.onclick = () => { drawer.classList.toggle('open'); overlay.classList.toggle('open'); };
+    if (notificationBell) notificationBell.onclick = (e) => { e.stopPropagation(); toggleNotificationDropdown(); };
     
     const addBtn = document.getElementById('addStudentBtn');
     if (addBtn) addBtn.addEventListener('click', openModal);
@@ -500,8 +703,15 @@ function setupUI() {
         modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     }
     
-    document.addEventListener('keydown', (e) => { 
-        if (e.key === 'Escape' && modal && modal.classList.contains('active')) closeModal(); 
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (modal && modal.classList.contains('active')) closeModal();
+            if (isNotificationDropdownOpen) {
+                const dropdown = document.getElementById('notificationDropdown');
+                if (dropdown) dropdown.classList.remove('show');
+                isNotificationDropdownOpen = false;
+            }
+        }
     });
     
     const logoutBtn = document.getElementById('logoutBtn');
@@ -514,39 +724,29 @@ function setupUI() {
                 localStorage.removeItem('currentStudent');
                 localStorage.removeItem('currentAdmin');
                 localStorage.removeItem('isAdminLoggedIn');
-                showNotification('Logged out successfully', 'success');
-                setTimeout(() => {
-                    window.location.href = '/Assets/Landing_page/land.html';
-                }, 500);
+                showToast('Logged out successfully', 'success');
+                setTimeout(() => window.location.href = '/Assets/Landing_page/land.html', 500);
             }
         });
     }
 }
 
-function escapeHtml(text) { 
-    if (!text) return ''; 
-    const div = document.createElement('div'); 
-    div.textContent = text; 
-    return div.innerHTML; 
-}
-
-// ============ AUTO REFRESH EVERY 30 SECONDS ============
-let refreshInterval = setInterval(() => {
-    autoUpdateInactiveStatus();
-    renderStudents();
-    updateStats();
+// ========== AUTO REFRESH REPORT COUNTS EVERY 30 SECONDS ==========
+setInterval(() => {
+    updateAllReportCounts();
 }, 30000);
 
-// ============ INITIALIZE ============
+// ========== INITIALIZATION ==========
 async function init() {
     console.log('Initializing Student Management...');
-    addStatusStyles();
-    loadAdminProfile();
+    loadAdminToDrawer();
+    loadNotifications();
+    initDarkMode();
     await loadStudents();
+    setupRealtimeSubscription();
     setupNavigation();
     setupBottomNav();
     setupUI();
 }
 
-// Start the application
 init();
