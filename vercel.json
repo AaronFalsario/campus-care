@@ -6,6 +6,10 @@
       "dest": "/index.html"
     },
     {
+      "src": "/land.html",
+      "dest": "/land.html"
+    },
+    {
       "src": "/Assets/(.*)",
       "dest": "/Assets/$1"
     }
