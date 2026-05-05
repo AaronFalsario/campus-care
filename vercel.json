@@ -1,8 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "outputDirectory": ".",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/land",
+      "destination": "/land.html"
+    },
     {
       "source": "/student-dashboard",
       "destination": "/Assets/Student_dashboard/SDB.html"
@@ -36,16 +45,16 @@
       "destination": "/Assets/Admin_dashboard/settings/setting.html"
     },
     {
+      "source": "/admin/analytics",
+      "destination": "/Assets/Admin_dashboard/analytics/analytics.html"
+    },
+    {
       "source": "/student/settings",
       "destination": "/Assets/Student_dashboard/setting/setting.html"
     },
     {
-      "source": "/land",
-      "destination": "/land.html"
-    },
-    {
-      "source": "/admin/analytics",
-      "destination": "/Assets/Admin_dashboard/analytics/analytics.html"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 }
