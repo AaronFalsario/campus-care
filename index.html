@@ -1,11 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=/Assets/Landing_page/land.html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campus Care</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a56db 0%, #2563eb 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Sora', sans-serif;
+        }
+        .loader {
+            text-align: center;
+            color: white;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to <a href="/Assets/Landing_page/land.html">Campus Care</a>...</p>
+    <div class="loader">
+        <div class="spinner"></div>
+        <p>Loading Campus Care...</p>
+    </div>
+
+    <script>
+        function isMobileDevice() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const mobileKeywords = /android|webos|iphone|ipad|ipod|blackberry|windows phone|opera mini|iemobile|mobile/i;
+            const isSmallScreen = window.innerWidth <= 768;
+            return mobileKeywords.test(userAgent) || isSmallScreen;
+        }
+        
+        const isMobile = isMobileDevice();
+        
+        // Use relative paths - THIS IS THE FIX
+        if (!isMobile) {
+            // Desktop users go to landing page
+            window.location.href = './Assets/Landing_page/land.html';
+        } else {
+            // Mobile users go to admin dashboard (or wherever you want)
+            window.location.href = './Assets/Admin_dashboard/Admin.html';
+        }
+    </script>
 </body>
 </html>
