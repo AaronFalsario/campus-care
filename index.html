@@ -5,58 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campus Care</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #1a56db 0%, #2563eb 100%);
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            font-family: 'Sora', sans-serif;
         }
-        .loader {
+        
+        .container {
             text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 24px;
+            max-width: 500px;
+            margin: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
             color: white;
         }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin: 0 auto 20px;
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #94a3b8;
         }
     </style>
 </head>
 <body>
-    <div class="loader">
-        <div class="spinner"></div>
-        <p>Loading Campus Care...</p>
+    <div class="container">
+        <img src="/Assets/Images/logo.png" alt="Campus Care" class="logo" onerror="this.style.display='none'">
+        <h1>🏫 Campus Care</h1>
+        <p class="description">Your safety and well-being matters.<br>Report incidents, track progress, and stay informed.</p>
+        
+        <div class="btn-group">
+            <a href="/Assets/Student_dashboard/SDB.html" class="btn btn-primary">Student Portal</a>
+            <a href="/Assets/login/admin/admin.html" class="btn btn-secondary">Admin Portal</a>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 Campus Care | Making Campus Safer Together</p>
+        </div>
     </div>
-
-    <script>
-        function isMobileDevice() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            const mobileKeywords = /android|webos|iphone|ipad|ipod|blackberry|windows phone|opera mini|iemobile|mobile/i;
-            const isSmallScreen = window.innerWidth <= 768;
-            return mobileKeywords.test(userAgent) || isSmallScreen;
-        }
-        
-        const isMobile = isMobileDevice();
-        
-        // Use relative paths - THIS IS THE FIX
-        if (!isMobile) {
-            // Desktop users go to landing page
-            window.location.href = './Assets/Landing_page/land.html';
-        } else {
-            // Mobile users go to admin dashboard (or wherever you want)
-            window.location.href = './Assets/Admin_dashboard/Admin.html';
-        }
-    </script>
 </body>
 </html>

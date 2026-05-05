@@ -1,17 +1,13 @@
 {
   "version": 2,
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/Assets/(.*)",
-      "destination": "/Assets/$1"
+      "src": "/",
+      "dest": "/index.html"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/Assets/(.*)",
+      "dest": "/Assets/$1"
     }
   ]
 }
