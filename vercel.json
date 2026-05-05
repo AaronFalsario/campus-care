@@ -1,6 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/student-dashboard",
@@ -41,6 +42,10 @@
     {
       "source": "/land",
       "destination": "/land.html"
+    },
+    {
+      "source": "/admin/analytics",
+      "destination": "/Assets/Admin_dashboard/analytics/analytics.html"
     }
   ]
 }
