@@ -1,16 +1,5 @@
 {
-  "routes": [
-    {
-      "src": "/Assets/(.*)",
-      "dest": "/Assets/$1"
-    },
-    {
-      "src": "/(.*)\\.(.*)",
-      "dest": "/$1.$2"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "rewrites": [
+    {"source": "/(.*)", "destination": "/" }
+]
 }
