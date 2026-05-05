@@ -1,19 +1,46 @@
 {
-  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/student-dashboard",
+      "destination": "/Assets/Student_dashboard/SDB.html"
     },
     {
-      "src": "/land.html",
-      "dest": "/land.html"
+      "source": "/admin-dashboard",
+      "destination": "/Assets/Admin_dashboard/Admin.html"
     },
     {
-      "src": "/Assets/(.*)",
-      "dest": "/Assets/$1"
+      "source": "/admin-login",
+      "destination": "/Assets/login/admin/admin.html"
+    },
+    {
+      "source": "/student-login",
+      "destination": "/Assets/login/log.html"
+    },
+    {
+      "source": "/report",
+      "destination": "/Assets/Student_reporting/report.html"
+    },
+    {
+      "source": "/admin/incidents",
+      "destination": "/Assets/Admin_dashboard/incident/incident.html"
+    },
+    {
+      "source": "/admin/users",
+      "destination": "/Assets/Admin_dashboard/user_page/user.html"
+    },
+    {
+      "source": "/admin/settings",
+      "destination": "/Assets/Admin_dashboard/settings/setting.html"
+    },
+    {
+      "source": "/student/settings",
+      "destination": "/Assets/Student_dashboard/setting/setting.html"
+    },
+    {
+      "source": "/land",
+      "destination": "/land.html"
     }
   ]
 }

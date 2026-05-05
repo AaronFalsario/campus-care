@@ -1,41 +1,46 @@
-//  menu
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobileMenu');
+// menu
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
 
+if (hamburger) {
     hamburger.addEventListener('click', () => {
         mobileMenu.classList.toggle('open');
         hamburger.querySelector('i').className =
             mobileMenu.classList.contains('open') ? 'fas fa-xmark' : 'fas fa-bars';
     });
+}
 
-    function closeMenu() {
+function closeMenu() {
+    mobileMenu.classList.remove('open');
+    if (hamburger) {
+        hamburger.querySelector('i').className = 'fas fa-bars';
+    }
+}
+
+// Close menu 
+document.addEventListener('click', e => {
+    if (hamburger && mobileMenu && !hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
         mobileMenu.classList.remove('open');
         hamburger.querySelector('i').className = 'fas fa-bars';
     }
+});
 
-    // Close menu 
-    document.addEventListener('click', e => {
-        if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
-            mobileMenu.classList.remove('open');
-            hamburger.querySelector('i').className = 'fas fa-bars';
+// fade-up animation
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+            setTimeout(() => {
+                entry.target.classList.add('visible');
+            }, i * 80);
+            observer.unobserve(entry.target);
         }
     });
+}, { threshold: 0.12 });
 
-    // fade-up animation
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, i) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.classList.add('visible');
-                }, i * 80);
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.12 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-    const footer = document.querySelector('footer');
+// Footer scroll behavior
+const footer = document.querySelector('footer');
 let lastScroll = 0;
 
 window.addEventListener('scroll', () => {
@@ -57,12 +62,22 @@ window.addEventListener('scroll', () => {
 let adminClickCount = 0;
 let adminTimeout;
 
-document.getElementById('adminTrigger')?.addEventListener('click', () => {
-    adminClickCount++;
-    clearTimeout(adminTimeout);
-    adminTimeout = setTimeout(() => { adminClickCount = 0; }, 800);
-    
-    if (adminClickCount === 3) {
-        window.location.href = '/Assets/login/admin/admin.html';
-    }
-});
+const adminTrigger = document.getElementById('adminTrigger');
+if (adminTrigger) {
+    adminTrigger.addEventListener('click', () => {
+        adminClickCount++;
+        console.log('Admin trigger clicked:', adminClickCount);
+        
+        clearTimeout(adminTimeout);
+        adminTimeout = setTimeout(() => { 
+            adminClickCount = 0; 
+        }, 800);
+        
+        if (adminClickCount === 3) {
+            console.log('Redirecting to admin page...');
+            window.location.href = '/Assets/login/admin/admin.html';
+        }
+    });
+} else {
+    console.log('Admin trigger element not found - make sure <span id="adminTrigger"> exists');
+}
