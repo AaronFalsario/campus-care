@@ -1,16 +1,16 @@
 {
-  "name": "campuscare",
-  "version": "2.0.0",
+  "name": "campus-care",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
-},
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
+    "vite": "^4.5.0"
   }
 }
