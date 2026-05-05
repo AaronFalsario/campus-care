@@ -9,10 +9,34 @@ let isAnalyzing = false;
 let currentAnalysis = null;
 let mobilenetModel = null;
 
-// ========== ADDED: Store uploaded image data ==========
+// Store uploaded image data
 let uploadedImageData = null;
 
-// ========== ADDED: Urgent Alert Notification System ==========
+// ========== DARK MODE SYNC ==========
+function initDarkModeSync() {
+    // Read the same key the student dashboard uses
+    const savedMode = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedMode === 'enabled' || (!savedMode && prefersDark)) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+
+    // Stay in sync if user changes dark mode in another tab
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'darkMode') {
+            if (e.newValue === 'enabled') {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+    });
+}
+
+// ========== Urgent Alert Notification System ==========
 // Function to check if report is urgent (fire or emergency)
 function isUrgentReport(category, priority, title, description) {
     const urgentKeywords = [
@@ -256,7 +280,6 @@ function getCurrentStudent() {
         return {
             id: student.id || student.studentId || 'student_001',
             name: student.name || document.getElementById('studentName')?.value || 'Student',
-            // FIXED: Use studentId consistently
             studentId: student.studentId || student.id || student.idNumber || '2024-00001',
             email: student.email || 'student@campus.edu'
         };
@@ -269,7 +292,7 @@ function getCurrentStudent() {
     };
 }
 
-// NEW: Prefill student name from localStorage
+// Prefill student name from localStorage
 function prefillStudentName() {
     const studentNameInput = document.getElementById('studentName');
     if (!studentNameInput) return;
@@ -684,7 +707,7 @@ function showAISuggestion(category, confidence, matchedKeywords = [], priority =
     }
 }
 
-// Setup anonymous reporting toggle (MODIFIED: clears name field when checked)
+// Setup anonymous reporting toggle
 function setupAnonymousToggle() {
     const anonymousToggle = document.getElementById('anonymousToggle');
     const studentNameInput = document.getElementById('studentName');
@@ -756,7 +779,7 @@ async function uploadImage(file, studentId) {
     }
 }
 
-// ========== FIXED: Setup image upload with base64 storage ==========
+// Setup image upload with base64 storage
 function setupImageUpload() {
     const imageInput = document.getElementById('image');
     const uploadZone = document.getElementById('uploadZone');
@@ -817,7 +840,7 @@ function setupImageUpload() {
         }
     });
     
-    // ========== FIXED: Store image as base64 ==========
+    // Store image as base64
     function handleImageFile(file) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -830,7 +853,7 @@ function setupImageUpload() {
         };
         reader.readAsDataURL(file);
         
-        // AI Analysis (keep existing functionality)
+        // AI Analysis
         const indicator = document.getElementById('aiAnalysisIndicator');
         if (indicator) {
             indicator.className = 'ai-indicator processing';
@@ -987,13 +1010,17 @@ async function initializeAI() {
     console.log('AI initialization complete!');
 }
 
-// ========== FIXED: Form submission with base64 image and URGENT ALERTS ==========
+// ========== Form submission with base64 image and URGENT ALERTS ==========
 document.addEventListener('DOMContentLoaded', async () => {
+
+    // ← DARK MODE SYNC: Must be first so the page renders in the correct mode immediately
+    initDarkModeSync();
+
     const reportForm = document.getElementById('reportForm');
     const categoryInput = document.getElementById('category');
     const priorityInput = document.getElementById('priority');
     
-    // NEW: Prefill student name from localStorage
+    // Prefill student name from localStorage
     prefillStudentName();
     
     await initializeAI();
@@ -1033,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const currentStudent = getCurrentStudent();
                 
-                // ========== FIXED: Use stored base64 image data ==========
+                // Use stored base64 image data
                 let imageUrl = uploadedImageData || null;
                 console.log('Image saved:', imageUrl ? `YES (length: ${imageUrl.length})` : 'NO');
                 
@@ -1041,7 +1068,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const finalStudentName = (isAnonymous && !studentName) ? 'Anonymous Reporter' : (studentName || currentStudent.name);
                 
                 // Create report object for localStorage (with base64 image)
-                // FIXED: Use studentId consistently
                 const localReport = {
                     id: Date.now(),
                     title: title,
@@ -1051,8 +1077,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     description: description,
                     imageUrl: imageUrl,  // Base64 image
                     studentName: finalStudentName,
-                    studentId: currentStudent.studentId,  // FIXED: Changed from studentIdNumber to studentId
-                    reporterId: currentStudent.id, // ADDED: Store reporter ID for notification filtering
+                    studentId: currentStudent.studentId,
+                    reporterId: currentStudent.id,
                     status: 'pending',
                     timestamp: new Date().toISOString()
                 };
@@ -1065,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 existingReports.unshift(localReport);
                 localStorage.setItem('campus_care_reports', JSON.stringify(existingReports));
                 
-                // ========== NEW: Check if this is an URGENT report ==========
+                // Check if this is an URGENT report
                 const isUrgent = isUrgentReport(category, priority, title, description);
                 
                 if (isUrgent) {
@@ -1090,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         description: description,
                         image_url: imageUrl,
                         student_name: finalStudentName,
-                        student_id_number: currentStudent.studentId,  // FIXED: Use studentId
+                        student_id_number: currentStudent.studentId,
                         status: 'pending',
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()

@@ -1,5 +1,8 @@
+/* rep.css - Complete with Dark Mode Support */
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Light Mode Variables (Default) */
 :root {
     --bg: #F4F3EF;
     --surface: #FFFFFF;
@@ -29,6 +32,32 @@
     --warn-bg: #FFFBEB;
     --warn-border: #FDE68A;
     --warn-text: #92400E;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Dark Mode Variables - Applied when coming from student dashboard */
+.dark-mode {
+    --bg: #121212;
+    --surface: #1E1E1E;
+    --surface2: #2A2A2A;
+    --border: #333333;
+    --border-hover: #444444;
+    --text: #E5E5E5;
+    --muted: #9CA3AF;
+    --hint: #6B7280;
+    --teal: #34D399;
+    --teal-light: #064E3B;
+    --teal-dark: #34D399;
+    --red-light: #7F1D1D;
+    --blue-light: #1E3A5F;
+    --amber-light: #78350F;
+    --green-light: #14532D;
+    --orange-light: #7C2D12;
+    --purple-light: #4C1D95;
+    --warn-bg: #78350F;
+    --warn-border: #92400E;
+    --warn-text: #FDE68A;
 }
 
 html, body {
@@ -129,13 +158,17 @@ html, body {
 .col-side { display: flex; flex-direction: column; gap: 16px; }
 .mobile-only { display: none; }
 
-/* Hero section - Blue gradient */
+/* Hero section */
 .hero {
     background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
     border-radius: 20px;
     padding: 32px 36px;
     position: relative;
     overflow: hidden;
+}
+
+.dark-mode .hero {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E3A5F 100%);
 }
 
 .hero::before {
@@ -187,6 +220,10 @@ html, body {
     box-shadow: 0 4px 16px rgba(0,0,0,0.05);
 }
 
+.dark-mode .card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
 .card-title {
     font-size: 11px;
     font-weight: 600;
@@ -221,59 +258,54 @@ html, body {
     box-shadow: 0 4px 12px rgba(29,158,117,0.1);
 }
 
+.dark-mode .cat-item:hover {
+    box-shadow: 0 4px 12px rgba(52,211,153,0.2);
+}
+
+/* Category Icons - Keep original colors even in dark mode */
+.ci-red { background: var(--red-light); }
+.ci-blue { background: var(--blue-light); }
+.ci-amber { background: var(--amber-light); }
+.ci-teal { background: var(--teal-light); }
+
+.cat-item .cat-icon svg {
+    stroke: currentColor;
+}
+
+.cat-item[data-cat="security"] .cat-icon svg { color: #DC2626; }
+.cat-item[data-cat="maintenance"] .cat-icon svg { color: #2563EB; }
+.cat-item[data-cat="facilities"] .cat-icon svg { color: #D97706; }
+.cat-item[data-cat="janitorial"] .cat-icon svg { color: #085041; }
+
+.dark-mode .cat-item[data-cat="janitorial"] .cat-icon svg { color: #34D399; }
+
 /* Category Active States */
 .cat-item[data-cat="security"].active {
-    background: var(--red);
-    border-color: var(--red);
+    background: #DC2626;
+    border-color: #DC2626;
 }
-
-.cat-item[data-cat="security"].active .cat-icon {
-    background: #FFFFFF;
-}
-
-.cat-item[data-cat="security"].active .cat-icon svg {
-    stroke: var(--red);
-}
-
 .cat-item[data-cat="maintenance"].active {
-    background: var(--blue);
-    border-color: var(--blue);
+    background: #2563EB;
+    border-color: #2563EB;
 }
-
-.cat-item[data-cat="maintenance"].active .cat-icon {
-    background: #FFFFFF;
-}
-
-.cat-item[data-cat="maintenance"].active .cat-icon svg {
-    stroke: var(--blue);
-}
-
 .cat-item[data-cat="facilities"].active {
-    background: var(--amber);
-    border-color: var(--amber);
+    background: #D97706;
+    border-color: #D97706;
 }
-
-.cat-item[data-cat="facilities"].active .cat-icon {
-    background: #FFFFFF;
-}
-
-.cat-item[data-cat="facilities"].active .cat-icon svg {
-    stroke: var(--amber);
-}
-
 .cat-item[data-cat="janitorial"].active {
-    background: var(--teal);
-    border-color: var(--teal);
+    background: #1D9E75;
+    border-color: #1D9E75;
 }
-
-.cat-item[data-cat="janitorial"].active .cat-icon {
-    background: #FFFFFF;
+.dark-mode .cat-item[data-cat="janitorial"].active {
+    background: #34D399;
 }
-
-.cat-item[data-cat="janitorial"].active .cat-icon svg {
-    stroke: var(--teal-dark);
+.cat-item.active .cat-icon {
+    background: rgba(255,255,255,0.2);
 }
-
+.cat-item.active .cat-icon svg {
+    stroke: white !important;
+    color: white !important;
+}
 .cat-item.active .cat-name,
 .cat-item.active .cat-sub {
     color: white !important;
@@ -294,14 +326,10 @@ html, body {
     height: 20px;
 }
 
-.ci-red { background: var(--red-light); }
-.ci-blue { background: var(--blue-light); }
-.ci-amber { background: var(--amber-light); }
-.ci-teal { background: var(--teal-light); }
-
 .cat-name {
     font-size: 14px;
     font-weight: 500;
+    color: var(--text);
 }
 
 .cat-sub {
@@ -332,6 +360,7 @@ html, body {
 .field-label svg {
     width: 13px;
     height: 13px;
+    stroke: var(--muted);
 }
 
 /* Inputs */
@@ -381,28 +410,41 @@ textarea {
     letter-spacing: .04em;
     cursor: pointer;
     transition: all 0.2s ease;
+    color: var(--text);
 }
 
-.p-btn.low { color: var(--teal-dark); }
-.p-btn.med { color: var(--amber); }
-.p-btn.high { color: var(--red); }
+.p-btn.low { 
+    color: #085041; 
+}
+.dark-mode .p-btn.low { 
+    color: #34D399; 
+}
+
+.p-btn.med { 
+    color: #D97706; 
+}
+
+.p-btn.high { 
+    color: #DC2626; 
+}
 
 /* Priority Button Active States */
 .p-btn.low.active {
-    background: var(--teal);
-    border-color: var(--teal);
+    background: #1D9E75;
+    border-color: #1D9E75;
     color: white;
 }
-
+.dark-mode .p-btn.low.active {
+    background: #34D399;
+}
 .p-btn.med.active {
-    background: var(--amber);
-    border-color: var(--amber);
+    background: #D97706;
+    border-color: #D97706;
     color: white;
 }
-
 .p-btn.high.active {
-    background: var(--red);
-    border-color: var(--red);
+    background: #DC2626;
+    border-color: #DC2626;
     color: white;
 }
 
@@ -452,10 +494,12 @@ textarea {
 .upload-circle svg {
     width: 24px;
     height: 24px;
+    stroke: var(--teal);
 }
 
 .upload-cta {
     font-size: 13px;
+    color: var(--text);
 }
 
 .upload-cta span {
@@ -508,7 +552,7 @@ textarea {
     transform: scale(1.05);
 }
 
-/* Submit Button - Blue */
+/* Submit Button */
 .btn-submit {
     width: 100%;
     background: var(--blue);
@@ -531,6 +575,7 @@ textarea {
 .btn-submit svg {
     width: 16px;
     height: 16px;
+    stroke: white;
 }
 
 .btn-submit:hover {
@@ -564,6 +609,7 @@ textarea {
     margin-top: 1px;
     width: 15px;
     height: 15px;
+    stroke: var(--warn-text);
 }
 
 /* Tips Card */
@@ -630,16 +676,19 @@ textarea {
 .ai-indicator.processing {
     background: var(--blue-light);
     border-left: 3px solid var(--blue);
+    color: var(--text);
 }
 
 .ai-indicator.success {
     background: var(--teal-light);
     border-left: 3px solid var(--teal);
+    color: var(--teal-dark);
 }
 
 .ai-indicator.error {
     background: var(--red-light);
     border-left: 3px solid var(--red);
+    color: var(--red);
 }
 
 .ai-accept-btn {
@@ -667,6 +716,11 @@ textarea {
     cursor: pointer;
     font-size: 12px;
     transition: all 0.2s;
+}
+
+.dark-mode .ai-dismiss-btn {
+    background: #374151;
+    color: #9CA3AF;
 }
 
 .ai-dismiss-btn:hover {
@@ -735,7 +789,7 @@ input.error, textarea.error, select.error {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 12px;
-    color: #92400E;
+    color: var(--warn-text);
     margin-top: 8px;
 }
 
@@ -958,4 +1012,81 @@ input.error, textarea.error, select.error {
     .hero h1 {
         font-size: 22px;
     }
+}
+
+/* Dark Mode Specific Overrides for Better Contrast */
+.dark-mode input[type="text"],
+.dark-mode textarea {
+    background: #2A2A2A;
+    border-color: #444444;
+    color: #E5E5E5;
+}
+
+.dark-mode input[type="text"]:focus,
+.dark-mode textarea:focus {
+    border-color: var(--teal);
+    background: #333333;
+}
+
+.dark-mode .cat-item {
+    background: var(--surface);
+}
+
+.dark-mode .upload-circle {
+    background: #2A2A2A;
+}
+
+.dark-mode .tip-check {
+    background: rgba(52, 211, 153, 0.2);
+}
+
+.dark-mode .ai-indicator.processing {
+    background: rgba(37, 99, 235, 0.2);
+}
+
+.dark-mode .ai-indicator.success {
+    background: rgba(52, 211, 153, 0.2);
+}
+
+.dark-mode .ai-indicator.error {
+    background: rgba(220, 38, 38, 0.2);
+}
+
+/* Scrollbar for Dark Mode */
+.dark-mode ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+    background: #2A2A2A;
+    border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+    background: #555555;
+    border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #666666;
+}
+
+/* Anonymous toggle text color in dark mode */
+.dark-mode .anonymous-switch span {
+    color: var(--text) !important;
+}
+
+.dark-mode .anonymous-switch span span {
+    color: var(--muted) !important;
+}
+
+/* Field label icons in dark mode */
+.dark-mode .field-label svg {
+    stroke: var(--muted);
+}
+
+/* Tips card check mark in dark mode */
+.dark-mode .tip-check svg {
+    stroke: var(--teal);
 }

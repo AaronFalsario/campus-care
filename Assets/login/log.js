@@ -41,17 +41,14 @@ function hideLoader() {
 
 // ========== BEAUTIFUL TOAST NOTIFICATION ==========
 function showNotification(message, isError = false, duration = 3000) {
-    // Remove existing toast if any
     const existingToast = document.querySelector('.custom-toast');
     if (existingToast) {
         existingToast.remove();
     }
     
-    // Create toast container
     const toast = document.createElement('div');
     toast.className = 'custom-toast';
     
-    // Create icon based on type
     const icon = document.createElement('div');
     icon.className = 'toast-icon';
     if (isError) {
@@ -71,12 +68,10 @@ function showNotification(message, isError = false, duration = 3000) {
         `;
     }
     
-    // Create message container
     const messageContainer = document.createElement('div');
     messageContainer.className = 'toast-message';
     messageContainer.textContent = message;
     
-    // Create progress bar
     const progressBar = document.createElement('div');
     progressBar.className = 'toast-progress';
     
@@ -85,7 +80,6 @@ function showNotification(message, isError = false, duration = 3000) {
     toast.appendChild(progressBar);
     document.body.appendChild(toast);
     
-    // Add styles if not already added
     if (!document.querySelector('#toast-styles')) {
         const style = document.createElement('style');
         style.id = 'toast-styles';
@@ -172,7 +166,6 @@ function showNotification(message, isError = false, duration = 3000) {
         document.head.appendChild(style);
     }
     
-    // Auto remove after duration
     setTimeout(() => {
         toast.style.animation = 'toastSlideUp 0.3s ease-out reverse';
         setTimeout(() => toast.remove(), 300);
@@ -216,36 +209,29 @@ async function checkEmailExists(email) {
     }
 }
 
-// ========== UPDATE STUDENT STATUS TO ACTIVE ==========
+// ========== UPDATE STUDENT STATUS TO ACTIVE ON LOGIN (FIXED) ==========
 async function updateStudentActivityOnLogin(studentEmail, studentId) {
     try {
+        // CRITICAL: Set last_logout to NULL when logging in
         const { error } = await supabase
             .from('student')
             .update({ 
                 is_active: true,
                 last_login: new Date().toISOString(),
+                last_logout: null,  // Clear previous logout time
                 status: 'active'
             })
             .eq('email', studentEmail)
             .eq('student_id', studentId);
         
         if (error) {
-            console.log('Status columns not available, continuing login');
+            console.error('Error updating student status:', error);
+            return false;
         }
         
-        const storedStudents = localStorage.getItem('campus_care_students');
-        if (storedStudents) {
-            const students = JSON.parse(storedStudents);
-            const studentIndex = students.findIndex(s => s.email === studentEmail);
-            if (studentIndex !== -1) {
-                students[studentIndex].status = 'active';
-                students[studentIndex].last_login = new Date().toISOString();
-                localStorage.setItem('campus_care_students', JSON.stringify(students));
-            }
-        }
-        
-        console.log(`✅ Student ${studentEmail} marked as ACTIVE`);
+        console.log(`✅ Student ${studentEmail} logged in - last_login: ${new Date().toLocaleTimeString()}, last_logout cleared`);
         return true;
+        
     } catch (error) {
         console.error('Error updating student status:', error);
         return false;
@@ -302,7 +288,7 @@ if (signupPasswordInput && toggleSignupPassword) {
     togglePasswordVisibility(signupPasswordInput, toggleSignupPassword);
 }
 
-// ========== LOGIN FUNCTION ==========
+// ========== LOGIN FUNCTION (FIXED) ==========
 loginBtn.addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -336,6 +322,7 @@ loginBtn.addEventListener('click', async () => {
             throw new Error('Account not found. Please sign up first.');
         }
 
+        // Update last_login and clear last_logout
         await updateStudentActivityOnLogin(studentData.email, studentData.student_id);
 
         const studentInfo = {
@@ -350,7 +337,7 @@ loginBtn.addEventListener('click', async () => {
         showNotification('Login successful! Redirecting...', false, 1500);
         
         setTimeout(() => {
-            window.location.href = '/Assets/Student_dashboard/SDB.html';
+            window.location.href = './Assets/Student_dashboard/SDB.html';  // Relative path
         }, 1500);
 
     } catch (error) {
@@ -434,7 +421,8 @@ signupBtn.addEventListener('click', async () => {
                 status: 'active',
                 is_active: true,
                 created_at: new Date().toISOString(),
-                last_login: new Date().toISOString()
+                last_login: new Date().toISOString(),
+                last_logout: null  // New students start with no logout
             }]);
 
         if (dbError) throw dbError;
@@ -451,7 +439,7 @@ signupBtn.addEventListener('click', async () => {
         showNotification('Account created successfully! Redirecting...', false, 1500);
         
         setTimeout(() => {
-            window.location.href = '/Assets/Student_dashboard/SDB.html';
+            window.location.href = './Assets/Student_dashboard/SDB.html';  // Relative path
         }, 1500);
 
     } catch (error) {
@@ -461,50 +449,50 @@ signupBtn.addEventListener('click', async () => {
     }
 });
 
-// ========== LOGOUT FUNCTION ==========
+// ========== LOGOUT FUNCTION (FIXED - updates last_logout) ==========
 window.studentLogout = async function() {
     try {
         const currentStudent = localStorage.getItem('currentStudent');
         if (currentStudent) {
             const student = JSON.parse(currentStudent);
             
+            // Update last_logout when student logs out
             const { error } = await supabase
                 .from('student')
                 .update({ 
                     status: 'inactive',
-                    is_active: false
+                    is_active: false,
+                    last_logout: new Date().toISOString()  // Record logout time
                 })
                 .eq('email', student.email);
             
             if (error) {
-                console.log('Status columns not available, continuing logout');
+                console.error('Error updating logout status:', error);
             } else {
-                console.log('✅ Student status updated to INACTIVE');
+                console.log(`✅ Student ${student.email} logged out - last_logout: ${new Date().toLocaleTimeString()}`);
             }
         }
         
         await supabase.auth.signOut();
         localStorage.removeItem('currentStudent');
-        window.location.href = '/Assets/login/log.html';
+        window.location.href = './Assets/login/log.html';  // Relative path
         
     } catch (error) {
         console.error('Logout error:', error);
         localStorage.removeItem('currentStudent');
-        window.location.href = '/Assets/login/log.html';
+        window.location.href = './Assets/login/log.html';
     }
 };
 
-// ========== FORGOT PASSWORD HANDLER (WITH EMAIL EXISTENCE CHECK) ==========
+// ========== FORGOT PASSWORD HANDLER ==========
 const forgotPasswordBtn = document.getElementById('showForgotPassword');
 if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', async () => {
-        // Show custom email prompt
         const email = await showEmailPrompt();
         
         if (email && email.trim()) {
             const trimmedEmail = email.trim().toLowerCase();
             
-            // First validate domain
             if (!isValidGordonEmail(trimmedEmail)) {
                 showNotification('Invalid email domain! Please use your @gordoncollege.edu.ph email.', true);
                 return;
@@ -513,7 +501,6 @@ if (forgotPasswordBtn) {
             showLoader();
             
             try {
-                // CHECK IF EMAIL EXISTS IN DATABASE FIRST
                 const { exists, userData, error: checkError } = await checkEmailExists(trimmedEmail);
                 
                 if (checkError) {
@@ -526,7 +513,6 @@ if (forgotPasswordBtn) {
                     return;
                 }
                 
-                // Email exists, send reset link
                 console.log(`✅ Email verified: ${trimmedEmail} belongs to ${userData?.full_name}`);
                 
                 const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
@@ -547,10 +533,9 @@ if (forgotPasswordBtn) {
     });
 }
 
-// Custom email prompt modal (better than browser prompt)
+// Custom email prompt modal
 function showEmailPrompt() {
     return new Promise((resolve) => {
-        // Create modal
         const modal = document.createElement('div');
         modal.className = 'email-prompt-modal';
         modal.innerHTML = `
@@ -574,7 +559,6 @@ function showEmailPrompt() {
             </div>
         `;
         
-        // Add styles
         if (!document.querySelector('#prompt-styles')) {
             const style = document.createElement('style');
             style.id = 'prompt-styles';
@@ -725,7 +709,6 @@ function showEmailPrompt() {
             resolve(null);
         };
         
-        // Enter key support
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const email = input.value.trim();
@@ -771,7 +754,7 @@ async function checkExistingSession() {
             const student = JSON.parse(stored);
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                window.location.href = '/Assets/Student_dashboard/SDB.html';
+                window.location.href = './Assets/Student_dashboard/SDB.html';  // Relative path
             }
         } catch(e) {
             console.log('Session check failed');
@@ -783,14 +766,13 @@ async function checkExistingSession() {
 function init() {
     addStyles();
     checkExistingSession();
-    console.log('✅ Login page ready - Password reset includes email verification');
+    console.log('✅ Login page ready - Student status will update on login/logout');
 }
 
-// Call init when DOM is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
 }
 
-console.log('✅ Login page script loaded. Password reset now checks if email exists in database.');
+console.log('✅ Login page script loaded - last_logout cleared on login, recorded on logout');

@@ -1043,6 +1043,8 @@ function setupNavigation() {
             if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
             else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
             else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
+            else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
+            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
             drawer.classList.remove('open');
             if (overlay) overlay.classList.remove('open');
         });
@@ -1123,10 +1125,17 @@ function initBottomNav() {
     bottomNavItems.forEach(item => {
         item.addEventListener('click', () => {
             const page = item.dataset.page;
-            if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
-            else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
-            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+            if (page === 'dashboard') {
+                window.location.href = '/Assets/Admin_dashboard/Admin.html';
+            } else if (page === 'incidents') {
+                window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            } else if (page === 'users') {
+                window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
+            } else if (page === 'analytics') {
+                window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
+            } else if (page === 'settings') {
+                window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+            }
         });
     });
     

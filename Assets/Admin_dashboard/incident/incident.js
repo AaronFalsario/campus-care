@@ -82,7 +82,10 @@ function saveNotifications() {
     updateNotificationBadge();
 }
 
+// FIXED: Removed the filter that was blocking notifications
 function addInternalNotification(title, message, isUrgent = false) {
+    console.log('Adding notification:', title, message, isUrgent);
+    
     const notification = {
         id: notificationIdCounter++,
         title: title,
@@ -91,10 +94,49 @@ function addInternalNotification(title, message, isUrgent = false) {
         read: false,
         isUrgent: isUrgent
     };
+    
     notifications.unshift(notification);
+    
+    // Keep only last 50 notifications
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    
     saveNotifications();
     updateNotificationDropdown();
-    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    
+    // Play sound for urgent notifications
+    if (isUrgent) {
+        playNotificationSound();
+    }
+    
+    // Show browser notification if permitted
+    if (Notification.permission === 'granted') {
+        new Notification(title, {
+            body: message,
+            icon: isUrgent ? '/Assets/icons/urgent.png' : '/Assets/icons/notification.png',
+            silent: isUrgent ? false : true
+        });
+    }
+    
+    // Also show a toast
+    showToast(message, isUrgent ? 'urgent' : 'info');
+}
+
+// Play notification sound
+function playNotificationSound() {
+    try {
+        const audio = new Audio('/Assets/sounds/notification.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log('Audio play failed:', e));
+    } catch (e) {
+        console.log('Audio not supported');
+    }
+}
+
+// Request notification permission
+function requestNotificationPermission() {
+    if (Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
 }
 
 function updateNotificationBadge() {
@@ -262,7 +304,6 @@ async function loadIncidents() {
             .select('*')
             .order('created_at', { ascending: false });
         if (error) throw error;
-        const oldCount = incidents.length;
         incidents = (data || []).map(r => ({
             id: r.id,
             name: r.title || 'Untitled',
@@ -278,9 +319,6 @@ async function loadIncidents() {
             is_anonymous: r.is_anonymous || false,
             resolved_at: r.resolved_at || null
         }));
-        if (data && data.length > oldCount && oldCount > 0) {
-            addInternalNotification('New Incident', `${incidents[0].name} was reported`, incidents[0].priority === 'high');
-        }
         renderIncidents();
         updateStats();
     } catch (err) {
@@ -315,13 +353,67 @@ function loadFromLocalStorage() {
     updateStats();
 }
 
-// ========== REAL-TIME SUBSCRIPTION ==========
+// ========== REAL-TIME SUBSCRIPTION WITH NOTIFICATIONS ==========
 function setupRealtimeSubscription() {
     if (realtimeSubscription) return;
+    
+    console.log('Setting up real-time subscription with notifications...');
+    
     realtimeSubscription = supabase
         .channel('incident-page-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'incident' }, () => loadIncidents())
-        .subscribe();
+        .on('postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'incident' }, 
+            async (payload) => {
+                console.log('New incident detected!', payload.new);
+                
+                const newIncident = payload.new;
+                const isUrgent = newIncident.priority === 'high';
+                
+                // Add notification for new incident
+                addInternalNotification(
+                    `📝 New ${isUrgent ? 'URGENT ' : ''}Incident Report`,
+                    `${newIncident.title || 'Untitled'} reported at ${newIncident.location || 'campus'} - Priority: ${newIncident.priority}`,
+                    isUrgent
+                );
+                
+                // Reload incidents
+                await loadIncidents();
+            }
+        )
+        .on('postgres_changes', 
+            { event: 'UPDATE', schema: 'public', table: 'incident' }, 
+            async (payload) => {
+                console.log('Incident updated!', payload.new);
+                
+                const oldStatus = payload.old?.status;
+                const newStatus = payload.new?.status;
+                
+                if (oldStatus !== newStatus) {
+                    addInternalNotification(
+                        `🔄 Status Updated`,
+                        `Incident "${payload.new?.title}" status changed from ${oldStatus} to ${newStatus}`,
+                        newStatus === 'resolved' ? false : true
+                    );
+                }
+                
+                await loadIncidents();
+            }
+        )
+        .on('postgres_changes', 
+            { event: 'DELETE', schema: 'public', table: 'incident' }, 
+            async (payload) => {
+                console.log('Incident deleted!');
+                addInternalNotification(
+                    `🗑️ Incident Deleted`,
+                    `An incident has been removed from the system`,
+                    false
+                );
+                await loadIncidents();
+            }
+        )
+        .subscribe((status) => {
+            console.log('Realtime subscription status:', status);
+        });
 }
 
 // ========== STATS ==========
@@ -379,27 +471,27 @@ function renderTable(list) {
     tbody.innerHTML = list.map(inc => `
         <tr data-id="${inc.id}">
             <td>
-                <div class="inc-cell">
+                <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="inc-icon-sm" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${getCategoryIcon(inc.category)}</div>
-                    <div style="display: flex; flex-direction: column; gap: 2px;">
-                        <strong style="font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3;">${inc.priority === 'high' ? '🚨 ' : ''}${escapeHtml(inc.name)}</strong>
-                        <span style="font-size: 11px; color: var(--muted); line-height: 1.2;">📍 ${escapeHtml(inc.location)}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px;">${inc.priority === 'high' ? '🚨 ' : ''}${escapeHtml(inc.name)}</div>
+                        <div style="font-size: 11px; color: var(--muted);">📍 ${escapeHtml(inc.location)}</div>
                     </div>
                 </div>
             </td>
             <td><span class="badge" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${inc.category.charAt(0).toUpperCase() + inc.category.slice(1)}</span></td>
             <td><span class="badge ${inc.priority === 'high' ? 'b-high' : inc.priority === 'medium' ? 'b-medium' : 'b-low'}">${inc.priority.toUpperCase()}</span></td>
             <td><span class="badge ${inc.status === 'pending' ? 'b-pending' : inc.status === 'in-progress' ? 'b-inprogress' : 'b-resolved'}">${inc.status === 'in-progress' ? 'In Progress' : inc.status}</span></td>
-            <td>${escapeHtml(inc.is_anonymous === true ? 'Anonymous' : inc.reporter)}</td>
-            <td>${inc.is_anonymous === true ? 'Hidden' : inc.student_id_number}</td>
-            <td>${getTimeAgo(new Date(inc.timestamp))}</td>
-            <tr>
-                <div class="action-btns">
+            <td style="color: var(--text);">${escapeHtml(inc.is_anonymous === true ? 'Anonymous' : inc.reporter)}</td>
+            <td style="color: var(--text);">${inc.is_anonymous === true ? 'Hidden' : inc.student_id_number}</td>
+            <td style="color: var(--muted);">${getTimeAgo(new Date(inc.timestamp))}</td>
+            <td>
+                <div style="display: flex; gap: 8px;">
                     <button class="action-btn" onclick="window.openModal('${inc.id}')" title="View & Edit">👁️</button>
                     <button class="action-btn del" onclick="window.deleteIncident('${inc.id}')" title="Delete">🗑️</button>
                 </div>
             </td>
-        </tr>
+         </tr>
     `).join('');
 }
 
@@ -412,22 +504,34 @@ function renderMobileCards(list) {
     }
     container.innerHTML = list.map(inc => `
         <div class="m-card">
-            <div class="m-card-top">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
                 <div class="inc-icon-sm" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${getCategoryIcon(inc.category)}</div>
-                <div>
-                    <strong style="color: var(--text);">${inc.priority === 'high' ? '🚨 ' : ''}${escapeHtml(inc.name)}</strong>
-                    <div style="font-size:11px;color:var(--muted); margin-top: 2px;">📍 ${escapeHtml(inc.location)}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; color: var(--text); margin-bottom: 4px;">${inc.priority === 'high' ? '🚨 ' : ''}${escapeHtml(inc.name)}</div>
+                    <div style="font-size: 11px; color: var(--muted);">📍 ${escapeHtml(inc.location)}</div>
                 </div>
             </div>
-            <div class="m-card-body">
-                <div><div class="m-field-label" style="color: var(--muted);">Category</div><span class="badge" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${inc.category}</span></div>
-                <div><div class="m-field-label" style="color: var(--muted);">Priority</div><span class="badge ${inc.priority === 'high' ? 'b-high' : inc.priority === 'medium' ? 'b-medium' : 'b-low'}">${inc.priority}</span></div>
-                <div><div class="m-field-label" style="color: var(--muted);">Status</div><span class="badge ${inc.status === 'pending' ? 'b-pending' : inc.status === 'in-progress' ? 'b-inprogress' : 'b-resolved'}">${inc.status}</span></div>
-                <div><div class="m-field-label" style="color: var(--muted);">Reporter</div><span style="color: var(--text);">${escapeHtml(inc.is_anonymous === true ? 'Anonymous' : inc.reporter)}</span></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 4px;">Category</div>
+                    <span class="badge" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${inc.category}</span>
+                </div>
+                <div>
+                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 4px;">Priority</div>
+                    <span class="badge ${inc.priority === 'high' ? 'b-high' : inc.priority === 'medium' ? 'b-medium' : 'b-low'}">${inc.priority}</span>
+                </div>
+                <div>
+                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 4px;">Status</div>
+                    <span class="badge ${inc.status === 'pending' ? 'b-pending' : inc.status === 'in-progress' ? 'b-inprogress' : 'b-resolved'}">${inc.status}</span>
+                </div>
+                <div>
+                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 4px;">Reporter</div>
+                    <span style="font-size: 12px; color: var(--text);">${escapeHtml(inc.is_anonymous === true ? 'Anonymous' : inc.reporter)}</span>
+                </div>
             </div>
-            <div class="m-card-footer">
-                <div class="m-timestamp" style="color: var(--hint);">${getTimeAgo(new Date(inc.timestamp))}</div>
-                <div class="action-btns">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border);">
+                <div style="font-size: 10px; color: var(--hint);">${getTimeAgo(new Date(inc.timestamp))}</div>
+                <div style="display: flex; gap: 8px;">
                     <button class="action-btn" onclick="window.openModal('${inc.id}')" title="View & Edit">👁️</button>
                     <button class="action-btn del" onclick="window.deleteIncident('${inc.id}')" title="Delete">🗑️</button>
                 </div>
@@ -524,51 +628,105 @@ window.closeModal = function() {
     currentIncidentId = null;
 };
 
+// ========== SAVE STATUS FUNCTION ==========
 window.saveStatus = async function() {
-    if (!currentIncidentId) return;
-    const newStatus = document.getElementById('modalStatus').value;
-    const incident = incidents.find(i => i.id === currentIncidentId);
-    if (!incident) return;
-    if (newStatus === incident.status) { window.closeModal(); return; }
-    
-    const updateData = { status: newStatus, updated_at: new Date().toISOString() };
-    if (newStatus === 'resolved' && incident.status !== 'resolved') {
-        updateData.resolved_at = new Date().toISOString();
-    } else if (newStatus !== 'resolved') {
-        updateData.resolved_at = null;
-    }
-    
-    const { error } = await supabase.from('incident').update(updateData).eq('id', currentIncidentId);
-    if (error) {
-        showToast('❌ Failed to update status: ' + (error.message || 'Unknown error'), 'error');
+    if (!currentIncidentId) {
+        showToast('No incident selected', 'error');
         return;
     }
     
-    incident.status = newStatus;
-    incident.resolved_at = updateData.resolved_at || null;
-    renderIncidents();
-    updateStats();
-    window.closeModal();
-    showToast(`✅ Status updated to "${newStatus}"`, 'success');
+    const newStatus = document.getElementById('modalStatus').value;
+    const incident = incidents.find(i => i.id == currentIncidentId);
+    
+    if (!incident) {
+        showToast('Incident not found', 'error');
+        return;
+    }
+    
+    if (newStatus === incident.status) {
+        window.closeModal();
+        return;
+    }
+    
+    const saveBtn = document.querySelector('.btn-save');
+    const originalText = saveBtn ? saveBtn.textContent : 'Save';
+    if (saveBtn) {
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+    }
+    
+    try {
+        const updateData = { 
+            status: newStatus, 
+            updated_at: new Date().toISOString() 
+        };
+        
+        if (newStatus === 'resolved' && incident.status !== 'resolved') {
+            updateData.resolved_at = new Date().toISOString();
+        } else if (newStatus !== 'resolved') {
+            updateData.resolved_at = null;
+        }
+        
+        const { error } = await supabase
+            .from('incident')
+            .update(updateData)
+            .eq('id', currentIncidentId);
+        
+        if (error) throw error;
+        
+        incident.status = newStatus;
+        incident.resolved_at = updateData.resolved_at || null;
+        
+        renderIncidents();
+        updateStats();
+        
+        showToast(`✅ Status updated to "${newStatus}"`, 'success');
+        window.closeModal();
+        
+    } catch (error) {
+        console.error('Save error:', error);
+        showToast('❌ Failed to update status: ' + (error.message || 'Unknown error'), 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+        }
+    }
 };
 
+// ========== DELETE FUNCTION ==========
 window.deleteIncident = async function(id) {
-    const incident = incidents.find(i => i.id === id);
+    const incident = incidents.find(i => i.id == id);
     if (!incident) return;
+    
     if (!confirm(`⚠️ Are you sure you want to permanently delete this incident?\n\n"${incident.name}"\n\nThis cannot be undone.`)) return;
     
-    incidents = incidents.filter(i => i.id !== id);
-    renderIncidents();
-    updateStats();
-    window.closeModal();
+    showToast('Deleting incident...', 'info');
     
-    const { error } = await supabase.from('incident').delete().eq('id', id);
-    if (error) {
+    try {
+        const { error } = await supabase
+            .from('incident')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        incidents = incidents.filter(i => i.id != id);
+        
+        renderIncidents();
+        updateStats();
+        
+        if (currentIncidentId == id) {
+            window.closeModal();
+        }
+        
+        showToast('✅ Incident permanently deleted.', 'success');
+        
+    } catch (error) {
+        console.error('Delete error:', error);
         showToast('❌ Delete failed: ' + (error.message || 'Unknown error'), 'error');
         await loadIncidents();
-        return;
     }
-    showToast('✅ Incident permanently deleted.', 'success');
 };
 
 window.exportToCSV = function() {
@@ -695,6 +853,10 @@ function initBottomNav() {
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, initializing incident management...');
+    
+    // Request notification permission
+    requestNotificationPermission();
+    
     loadAdminProfile();
     loadIncidents();
     loadNotifications();

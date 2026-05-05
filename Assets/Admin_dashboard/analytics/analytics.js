@@ -1,3 +1,9 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
+
 // Global variables
 let allIncidents = [];
 let filteredIncidents = [];
@@ -6,12 +12,58 @@ let currentPage = 1;
 let rowsPerPage = 10;
 let searchTerm = '';
 let trendChart, categoryChart, priorityChart, statusChart;
+let realtimeSubscription = null;
 
-// Load incidents from localStorage
-function loadIncidents() {
+// ========== LOAD INCIDENTS FROM SUPABASE (NOT LOCALSTORAGE) ==========
+async function loadIncidents() {
+    try {
+        const { data, error } = await supabase
+            .from('incident')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Convert Supabase data to match your existing format
+        allIncidents = (data || []).map(inc => ({
+            id: inc.id,
+            title: inc.title,
+            name: inc.title,
+            location: inc.location,
+            category: inc.category || 'maintenance',
+            priority: inc.priority || 'medium',
+            status: inc.status || 'pending',
+            reporter: inc.student_name || 'Student',
+            student_id: inc.student_id_number,
+            studentId: inc.student_id_number,
+            description: inc.description,
+            timestamp: inc.created_at,
+            image_url: inc.image_url,
+            is_anonymous: inc.is_anonymous,
+            resolved_at: inc.resolved_at,
+            updated_at: inc.updated_at
+        }));
+        
+        console.log(`Loaded ${allIncidents.length} incidents from Supabase`);
+        
+        applyFilters();
+        updateStats();
+        updateCharts();
+        renderTable();
+        
+    } catch (error) {
+        console.error('Error loading incidents from Supabase:', error);
+        // Fallback to localStorage if Supabase fails
+        loadFromLocalStorage();
+    }
+}
+
+// Fallback function
+function loadFromLocalStorage() {
     const stored = localStorage.getItem('campus_care_reports');
     if (stored && stored !== '[]') {
         allIncidents = JSON.parse(stored);
+        console.log(`Loaded ${allIncidents.length} incidents from localStorage (fallback)`);
     } else {
         allIncidents = [];
     }
@@ -19,6 +71,181 @@ function loadIncidents() {
     updateStats();
     updateCharts();
     renderTable();
+}
+
+// ========== REAL-TIME SUBSCRIPTION ==========
+function setupRealtimeSubscription() {
+    if (realtimeSubscription) return;
+    
+    console.log('Setting up real-time subscription for analytics...');
+    
+    realtimeSubscription = supabase
+        .channel('analytics-realtime-channel')
+        .on('postgres_changes', 
+            { 
+                event: '*',  // Listen to INSERT, UPDATE, DELETE
+                schema: 'public', 
+                table: 'incident' 
+            }, 
+            async (payload) => {
+                console.log('Analytics: Real-time change detected!', payload.eventType, payload.new?.id);
+                
+                // Reload all data from Supabase
+                await loadIncidents();
+                
+                // Show notification
+                if (payload.eventType === 'UPDATE') {
+                    const oldStatus = payload.old?.status;
+                    const newStatus = payload.new?.status;
+                    if (oldStatus !== newStatus) {
+                        showToast(`🔄 Status updated: ${oldStatus} → ${newStatus}`);
+                    }
+                } else if (payload.eventType === 'INSERT') {
+                    showToast(`📝 New incident reported: ${payload.new?.title}`);
+                } else if (payload.eventType === 'DELETE') {
+                    showToast(`🗑️ Incident deleted`);
+                }
+            }
+        )
+        .subscribe((status) => {
+            console.log('Analytics realtime subscription status:', status);
+        });
+    
+    // Also listen for localStorage changes as backup (for cross-tab)
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'campus_care_reports') {
+            console.log('localStorage change detected, reloading...');
+            loadIncidents();
+        }
+    });
+}
+
+// ========== DARK MODE ==========
+function initDarkMode() {
+    const saved = localStorage.getItem('admin_dark_mode');
+    const toggle = document.getElementById('darkModeToggle');
+    
+    if (saved === 'enabled') {
+        document.body.classList.add('dark-mode');
+        if (toggle) {
+            const sunIcon = toggle.querySelector('.sun-icon');
+            const moonIcon = toggle.querySelector('.moon-icon');
+            if (sunIcon) sunIcon.style.display = 'none';
+            if (moonIcon) moonIcon.style.display = 'block';
+        }
+        setTimeout(() => updateChartColorsForDarkMode(true), 100);
+    } else if (saved === 'disabled') {
+        document.body.classList.remove('dark-mode');
+        if (toggle) {
+            const sunIcon = toggle.querySelector('.sun-icon');
+            const moonIcon = toggle.querySelector('.moon-icon');
+            if (sunIcon) sunIcon.style.display = 'block';
+            if (moonIcon) moonIcon.style.display = 'none';
+        }
+        setTimeout(() => updateChartColorsForDarkMode(false), 100);
+    } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+            document.body.classList.add('dark-mode');
+            if (toggle) {
+                const sunIcon = toggle.querySelector('.sun-icon');
+                const moonIcon = toggle.querySelector('.moon-icon');
+                if (sunIcon) sunIcon.style.display = 'none';
+                if (moonIcon) moonIcon.style.display = 'block';
+            }
+            localStorage.setItem('admin_dark_mode', 'enabled');
+            setTimeout(() => updateChartColorsForDarkMode(true), 100);
+        }
+    }
+    
+    if (toggle) {
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+        
+        newToggle.addEventListener('click', () => {
+            if (document.body.classList.contains('dark-mode')) {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('admin_dark_mode', 'disabled');
+                const sunIcon = newToggle.querySelector('.sun-icon');
+                const moonIcon = newToggle.querySelector('.moon-icon');
+                if (sunIcon) sunIcon.style.display = 'block';
+                if (moonIcon) moonIcon.style.display = 'none';
+                updateChartColorsForDarkMode(false);
+                setTimeout(() => updateCharts(), 100);
+            } else {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('admin_dark_mode', 'enabled');
+                const sunIcon = newToggle.querySelector('.sun-icon');
+                const moonIcon = newToggle.querySelector('.moon-icon');
+                if (sunIcon) sunIcon.style.display = 'none';
+                if (moonIcon) moonIcon.style.display = 'block';
+                updateChartColorsForDarkMode(true);
+                setTimeout(() => updateCharts(), 100);
+            }
+        });
+    }
+    
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'admin_dark_mode') {
+            const isDark = e.newValue === 'enabled';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                updateChartColorsForDarkMode(true);
+            } else {
+                document.body.classList.remove('dark-mode');
+                updateChartColorsForDarkMode(false);
+            }
+            setTimeout(() => updateCharts(), 100);
+        }
+    });
+}
+
+function updateChartColorsForDarkMode(isDark) {
+    const textColor = isDark ? '#F1F5F9' : '#161513';
+    const mutedColor = isDark ? '#94A3B8' : '#7A776F';
+    const gridColor = isDark ? '#334155' : '#E4E1DB';
+    
+    if (trendChart) {
+        if (trendChart.options.plugins?.legend?.labels) {
+            trendChart.options.plugins.legend.labels.color = textColor;
+        }
+        if (trendChart.options.scales?.y?.ticks) {
+            trendChart.options.scales.y.ticks.color = mutedColor;
+        }
+        if (trendChart.options.scales?.x?.ticks) {
+            trendChart.options.scales.x.ticks.color = mutedColor;
+        }
+        if (trendChart.options.scales?.y?.grid) {
+            trendChart.options.scales.y.grid.color = gridColor;
+        }
+        if (trendChart.options.scales?.x?.grid) {
+            trendChart.options.scales.x.grid.color = gridColor;
+        }
+        trendChart.update();
+    }
+    
+    if (categoryChart && categoryChart.options.plugins?.legend?.labels) {
+        categoryChart.options.plugins.legend.labels.color = textColor;
+        categoryChart.update();
+    }
+    
+    if (priorityChart) {
+        if (priorityChart.options.scales?.y?.ticks) {
+            priorityChart.options.scales.y.ticks.color = mutedColor;
+        }
+        if (priorityChart.options.scales?.x?.ticks) {
+            priorityChart.options.scales.x.ticks.color = textColor;
+        }
+        if (priorityChart.options.scales?.y?.grid) {
+            priorityChart.options.scales.y.grid.color = gridColor;
+        }
+        priorityChart.update();
+    }
+    
+    if (statusChart && statusChart.options.plugins?.legend?.labels) {
+        statusChart.options.plugins.legend.labels.color = textColor;
+        statusChart.update();
+    }
 }
 
 function applyFilters() {
@@ -47,10 +274,15 @@ function updateStats() {
     const inProgress = allIncidents.filter(i => i.status === 'in-progress').length;
     const resolved = allIncidents.filter(i => i.status === 'resolved').length;
     
-    document.getElementById('totalIncidents').textContent = total;
-    document.getElementById('pendingIncidents').textContent = pending;
-    document.getElementById('inProgressIncidents').textContent = inProgress;
-    document.getElementById('resolvedIncidents').textContent = resolved;
+    const totalEl = document.getElementById('totalIncidents');
+    const pendingEl = document.getElementById('pendingIncidents');
+    const inProgressEl = document.getElementById('inProgressIncidents');
+    const resolvedEl = document.getElementById('resolvedIncidents');
+    
+    if (totalEl) totalEl.textContent = total;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (inProgressEl) inProgressEl.textContent = inProgress;
+    if (resolvedEl) resolvedEl.textContent = resolved;
 }
 
 function updateCharts() {
@@ -83,153 +315,180 @@ function updateCharts() {
         trendData.push(count);
     }
     
-    // Get current dark mode state for chart colors
     const isDark = document.body.classList.contains('dark-mode');
     const textColor = isDark ? '#F1F5F9' : '#161513';
     const mutedColor = isDark ? '#94A3B8' : '#7A776F';
     const gridColor = isDark ? '#334155' : '#E4E1DB';
     
-    // Destroy existing charts
     if (trendChart) trendChart.destroy();
     if (categoryChart) categoryChart.destroy();
     if (priorityChart) priorityChart.destroy();
     if (statusChart) statusChart.destroy();
     
-    // Trend Chart
-    const ctxTrend = document.getElementById('trendChart').getContext('2d');
-    trendChart = new Chart(ctxTrend, {
-        type: 'line',
-        data: { 
-            labels: months, 
-            datasets: [{ 
-                label: 'Incidents', 
-                data: trendData, 
-                borderColor: '#1D9E75', 
-                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(29,158,117,0.1)', 
-                tension: 0.3, 
-                fill: true,
-                pointBackgroundColor: '#1D9E75',
-                pointBorderColor: isDark ? '#1E293B' : '#FFFFFF',
-                pointBorderWidth: 2,
-                pointRadius: 4
-            }] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { 
-                    position: 'top',
-                    labels: { color: textColor }
-                } 
+    const ctxTrend = document.getElementById('trendChart');
+    if (ctxTrend) {
+        trendChart = new Chart(ctxTrend.getContext('2d'), {
+            type: 'line',
+            data: { 
+                labels: months, 
+                datasets: [{ 
+                    label: 'Incidents', 
+                    data: trendData, 
+                    borderColor: '#1D9E75', 
+                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(29,158,117,0.1)', 
+                    tension: 0.3, 
+                    fill: true,
+                    pointBackgroundColor: '#1D9E75',
+                    pointBorderColor: isDark ? '#1E293B' : '#FFFFFF',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }] 
             },
-            scales: {
-                y: {
-                    ticks: { color: mutedColor },
-                    grid: { color: gridColor }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'top',
+                        labels: { color: textColor, font: { size: 11 } }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                        titleColor: textColor,
+                        bodyColor: mutedColor,
+                        borderColor: gridColor,
+                        borderWidth: 1
+                    }
                 },
-                x: {
-                    ticks: { color: mutedColor },
-                    grid: { color: gridColor }
+                scales: {
+                    y: {
+                        ticks: { color: mutedColor, stepSize: 1 },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: mutedColor },
+                        grid: { color: gridColor }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
     
-    // Category Chart
-    const ctxCategory = document.getElementById('categoryChart').getContext('2d');
-    categoryChart = new Chart(ctxCategory, {
-        type: 'doughnut',
-        data: { 
-            labels: ['Security', 'Maintenance', 'Janitorial', 'Facilities'], 
-            datasets: [{ 
-                data: [categories.security, categories.maintenance, categories.janitorial, categories.facilities], 
-                backgroundColor: ['#DC2626', '#2563EB', '#1D9E75', '#D97706'],
-                borderColor: isDark ? '#1E293B' : '#FFFFFF',
-                borderWidth: 2
-            }] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { 
-                    position: 'bottom',
-                    labels: { color: textColor }
-                } 
-            }
-        }
-    });
-    
-    // Priority Chart
-    const ctxPriority = document.getElementById('priorityChart').getContext('2d');
-    priorityChart = new Chart(ctxPriority, {
-        type: 'bar',
-        data: { 
-            labels: ['High', 'Medium', 'Low'], 
-            datasets: [{ 
-                label: 'Count', 
-                data: [priorities.high, priorities.medium, priorities.low], 
-                backgroundColor: ['#DC2626', '#D97706', '#1D9E75'], 
-                borderRadius: 8,
-                borderColor: isDark ? '#1E293B' : '#FFFFFF',
-                borderWidth: 1
-            }] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { display: false } 
+    const ctxCategory = document.getElementById('categoryChart');
+    if (ctxCategory) {
+        categoryChart = new Chart(ctxCategory.getContext('2d'), {
+            type: 'doughnut',
+            data: { 
+                labels: ['Security', 'Maintenance', 'Janitorial', 'Facilities'], 
+                datasets: [{ 
+                    data: [categories.security, categories.maintenance, categories.janitorial, categories.facilities], 
+                    backgroundColor: ['#DC2626', '#2563EB', '#1D9E75', '#D97706'],
+                    borderColor: isDark ? '#1E293B' : '#FFFFFF',
+                    borderWidth: 2
+                }] 
             },
-            scales: {
-                y: {
-                    ticks: { color: mutedColor, stepSize: 1 },
-                    grid: { color: gridColor }
-                },
-                x: {
-                    ticks: { color: textColor },
-                    grid: { display: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: textColor, font: { size: 11 } }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                        titleColor: textColor,
+                        bodyColor: mutedColor
+                    }
                 }
             }
-        }
-    });
+        });
+    }
     
-    // Status Chart
-    const ctxStatus = document.getElementById('statusChart').getContext('2d');
-    statusChart = new Chart(ctxStatus, {
-        type: 'pie',
-        data: { 
-            labels: ['Pending', 'In Progress', 'Resolved'], 
-            datasets: [{ 
-                data: [statuses.pending, statuses['in-progress'], statuses.resolved], 
-                backgroundColor: ['#F59E0B', '#2563EB', '#1D9E75'],
-                borderColor: isDark ? '#1E293B' : '#FFFFFF',
-                borderWidth: 2
-            }] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { 
-                    position: 'bottom',
-                    labels: { color: textColor }
-                } 
+    const ctxPriority = document.getElementById('priorityChart');
+    if (ctxPriority) {
+        priorityChart = new Chart(ctxPriority.getContext('2d'), {
+            type: 'bar',
+            data: { 
+                labels: ['High', 'Medium', 'Low'], 
+                datasets: [{ 
+                    label: 'Count', 
+                    data: [priorities.high, priorities.medium, priorities.low], 
+                    backgroundColor: ['#DC2626', '#D97706', '#1D9E75'], 
+                    borderRadius: 8,
+                    borderColor: isDark ? '#1E293B' : '#FFFFFF',
+                    borderWidth: 1
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                        titleColor: textColor,
+                        bodyColor: mutedColor
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: mutedColor, stepSize: 1 },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { display: false }
+                    }
+                }
             }
-        }
-    });
+        });
+    }
+    
+    const ctxStatus = document.getElementById('statusChart');
+    if (ctxStatus) {
+        statusChart = new Chart(ctxStatus.getContext('2d'), {
+            type: 'pie',
+            data: { 
+                labels: ['Pending', 'In Progress', 'Resolved'], 
+                datasets: [{ 
+                    data: [statuses.pending, statuses['in-progress'], statuses.resolved], 
+                    backgroundColor: ['#F59E0B', '#2563EB', '#1D9E75'],
+                    borderColor: isDark ? '#1E293B' : '#FFFFFF',
+                    borderWidth: 2
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: textColor, font: { size: 11 } }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                        titleColor: textColor,
+                        bodyColor: mutedColor
+                    }
+                }
+            }
+        });
+    }
 }
 
 function renderTable() {
     const tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+    
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     const pageData = filteredIncidents.slice(start, end);
     
     if (pageData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No incidents found</td></tr>';
-        document.getElementById('pagination').innerHTML = '';
+        const pagination = document.getElementById('pagination');
+        if (pagination) pagination.innerHTML = '';
         return;
     }
     
@@ -253,15 +512,21 @@ function renderPagination() {
     const totalPages = Math.ceil(filteredIncidents.length / rowsPerPage);
     const pagination = document.getElementById('pagination');
     
+    if (!pagination) return;
+    
     if (totalPages <= 1) {
         pagination.innerHTML = '';
         return;
     }
     
     let html = '';
+    html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+    
     for (let i = 1; i <= Math.min(totalPages, 5); i++) {
         html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
     }
+    
+    html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
     pagination.innerHTML = html;
 }
 
@@ -290,22 +555,36 @@ function viewIncident(id) {
     const inc = allIncidents.find(i => i.id === id);
     if (!inc) return;
     
-    document.getElementById('modalTitle').innerText = inc.title || inc.name;
-    document.getElementById('modalLocation').innerText = inc.location || 'Not specified';
-    document.getElementById('modalCategory').innerHTML = `<span class="badge b-${inc.category}">${inc.category}</span>`;
-    document.getElementById('modalPriority').innerHTML = `<span class="badge b-${inc.priority}">${inc.priority}</span>`;
-    document.getElementById('modalStatus').innerHTML = `<span class="badge b-${inc.status === 'in-progress' ? 'progress' : inc.status}">${inc.status}</span>`;
-    document.getElementById('modalReporter').innerText = inc.reporter || 'Anonymous';
-    document.getElementById('modalStudentId').innerText = inc.studentId || inc.student_id || 'N/A';
-    document.getElementById('modalDate').innerText = new Date(inc.timestamp).toLocaleString();
-    document.getElementById('modalDescription').innerText = inc.description || 'No description provided';
+    const modalTitle = document.getElementById('modalTitle');
+    const modalLocation = document.getElementById('modalLocation');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalPriority = document.getElementById('modalPriority');
+    const modalStatus = document.getElementById('modalStatus');
+    const modalReporter = document.getElementById('modalReporter');
+    const modalStudentId = document.getElementById('modalStudentId');
+    const modalDate = document.getElementById('modalDate');
+    const modalDescription = document.getElementById('modalDescription');
     
-    document.getElementById('incidentModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (modalTitle) modalTitle.innerText = inc.title || inc.name;
+    if (modalLocation) modalLocation.innerText = inc.location || 'Not specified';
+    if (modalCategory) modalCategory.innerHTML = `<span class="badge b-${inc.category}">${inc.category}</span>`;
+    if (modalPriority) modalPriority.innerHTML = `<span class="badge b-${inc.priority}">${inc.priority}</span>`;
+    if (modalStatus) modalStatus.innerHTML = `<span class="badge b-${inc.status === 'in-progress' ? 'progress' : inc.status}">${inc.status}</span>`;
+    if (modalReporter) modalReporter.innerText = inc.reporter || 'Anonymous';
+    if (modalStudentId) modalStudentId.innerText = inc.studentId || inc.student_id || 'N/A';
+    if (modalDate) modalDate.innerText = new Date(inc.timestamp).toLocaleString();
+    if (modalDescription) modalDescription.innerText = inc.description || 'No description provided';
+    
+    const modal = document.getElementById('incidentModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeModal() {
-    document.getElementById('incidentModal').classList.remove('active');
+    const modal = document.getElementById('incidentModal');
+    if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
 }
 
@@ -346,9 +625,7 @@ function getTimeAgo(date) {
 
 function escapeHtml(text) {
     if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return text.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
 }
 
 function showToast(message) {
@@ -359,73 +636,6 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ========== DARK MODE - SYNCED ACROSS ALL PAGES ==========
-function initDarkMode() {
-    // Use a consistent key for dark mode across all pages
-    const saved = localStorage.getItem('darkMode');
-    
-    if (saved === 'enabled') {
-        document.body.classList.add('dark-mode');
-        updateDarkModeIcons(true);
-    } else if (saved === 'disabled') {
-        document.body.classList.remove('dark-mode');
-        updateDarkModeIcons(false);
-    } else {
-        // Check system preference if no saved preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-            document.body.classList.add('dark-mode');
-            updateDarkModeIcons(true);
-            localStorage.setItem('darkMode', 'enabled');
-        }
-    }
-    
-    const toggle = document.getElementById('darkModeToggle');
-    if (toggle) {
-        const newToggle = toggle.cloneNode(true);
-        toggle.parentNode.replaceChild(newToggle, toggle);
-        
-        newToggle.addEventListener('click', () => {
-            if (document.body.classList.contains('dark-mode')) {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'disabled');
-                updateDarkModeIcons(false);
-            } else {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'enabled');
-                updateDarkModeIcons(true);
-            }
-            // Refresh charts when dark mode toggles
-            updateCharts();
-        });
-    }
-    
-    // Listen for storage events from other tabs/pages
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'darkMode') {
-            const isDark = e.newValue === 'enabled';
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-            updateDarkModeIcons(isDark);
-            // Refresh charts when dark mode changes from another tab
-            updateCharts();
-        }
-    });
-}
-
-function updateDarkModeIcons(isDark) {
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    if (sunIcon && moonIcon) {
-        sunIcon.style.display = isDark ? 'none' : 'block';
-        moonIcon.style.display = isDark ? 'block' : 'none';
-    }
-}
-
-// ========== DRAWER AVATAR WITH INITIALS ==========
 function loadAdminProfile() {
     const stored = localStorage.getItem('currentAdmin');
     if (stored) {
@@ -433,24 +643,20 @@ function loadAdminProfile() {
             const admin = JSON.parse(stored);
             const adminName = admin.name || 'Administrator';
             
-            // Get initials (e.g., "John Doe" -> "JD")
             const initials = adminName
                 .split(' ')
                 .map(word => word.charAt(0).toUpperCase())
                 .join('')
                 .slice(0, 2);
             
-            // Update drawer avatar with initials
             const drawerAvatar = document.querySelector('.drawer-avatar');
             if (drawerAvatar) {
                 drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials}</span>`;
             }
             
-            // Update drawer name
             const drawerName = document.getElementById('drawerAdminName');
             if (drawerName) drawerName.textContent = adminName;
             
-            // Update admin pill in topbar
             const adminPill = document.getElementById('adminPill');
             if (adminPill) adminPill.textContent = adminName.split(' ')[0] || 'Admin';
             
@@ -460,7 +666,6 @@ function loadAdminProfile() {
         }
     }
     
-    // Default fallback
     const drawerAvatar = document.querySelector('.drawer-avatar');
     if (drawerAvatar) {
         drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">AD</span>`;
@@ -468,9 +673,7 @@ function loadAdminProfile() {
     return null;
 }
 
-// ========== UPDATE DRAWER ACTIVE STATE ==========
 function updateDrawerActiveState() {
-    // Get current page from URL
     const currentPath = window.location.pathname;
     const drawerItems = document.querySelectorAll('.drawer-item');
     
@@ -492,9 +695,7 @@ function updateDrawerActiveState() {
     });
 }
 
-// ========== NAVIGATION - FULLY CONNECTED TO ALL PAGES ==========
 function setupNavigation() {
-    // Drawer navigation
     const dashboardBtn = document.querySelector('.drawer-item[data-page="dashboard"]');
     const incidentsBtn = document.querySelector('.drawer-item[data-page="incidents"]');
     const usersBtn = document.querySelector('.drawer-item[data-page="users"]');
@@ -530,7 +731,7 @@ function setupNavigation() {
         const newBtn = analyticsBtn.cloneNode(true);
         analyticsBtn.parentNode.replaceChild(newBtn, analyticsBtn);
         newBtn.addEventListener('click', () => {
-            location.reload();
+            window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
         });
     }
     
@@ -557,7 +758,6 @@ function setupNavigation() {
         });
     }
     
-    // Bottom navigation
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     bottomNavItems.forEach(item => {
         const newItem = item.cloneNode(true);
@@ -572,7 +772,7 @@ function setupNavigation() {
             } else if (page === 'users') {
                 window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
             } else if (page === 'analytics') {
-                location.reload();
+                window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
             } else if (page === 'settings') {
                 window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
             }
@@ -580,7 +780,6 @@ function setupNavigation() {
     });
 }
 
-// ========== CHECK AUTHENTICATION ==========
 function checkAuth() {
     const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
     const currentAdmin = localStorage.getItem('currentAdmin');
@@ -593,18 +792,24 @@ function checkAuth() {
 }
 
 // ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (!checkAuth()) return;
     
-    loadIncidents();
+    await loadIncidents();  // Load from Supabase
+    setupRealtimeSubscription();  // Listen for real-time changes
     setupNavigation();
     initDarkMode();
     loadAdminProfile();
     updateDrawerActiveState();
     
-    document.getElementById('searchInput')?.addEventListener('input', handleSearch);
-    document.getElementById('exportTableBtn')?.addEventListener('click', exportToCSV);
-    document.getElementById('exportCSVBtn')?.addEventListener('click', exportToCSV);
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.addEventListener('input', handleSearch);
+    
+    const exportTableBtn = document.getElementById('exportTableBtn');
+    if (exportTableBtn) exportTableBtn.addEventListener('click', exportToCSV);
+    
+    const exportCSVBtn = document.getElementById('exportCSVBtn');
+    if (exportCSVBtn) exportCSVBtn.addEventListener('click', exportToCSV);
     
     document.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', () => setFilter(btn.dataset.filter));

@@ -12,6 +12,7 @@ let currentIncidentId = null;
 let currentAdmin = null;
 let realtimeSubscription = null;
 let isInitialLoad = true;
+let pollingInterval = null;
 
 // FIX: Flag to prevent storage-event-triggered reloads from looping
 let isSavingToStorage = false;
@@ -56,13 +57,17 @@ async function requestNotificationPermission() {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
             console.log('✅ Notification permission granted');
+            new Notification('Campus Care Admin', {
+                body: 'Notifications enabled! You will receive alerts for new incidents.',
+                icon: '/Assets/Images/logo.png'
+            });
         } else {
             console.log('❌ Notification permission denied');
         }
     }
 }
 
-// ========== SEND MOBILE PUSH NOTIFICATION ==========
+// ========== SEND PUSH NOTIFICATION ==========
 function sendMobileNotification(title, body, isUrgent = false) {
     if (!('Notification' in window)) {
         console.log('This browser does not support notifications');
@@ -112,28 +117,119 @@ function sendMobileNotification(title, body, isUrgent = false) {
 
 // ========== CHECK FOR URGENT REPORT ==========
 function checkForUrgentReport(incident) {
+    console.log('🔔 Checking for urgent report:', incident);
+    
+    if (!incident) {
+        console.log('No incident provided');
+        return;
+    }
+    
     const isUrgent = incident.priority === 'high' || 
                     incident.priority === 'urgent' ||
                     incident.category === 'security';
     
     const notificationTitle = isUrgent ? '🚨 URGENT INCIDENT REPORTED' : '📋 New Incident Reported';
-    const notificationBody = `${incident.name}\n📍 Location: ${incident.location}\n⚠️ Priority: ${incident.priority.toUpperCase()}`;
+    const notificationBody = `${incident.name || incident.title}\n📍 Location: ${incident.location}\n⚠️ Priority: ${(incident.priority || 'medium').toUpperCase()}`;
     
+    // Send browser notification
     sendMobileNotification(notificationTitle, notificationBody, isUrgent);
     
+    // Add to internal notification list
     addInternalNotification(
         isUrgent ? '🚨 Urgent Incident' : 'New Incident',
-        `${incident.name} at ${incident.location}`,
+        `${incident.name || incident.title} at ${incident.location}`,
         isUrgent
     );
     
+    // Show toast notification
+    showToastMessage(notificationBody, isUrgent ? 'urgent' : 'info');
+    
+    // Animate bell for urgent
     if (isUrgent) {
         const bell = document.getElementById('notificationBell');
         if (bell) {
             bell.classList.add('urgent');
+            bell.style.animation = 'bellRing 0.5s ease infinite';
             setTimeout(() => {
                 bell.classList.remove('urgent');
+                bell.style.animation = '';
             }, 3000);
+        }
+    }
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        console.log('📱 Mobile device detected - using mobile notification methods');
+        
+        // For iOS, show an alert for urgent incidents (since iOS notifications are limited)
+        if (isUrgent && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            // iOS requires user interaction for alerts, so we show a modal-style alert
+            setTimeout(() => {
+                const mobileAlert = document.createElement('div');
+                mobileAlert.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    background: #DC2626;
+                    color: white;
+                    padding: 15px;
+                    text-align: center;
+                    z-index: 10001;
+                    animation: slideDown 0.3s ease;
+                    font-weight: bold;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    cursor: pointer;
+                `;
+                mobileAlert.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span style="font-size: 24px;">🚨</span>
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 4px;">URGENT INCIDENT</div>
+                            <div style="font-size: 12px;">${notificationBody.substring(0, 100)}</div>
+                        </div>
+                    </div>
+                `;
+                mobileAlert.onclick = () => {
+                    window.focus();
+                    mobileAlert.remove();
+                    // Optional: navigate to incidents page
+                    // window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+                };
+                document.body.appendChild(mobileAlert);
+                setTimeout(() => mobileAlert.remove(), 8000);
+            }, 500);
+        }
+        
+        // Vibrate on mobile for urgent notifications
+        if (isUrgent && navigator.vibrate) {
+            navigator.vibrate([500, 200, 500, 200, 1000]);
+            console.log('📳 Vibration triggered');
+        }
+        
+        // Update app badge count on supported browsers (Android)
+        if ('setAppBadge' in navigator && isUrgent) {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            navigator.setAppBadge(unreadCount + 1).catch(console.log);
+            console.log('🔴 App badge updated');
+        }
+        
+        // Play a beep sound for mobile
+        if (isUrgent) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = 880;
+                gainNode.gain.value = 0.3;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 500);
+                audioContext.resume();
+            } catch (e) {
+                console.log('Audio not supported on this device');
+            }
         }
     }
 }
@@ -148,10 +244,13 @@ function addInternalNotification(title, message, isUrgent = false) {
         isUrgent: isUrgent
     };
     notifications.unshift(notification);
+    
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    
     saveNotifications();
     updateNotificationDropdown();
     
-    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    console.log('✅ Notification added:', title, message);
 }
 
 function updateNotificationBadge() {
@@ -240,11 +339,12 @@ function toggleNotificationDropdown() {
         isNotificationDropdownOpen = false;
         document.removeEventListener('click', closeNotificationDropdownOutside);
     } else {
-        const anyOpen = document.querySelector('.notification-dropdown.show');
-        if (anyOpen) {
-            anyOpen.classList.remove('show');
+        const bell = document.getElementById('notificationBell');
+        if (bell) {
+            const rect = bell.getBoundingClientRect();
+            dropdown.style.top = `${rect.bottom + 8}px`;
+            dropdown.style.right = `${window.innerWidth - rect.right}px`;
         }
-        
         dropdown.classList.add('show');
         isNotificationDropdownOpen = true;
         
@@ -278,10 +378,33 @@ window.clearAllNotifications = function() {
     notifications = [];
     saveNotifications();
     updateNotificationDropdown();
-    showNotification('All notifications cleared', 'success');
+    showToastMessage('All notifications cleared', 'success');
 };
 
-// ============ DARK MODE SYSTEM ============
+function showToastMessage(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${type === 'urgent' ? '#DC2626' : (type === 'error' ? '#DC2626' : '#10B981')};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        max-width: 350px;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ============ DARK MODE SYSTEM ==========
 function initDarkMode() {
     const savedMode = localStorage.getItem('admin_dark_mode');
     const toggle = document.getElementById('darkModeToggle');
@@ -314,10 +437,9 @@ function initDarkMode() {
             }
         });
     }
-    requestNotificationPermission();
 }
 
-// ============ LOAD ADMIN INFO TO DRAWER ============
+// ============ LOAD ADMIN INFO TO DRAWER ==========
 function loadAdminToDrawer() {
     try {
         const storedAdmin = localStorage.getItem('currentAdmin');
@@ -355,7 +477,7 @@ function loadAdminToDrawer() {
     }
 }
 
-// ============ LOAD INCIDENTS FROM SUPABASE ============
+// ============ LOAD INCIDENTS FROM SUPABASE ==========
 async function loadIncidentsFromSupabase() {
     try {
         console.log('Loading incidents from Supabase...');
@@ -372,30 +494,24 @@ async function loadIncidentsFromSupabase() {
         }
         
         if (incidents && incidents.length > 0) {
-            const oldCount = allIncidents.length;
             allIncidents = incidents.map(r => ({
                 id: r.id,
-                name: r.title,
-                location: r.location,
+                name: r.title || 'Untitled',
+                location: r.location || 'No location',
                 category: r.category || 'maintenance',
                 priority: r.priority || 'medium',
                 status: r.status || 'pending',
-                reporter: r.student_name || r.studentName,
-                student_id: r.student_id_number,
+                reporter: r.student_name || 'Student',
+                student_id: r.student_id_number || 'N/A',
                 description: r.description || 'No description provided',
                 image_url: r.image_url || null,
                 timestamp: new Date(r.created_at),
                 resolved_at: r.resolved_at || null,
-                is_anonymous: r.is_anonymous
+                is_anonymous: r.is_anonymous || false
             }));
             
             saveToLocalStorage();
             console.log(`✅ Loaded ${allIncidents.length} incidents from Supabase`);
-            
-            if (!isInitialLoad && allIncidents.length > oldCount) {
-                const newIncident = allIncidents[0];
-                checkForUrgentReport(newIncident);
-            }
         } else {
             allIncidents = [];
             console.log('No incidents found in Supabase');
@@ -436,7 +552,7 @@ async function loadFromLocalStorage() {
     updateAll();
 }
 
-// ============ REAL-TIME SUBSCRIPTION ============
+// ============ REAL-TIME SUBSCRIPTION (FIXED) ==========
 function setupRealtimeSubscription() {
     if (realtimeSubscription) return;
     
@@ -445,24 +561,155 @@ function setupRealtimeSubscription() {
     realtimeSubscription = supabase
         .channel('incident-changes')
         .on('postgres_changes', 
-            { event: '*', schema: 'public', table: 'incident' },
+            { event: 'INSERT', schema: 'public', table: 'incident' },
             (payload) => {
-                console.log('Real-time update received:', payload.eventType);
-                loadIncidentsFromSupabase();
+                console.log('🆕 NEW INCIDENT INSERTED INSTANTLY!', payload.new);
                 
-                if (!isInitialLoad && payload.eventType === 'INSERT') {
-                    showNotification('📢 New incident report received!', 'info');
-                }
+                // Convert payload to incident format
+                const newIncident = {
+                    id: payload.new.id,
+                    name: payload.new.title || 'Untitled',
+                    location: payload.new.location || 'No location',
+                    category: payload.new.category || 'maintenance',
+                    priority: payload.new.priority || 'medium',
+                    status: payload.new.status || 'pending',
+                    reporter: payload.new.student_name || 'Student',
+                    student_id: payload.new.student_id_number || 'N/A',
+                    description: payload.new.description || '',
+                    image_url: payload.new.image_url || null,
+                    timestamp: new Date(payload.new.created_at),
+                    is_anonymous: payload.new.is_anonymous || false
+                };
+                
+                // Send notification IMMEDIATELY
+                checkForUrgentReport(newIncident);
+                
+                // Add to local array
+                allIncidents.unshift(newIncident);
+                
+                // Update UI immediately
+                updateAll();
+                
+                // Background sync
+                loadIncidentsFromSupabase().catch(console.error);
             }
         )
-        .subscribe();
+        .on('postgres_changes', 
+            { event: 'UPDATE', schema: 'public', table: 'incident' },
+            (payload) => {
+                console.log('🔄 Incident UPDATED instantly:', payload.new.id);
+                
+                if (payload.old?.status !== payload.new?.status) {
+                    addInternalNotification(
+                        'Status Updated',
+                        `Incident "${payload.new?.title}" status changed from ${payload.old?.status} to ${payload.new?.status}`,
+                        false
+                    );
+                    showToastMessage(`Status updated to ${payload.new?.status}`, 'info');
+                }
+                
+                const index = allIncidents.findIndex(i => String(i.id) === String(payload.new.id));
+                if (index !== -1) {
+                    allIncidents[index] = {
+                        ...allIncidents[index],
+                        status: payload.new.status,
+                        updated_at: payload.new.updated_at,
+                        resolved_at: payload.new.resolved_at
+                    };
+                    updateAll();
+                }
+                
+                loadIncidentsFromSupabase().catch(console.error);
+            }
+        )
+        .on('postgres_changes', 
+            { event: 'DELETE', schema: 'public', table: 'incident' },
+            (payload) => {
+                console.log('🗑️ Incident DELETED instantly');
+                
+                allIncidents = allIncidents.filter(i => String(i.id) !== String(payload.old.id));
+                updateAll();
+                
+                addInternalNotification(
+                    'Incident Deleted',
+                    `An incident has been removed from the system`,
+                    false
+                );
+                showToastMessage('Incident deleted', 'info');
+            }
+        )
+        .subscribe((status) => {
+            console.log('Realtime subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+                console.log('%c✅ REAL-TIME ACTIVE! Notifications will appear instantly.', 'color: green; font-size: 14px; font-weight: bold');
+            } else if (status === 'CHANNEL_WAITING') {
+                console.log('%c⏳ Connecting to real-time...', 'color: orange; font-size: 14px');
+                // Start polling fallback
+                startPollingFallback();
+            }
+        });
+}
+
+// ============ POLLING FALLBACK (if realtime fails) ==========
+function startPollingFallback() {
+    if (pollingInterval) return;
     
-    setTimeout(() => {
-        isInitialLoad = false;
+    let lastKnownId = allIncidents.length > 0 ? allIncidents[0].id : null;
+    
+    console.log('Starting polling fallback (checks every 3 seconds)...');
+    
+    pollingInterval = setInterval(async () => {
+        try {
+            const { data, error } = await supabase
+                .from('incident')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(1);
+            
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                const latest = data[0];
+                
+                if (lastKnownId !== latest.id) {
+                    console.log('🆕 Polling detected new incident!');
+                    
+                    const newIncident = {
+                        id: latest.id,
+                        name: latest.title || 'Untitled',
+                        location: latest.location || 'No location',
+                        category: latest.category || 'maintenance',
+                        priority: latest.priority || 'medium',
+                        status: latest.status || 'pending',
+                        reporter: latest.student_name || 'Student',
+                        student_id: latest.student_id_number || 'N/A',
+                        description: latest.description || '',
+                        image_url: latest.image_url || null,
+                        timestamp: new Date(latest.created_at),
+                        is_anonymous: latest.is_anonymous || false
+                    };
+                    
+                    checkForUrgentReport(newIncident);
+                    allIncidents.unshift(newIncident);
+                    updateAll();
+                    lastKnownId = latest.id;
+                }
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
     }, 3000);
 }
 
-// ============ UPDATE INCIDENT STATUS IN SUPABASE ============
+function stopPollingFallback() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        console.log('Polling fallback stopped');
+    }
+}
+
+// ============ UPDATE INCIDENT STATUS IN SUPABASE ==========
 async function updateIncidentStatus(incidentId, newStatus, resolvedAt = null) {
     try {
         const updateData = {
@@ -514,7 +761,7 @@ function saveToLocalStorage() {
     setTimeout(() => { isSavingToStorage = false; }, 0);
 }
 
-// ============ AUTO-DELETE FUNCTIONS ============
+// ============ AUTO-DELETE FUNCTIONS ==========
 async function checkAndDeleteOldResolved() {
     const now = new Date();
 
@@ -658,18 +905,34 @@ function renderIncidents() {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:60px;">📭 No incidents found</td></tr>`;
         return; 
     }
-    tbody.innerHTML = filtered.map(inc => `
-        <tr data-id="${inc.id}">
-            <td><div class="inc-cell"><div class="inc-icon-sm" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${getIcon(inc.category)}</div><div><strong>${escape(inc.name)}</strong><br><span style="font-size:11px;color:var(--muted)">${escape(inc.location)}</span></div></div></td>
-            <td><span class="badge b-${inc.category}">${inc.category}</span></td>
-            <td><span class="badge b-${inc.priority}">${inc.priority}</span></td>
-            <td><span class="badge b-${inc.status === 'in-progress' ? 'inprogress' : inc.status}">${inc.status}</span></td>
-            <td>${escape(inc.reporter)}</td>
-            <td>${inc.student_id}</td>
-            <td>${getTimeAgo(inc.timestamp)}</td>
-            <td><div class="action-btns"><button class="action-btn" onclick="window.openModal('${inc.id}')">👁️</button></div></td>
-        </tr>
-    `).join('');
+    
+    tbody.innerHTML = filtered.map(inc => {
+        const categoryColor = getCategoryColor(inc.category);
+        const categoryBg = `${categoryColor}15`;
+        
+        return `
+            <tr data-id="${inc.id}">
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: ${categoryBg}; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                            ${getIcon(inc.category)}
+                        </div>
+                        <div>
+                            <strong style="color: var(--text); font-size: 14px; display: block; margin-bottom: 4px;">${escape(inc.name)}</strong>
+                            <span style="font-size: 11px; color: var(--muted);">${escape(inc.location)}</span>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge b-${inc.category}">${inc.category}</span></td>
+                <td><span class="badge b-${inc.priority}">${inc.priority}</span></td>
+                <td><span class="badge b-${inc.status === 'in-progress' ? 'inprogress' : inc.status}">${inc.status}</span></td>
+                <td style="color: var(--text);">${inc.is_anonymous === true ? 'Anonymous' : escape(inc.reporter)}</td>
+                <td style="color: var(--text);">${inc.is_anonymous === true ? 'Hidden' : inc.student_id}</td>
+                <td style="color: var(--muted);">${getTimeAgo(inc.timestamp)}</td>
+                <td><div class="action-btns"><button class="action-btn" onclick="window.openModal('${inc.id}')">👁️</button></div></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderMobileCards() {
@@ -678,14 +941,67 @@ function renderMobileCards() {
     
     const filtered = getFiltered();
     if (filtered.length === 0) { 
-        container.innerHTML = `<div style="text-align:center;padding:40px;">📭 No incidents found</div>`; 
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: var(--surface); border-radius: 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
+                <p style="color: var(--text); font-weight: 500;">No incidents found</p>
+                <p style="color: var(--muted); font-size: 12px; margin-top: 4px;">All clear! No reports to display.</p>
+            </div>
+        `; 
         return; 
     }
-    container.innerHTML = filtered.map(inc => `
-        <div class="m-card"><div class="m-card-top"><div class="inc-icon-sm" style="background:${getCategoryColor(inc.category)}20;color:${getCategoryColor(inc.category)}">${getIcon(inc.category)}</div><div><strong>${escape(inc.name)}</strong><div style="font-size:11px;color:var(--muted)">${escape(inc.location)}</div></div></div>
-        <div class="m-card-body"><div><div class="m-field-label">Category</div><span class="badge b-${inc.category}">${inc.category}</span></div><div><div class="m-field-label">Priority</div><span class="badge b-${inc.priority}">${inc.priority}</span></div><div><div class="m-field-label">Status</div><span class="badge b-${inc.status === 'in-progress' ? 'inprogress' : inc.status}">${inc.status}</span></div><div><div class="m-field-label">Reporter</div>${escape(inc.reporter)}</div></div>
-        <div class="m-card-footer"><div class="m-timestamp">${getTimeAgo(inc.timestamp)}</div><div class="action-btns"><button class="action-btn" onclick="window.openModal('${inc.id}')">👁️</button></div></div></div>
-    `).join('');
+    
+    container.innerHTML = filtered.map(inc => {
+        const categoryColor = getCategoryColor(inc.category);
+        const categoryBg = `${categoryColor}15`;
+        const priorityClass = inc.priority === 'high' ? 'priority-high' : (inc.priority === 'medium' ? 'priority-medium' : 'priority-low');
+        
+        return `
+            <div class="m-card ${priorityClass}" data-id="${inc.id}">
+                <div class="m-card-header">
+                    <div class="m-card-icon" style="background: ${categoryBg}; color: ${categoryColor};">
+                        ${getIcon(inc.category)}
+                    </div>
+                    <div class="m-card-info">
+                        <div class="m-card-title">${escape(inc.name)}</div>
+                        <div class="m-card-location">${escape(inc.location)}</div>
+                    </div>
+                </div>
+                
+                <div class="m-card-body">
+                    <div class="m-card-field">
+                        <div class="m-field-label">📂 CATEGORY</div>
+                        <div class="m-field-value">
+                            <span class="badge b-${inc.category}" style="background: ${categoryBg}; color: ${categoryColor};">${inc.category}</span>
+                        </div>
+                    </div>
+                    <div class="m-card-field">
+                        <div class="m-field-label">⚡ PRIORITY</div>
+                        <div class="m-field-value">
+                            <span class="badge b-${inc.priority}">${inc.priority}</span>
+                        </div>
+                    </div>
+                    <div class="m-card-field">
+                        <div class="m-field-label">📌 STATUS</div>
+                        <div class="m-field-value">
+                            <span class="badge b-${inc.status === 'in-progress' ? 'inprogress' : inc.status}">${inc.status}</span>
+                        </div>
+                    </div>
+                    <div class="m-card-field">
+                        <div class="m-field-label">👤 REPORTER</div>
+                        <div class="m-field-value">${inc.is_anonymous === true ? 'Anonymous Reporter' : escape(inc.reporter)}</div>
+                    </div>
+                </div>
+                
+                <div class="m-card-footer">
+                    <div class="m-timestamp">${getTimeAgo(inc.timestamp)}</div>
+                    <div class="m-card-actions">
+                        <button class="action-btn" onclick="window.openModal('${inc.id}')" title="View Details">👁️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 window.openModal = function(id) {
@@ -693,7 +1009,7 @@ window.openModal = function(id) {
     const inc = allIncidents.find(i => String(i.id) === String(id));
     if (!inc) {
         console.error('Incident not found:', id);
-        showNotification('Incident not found', 'error');
+        showToastMessage('Incident not found', 'error');
         return;
     }
     currentIncidentId = id;
@@ -804,12 +1120,12 @@ window.deleteIncident = async function(id) {
 
     if (error) {
         console.error('Delete failed:', error);
-        showNotification('❌ Failed to delete incident: ' + (error.message || 'Unknown error'), 'error');
+        showToastMessage('❌ Failed to delete incident: ' + (error.message || 'Unknown error'), 'error');
         return;
     }
 
     console.log('✅ Incident deleted from Supabase:', id);
-    showNotification('✓ Incident permanently deleted.');
+    showToastMessage('✓ Incident permanently deleted.');
     addInternalNotification('Incident Deleted', `"${incident.name}" was deleted by an admin`, false);
 
     allIncidents = allIncidents.filter(i => String(i.id) !== String(id));
@@ -833,12 +1149,12 @@ window.saveStatus = async function() {
         
         if (newStatus === 'resolved' && oldStatus !== 'resolved') {
             resolvedAt = new Date().toISOString();
-            showNotification(`✓ Incident marked as RESOLVED. It will be automatically deleted after ${RESOLVED_RETENTION_HOURS} hours.`);
+            showToastMessage(`✓ Incident marked as RESOLVED. It will be automatically deleted after ${RESOLVED_RETENTION_HOURS} hours.`);
         } else if (newStatus !== 'resolved' && oldStatus === 'resolved') {
             resolvedAt = null;
-            showNotification(`✓ Status updated to ${newStatus}`);
+            showToastMessage(`✓ Status updated to ${newStatus}`);
         } else {
-            showNotification(`✓ Status updated to ${newStatus}`);
+            showToastMessage(`✓ Status updated to ${newStatus}`);
         }
         
         incident.status = newStatus;
@@ -850,7 +1166,7 @@ window.saveStatus = async function() {
             saveToLocalStorage();
             updateAll();
         } else {
-            showNotification('❌ Failed to update status. Please try again.', 'error');
+            showToastMessage('❌ Failed to update status. Please try again.', 'error');
             incident.status = oldStatus;
             incident.resolved_at = null;
             updateAll();
@@ -864,27 +1180,6 @@ function getIcon(cat) { return { security:'⚠️', maintenance:'🔧', janitori
 function getCategoryColor(cat) { return { security:'#DC2626', maintenance:'#2563EB', janitorial:'#1D9E75', facilities:'#D97706' }[cat] || '#6B7280'; }
 function getTimeAgo(date) { const h = Math.floor((Date.now() - new Date(date)) / 3600000); if (h < 1) return 'Just now'; if (h < 24) return `${h}h ago`; return `${Math.floor(h/24)}d ago`; }
 function escape(t) { if (!t) return ''; return String(t).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-function showNotification(msg, type = 'success') { 
-    const n = document.createElement('div'); 
-    n.className = 'toast-notification'; 
-    n.textContent = msg; 
-    n.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'error' ? '#DC2626' : '#10B981'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
-    `;
-    document.body.appendChild(n); 
-    setTimeout(() => n.remove(), 3000); 
-}
 
 function setupEvents() {
     const drawer = document.getElementById('drawer');
@@ -1000,8 +1295,72 @@ function setupEvents() {
     highlightActiveNav();
 })();
 
+// Add CSS for bell animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes bellRing {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(15deg); }
+        50% { transform: rotate(-15deg); }
+        75% { transform: rotate(5deg); }
+        100% { transform: rotate(0deg); }
+    }
+    
+    #notificationBell.urgent {
+        animation: bellRing 0.5s ease infinite;
+        color: #DC2626 !important;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .toast-notification.urgent {
+        background: #DC2626 !important;
+        animation: slideIn 0.3s ease, pulse 0.5s ease 3;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+`;
+document.head.appendChild(style);
+
+// ============ FINAL CHECK - TEST NOTIFICATION FUNCTION ==========
+window.testNotification = function() {
+    console.log('Testing notification system...');
+    
+    const testIncident = {
+        id: 'test-' + Date.now(),
+        name: 'Test Incident',
+        title: 'Test Incident',
+        location: 'Test Location',
+        category: 'maintenance',
+        priority: 'high',
+        status: 'pending',
+        reporter: 'Test Student',
+        student_id: 'TEST001',
+        description: 'This is a test notification',
+        timestamp: new Date(),
+        is_anonymous: false
+    };
+    
+    checkForUrgentReport(testIncident);
+    showToastMessage('Test notification sent! Check your notifications.', 'info');
+};
+
 // ============ INITIALIZATION ============
 async function init() {
+    console.log('🚀 Initializing Admin Dashboard...');
+    
     loadAdminToDrawer();
     loadNotifications();
     initDarkMode();
@@ -1009,6 +1368,18 @@ async function init() {
     setupEvents();
     startAutoCleanupScheduler();
     setupRealtimeSubscription();
+    
+    // Request notification permission on page load
+    setTimeout(() => {
+        requestNotificationPermission();
+    }, 2000);
+    
+    // Log connection status
+    setTimeout(() => {
+        if (realtimeSubscription) {
+            console.log('📡 Realtime subscription state:', realtimeSubscription.state);
+        }
+    }, 5000);
 
     window.addEventListener('storage', (e) => { 
         if (e.key === 'campus_care_reports' && !isSavingToStorage) { 

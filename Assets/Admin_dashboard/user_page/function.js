@@ -257,11 +257,58 @@ function getTimeAgo(dateString) {
     return `${Math.floor(h / 24)}d ago`;
 }
 
+// ========== UPDATE STUDENT STATUS BASED ON LAST_LOGIN AND LAST_LOGOUT ==========
+async function updateStudentStatusFromAuth() {
+    try {
+        console.log('Updating student statuses based on last_login and last_logout...');
+        const now = new Date();
+        let hasChanges = false;
+        
+        for (const student of students) {
+            const lastLogin = student.last_login ? new Date(student.last_login) : null;
+            const lastLogout = student.last_logout ? new Date(student.last_logout) : null;
+            
+            let isActive = false;
+            
+            if (!lastLogin) {
+                isActive = false;
+            } else if (lastLogout && lastLogout > lastLogin) {
+                isActive = false;
+            } else {
+                const minutesSinceLastLogin = (now - lastLogin) / (1000 * 60);
+                isActive = minutesSinceLastLogin < 30;
+            }
+            
+            const newStatus = isActive ? 'active' : 'inactive';
+            
+            if (student.status !== newStatus) {
+                const { error } = await supabase
+                    .from('student')
+                    .update({ status: newStatus })
+                    .eq('id', student.id);
+                
+                if (!error) {
+                    student.status = newStatus;
+                    hasChanges = true;
+                    console.log(`${student.name} → ${newStatus}`);
+                }
+            }
+        }
+        
+        if (hasChanges) {
+            renderStudents();
+            updateStats();
+            console.log('✅ Student statuses updated');
+        }
+        
+    } catch (error) {
+        console.error('Error updating status:', error);
+    }
+}
+
 // ========== GET STUDENT REPORT COUNT FROM INCIDENTS ==========
 async function getStudentReportCount(studentIdNumber) {
     try {
-        console.log(`Counting reports for student ID: ${studentIdNumber}`);
-        
         const { count, error } = await supabase
             .from('incident')
             .select('*', { count: 'exact', head: true })
@@ -272,7 +319,6 @@ async function getStudentReportCount(studentIdNumber) {
             return 0;
         }
         
-        console.log(`Found ${count || 0} reports for student ${studentIdNumber}`);
         return count || 0;
     } catch (error) {
         console.error('Error:', error);
@@ -280,35 +326,7 @@ async function getStudentReportCount(studentIdNumber) {
     }
 }
 
-// ========== DELETE AUTH USER (requires admin API) ==========
-async function deleteAuthUser(userEmail) {
-    try {
-        // Note: This requires a Supabase Edge Function or backend API
-        // since the service_role key cannot be used on the client side.
-        
-        // Option 1: Call a Supabase Edge Function
-        const response = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${supabaseKey}`
-            },
-            body: JSON.stringify({ email: userEmail })
-        });
-        
-        if (!response.ok) {
-            console.error('Failed to delete auth user:', await response.text());
-            return false;
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Error deleting auth user:', error);
-        return false;
-    }
-}
-
-// ========== LOAD STUDENTS FROM SUPABASE WITH REPORT COUNTS ==========
+// ========== LOAD STUDENTS FROM SUPABASE ==========
 async function loadStudents() {
     try {
         console.log('Loading students from Supabase student table...');
@@ -334,19 +352,20 @@ async function loadStudents() {
                     email: s.email || 'N/A',
                     course: s.course || 'Not Set',
                     year: s.year_level || '1',
-                    status: s.status || 'active',
+                    status: s.status || 'inactive',
                     reports: reportCount,
-                    last_login: s.last_login || s.created_at || new Date().toISOString()
+                    last_login: s.last_login || s.created_at || null,
+                    last_logout: s.last_logout || null
                 };
             }));
             
             students = studentsWithReports;
-            console.log(`✅ Loaded ${students.length} students with report counts`);
+            console.log(`✅ Loaded ${students.length} students`);
         } else {
             students = [];
-            console.log('No students found in Supabase');
         }
         
+        await updateStudentStatusFromAuth();
         renderStudents();
         updateStats();
     } catch (error) {
@@ -355,7 +374,7 @@ async function loadStudents() {
     }
 }
 
-// ========== UPDATE REPORT COUNTS FOR ALL STUDENTS ==========
+// ========== UPDATE REPORT COUNTS ==========
 async function updateAllReportCounts() {
     console.log('Updating report counts...');
     let hasChanges = false;
@@ -371,15 +390,12 @@ async function updateAllReportCounts() {
     if (hasChanges) {
         renderStudents();
         updateStats();
-        console.log('Report counts updated');
     }
 }
 
 // ========== REAL-TIME SUBSCRIPTION ==========
 function setupRealtimeSubscription() {
     if (realtimeSubscription) return;
-    
-    console.log('Setting up real-time subscription...');
     
     realtimeSubscription = supabase
         .channel('student-management-changes')
@@ -388,7 +404,6 @@ function setupRealtimeSubscription() {
             (payload) => {
                 console.log('Real-time student update:', payload.eventType);
                 loadStudents();
-                
                 if (payload.eventType === 'INSERT') {
                     addInternalNotification('New Student Registered', `${payload.new.full_name} has created an account`, false);
                     showToast(`📢 New student registered!`, 'info');
@@ -397,10 +412,7 @@ function setupRealtimeSubscription() {
         )
         .on('postgres_changes',
             { event: '*', schema: 'public', table: 'incident' },
-            (payload) => {
-                console.log('Real-time incident update:', payload.eventType);
-                updateAllReportCounts();
-            }
+            () => updateAllReportCounts()
         )
         .subscribe();
 }
@@ -438,7 +450,6 @@ function renderStudents() {
             <td>
                 <div class="action-btns">
                     <button class="action-btn edit-student" data-id="${student.id}" title="Edit">✏️</button>
-                    <button class="action-btn toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
                     <button class="action-btn del delete-student" data-id="${student.id}" title="Delete">🗑️</button>
                 </div>
             </td>
@@ -451,57 +462,27 @@ function renderStudents() {
     document.querySelectorAll('.delete-student').forEach(btn => {
         btn.onclick = () => deleteStudent(btn.dataset.id);
     });
-    document.querySelectorAll('.toggle-status').forEach(btn => {
-        btn.onclick = () => toggleStudentStatus(btn.dataset.id);
-    });
 }
 
-// ========== TOGGLE STUDENT STATUS ==========
-async function toggleStudentStatus(id) {
-    const student = students.find(s => s.id == id);
-    if (!student) return;
-    
-    const newStatus = student.status === 'active' ? 'inactive' : 'active';
-    
-    const { error } = await supabase
-        .from('student')
-        .update({ status: newStatus })
-        .eq('id', id);
-    
-    if (error) {
-        showToast('Failed to update status', 'error');
-        return;
-    }
-    
-    student.status = newStatus;
-    renderStudents();
-    updateStats();
-    addInternalNotification('Status Changed', `${student.name} is now ${newStatus}`, false);
-    showToast(`${student.name} is now ${newStatus}`, 'success');
-}
-
-// ========== DELETE STUDENT (WITH AUTH USER) ==========
+// ========== DELETE STUDENT ==========
 async function deleteStudent(id) {
     const student = students.find(s => s.id == id);
     if (!student) return;
     
-    if (!confirm(`⚠️ WARNING: This will permanently delete "${student.name}" including their login account.\n\nThis action CANNOT be undone!\n\nAll their incident reports will remain but become orphaned.\n\nAre you absolutely sure?`)) return;
+    if (!confirm(`⚠️ WARNING: This will permanently delete "${student.name}"\n\nThis action CANNOT be undone!`)) return;
     
     showToast('Deleting student account...', 'info');
     
     try {
-        // First, try to delete the auth user
-        await deleteAuthUser(student.email);
-        
-        // Then delete from student table
         const { error } = await supabase.from('student').delete().eq('id', id);
         
         if (error) {
-            showToast('Student deleted but auth user removal may have failed', 'warning');
-        } else {
-            showToast(`✓ ${student.name} has been deleted`, 'success');
-            addInternalNotification('Student Deleted', `${student.name} and their account have been removed`, false);
+            showToast('Failed to delete student', 'error');
+            return;
         }
+        
+        showToast(`✓ ${student.name} has been deleted`, 'success');
+        addInternalNotification('Student Deleted', `${student.name} has been removed`, false);
         
         students = students.filter(s => s.id != id);
         renderStudents();
@@ -525,7 +506,6 @@ function editStudent(id) {
     document.getElementById('studentCourse').value = student.course;
     document.getElementById('studentYear').value = student.year;
     document.getElementById('studentEmail').value = student.email;
-    document.getElementById('studentStatus').value = student.status;
     document.getElementById('modalTitle').textContent = 'Edit Student';
     openModal();
 }
@@ -542,8 +522,7 @@ if (studentForm) {
             course: document.getElementById('studentCourse')?.value || 'N/A',
             year_level: document.getElementById('studentYear')?.value || '1',
             email: document.getElementById('studentEmail')?.value.trim() || '',
-            status: document.getElementById('studentStatus')?.value || 'active',
-            last_login: new Date().toISOString(),
+            status: 'inactive',
             updated_at: new Date().toISOString()
         };
         
@@ -614,10 +593,14 @@ function formatDate(dateString) {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
     const now = new Date();
-    const diffHours = Math.floor((now - date) / 3600000);
-    if (diffHours < 1) return 'Just now';
+    const diffMinutes = Math.floor((now - date) / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
-    return `${Math.floor(diffHours / 24)}d ago`;
+    return `${diffDays}d ago`;
 }
 
 function updateStats() {
@@ -644,7 +627,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== NAVIGATION SETUP ==========
+// ========== NAVIGATION SETUP (FIXED - WITH USERS) ==========
 function setupNavigation() {
     const drawerItems = document.querySelectorAll('.drawer-item');
     drawerItems.forEach(item => {
@@ -660,12 +643,14 @@ function setupNavigation() {
             
             if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
             else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
             else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
             else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
         });
     });
 }
 
+// ========== BOTTOM NAVIGATION (FIXED - WITH USERS) ==========
 function setupBottomNav() {
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     bottomNavItems.forEach(item => {
@@ -676,9 +661,39 @@ function setupBottomNav() {
             const page = newItem.dataset.page;
             if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
             else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
+            else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
             else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
             else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
         });
+    });
+}
+
+// ========== HIGHLIGHT ACTIVE BOTTOM NAV ==========
+// ========== HIGHLIGHT ACTIVE BOTTOM NAV ==========
+function highlightActiveBottomNav() {
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    const currentPath = window.location.pathname;
+    
+    bottomNavItems.forEach(item => {
+        const page = item.dataset.page;
+        item.classList.remove('active');
+        
+        // Check each page with exact conditions
+        if (page === 'dashboard' && (currentPath.includes('Admin.html') || currentPath === '/' || currentPath.includes('/dashboard'))) {
+            item.classList.add('active');
+        } 
+        else if (page === 'incidents' && currentPath.includes('incident')) {
+            item.classList.add('active');
+        } 
+        else if (page === 'users' && currentPath.includes('user_page')) {
+            item.classList.add('active');
+        } 
+        else if (page === 'analytics' && currentPath.includes('analytics')) {
+            item.classList.add('active');
+        } 
+        else if (page === 'settings' && currentPath.includes('setting')) {
+            item.classList.add('active');
+        }
     });
 }
 
@@ -731,8 +746,9 @@ function setupUI() {
     }
 }
 
-// ========== AUTO REFRESH REPORT COUNTS EVERY 30 SECONDS ==========
+// ========== AUTO UPDATE STATUS EVERY 30 SECONDS ==========
 setInterval(() => {
+    updateStudentStatusFromAuth();
     updateAllReportCounts();
 }, 30000);
 
@@ -747,6 +763,7 @@ async function init() {
     setupNavigation();
     setupBottomNav();
     setupUI();
+    highlightActiveBottomNav();
 }
 
 init();

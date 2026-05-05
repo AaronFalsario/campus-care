@@ -61,7 +61,19 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* DRAWER */
+/* ========== ANIMATION FOR MAIN CONTENT ONLY ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* DRAWER - NO ANIMATION */
 .drawer {
     position: fixed;
     top: 0;
@@ -75,6 +87,7 @@ body {
     transform: translateX(0);
     box-shadow: 2px 0 12px var(--shadow);
     transition: transform 0.3s ease;
+    animation: none !important;
 }
 
 .drawer-header {
@@ -191,7 +204,7 @@ body {
     color: #fff;
 }
 
-/* TOPBAR */
+/* TOPBAR - NO ANIMATION */
 .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -205,6 +218,7 @@ body {
     z-index: 100;
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
+    animation: none !important;
 }
 
 .brand-logo {
@@ -264,11 +278,12 @@ body {
 body.dark-mode .sun-icon { display: none; }
 body.dark-mode .moon-icon { display: block; }
 
-/* MAIN CONTENT */
+/* MAIN CONTENT - WITH ANIMATION */
 main {
     margin-left: var(--sidebar-width);
     padding: 28px 36px 48px;
     max-width: 1400px;
+    animation: fadeInUp 0.5s ease-out;
 }
 
 .page-header {
@@ -276,6 +291,7 @@ main {
     border-radius: 20px;
     padding: 28px 32px;
     margin-bottom: 28px;
+    animation: fadeInUp 0.5s ease-out 0.05s both;
 }
 
 body.dark-mode .page-header {
@@ -311,7 +327,14 @@ body.dark-mode .page-header {
     align-items: center;
     gap: 14px;
     transition: transform 0.2s;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out forwards;
 }
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
 
 .stat-card:hover {
     transform: translateY(-2px);
@@ -355,7 +378,12 @@ body.dark-mode .page-header {
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 20px;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out 0.1s forwards;
 }
+
+.chart-card:nth-child(1) { animation-delay: 0.1s; }
+.chart-card:nth-child(2) { animation-delay: 0.15s; }
 
 .chart-card h3 {
     font-size: 15px;
@@ -372,7 +400,7 @@ body.dark-mode .page-header {
     height: 260px;
 }
 
-/* Penalties Section - Will be hidden on mobile */
+/* Penalties Section */
 .penalties-section {
     margin-top: 24px;
 }
@@ -384,6 +412,8 @@ body.dark-mode .page-header {
     flex-wrap: wrap;
     margin-bottom: 20px;
     align-items: center;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out 0.08s forwards;
 }
 
 .search-bar {
@@ -409,6 +439,10 @@ body.dark-mode .page-header {
     font-size: 13px;
     width: 100%;
     color: var(--text);
+}
+
+.search-bar input::placeholder {
+    color: var(--hint);
 }
 
 .filter-chip {
@@ -461,6 +495,8 @@ body.dark-mode .page-header {
     border-radius: 20px;
     overflow-x: auto;
     box-shadow: 0 2px 8px var(--shadow);
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out 0.2s forwards;
 }
 
 table {
@@ -495,9 +531,14 @@ tr:last-child td {
 }
 
 tr:hover td {
-    background: var(--table-hover);
+    background: rgba(0,0,0,0.02);
 }
 
+body.dark-mode tr:hover td {
+    background: rgba(255,255,255,0.03);
+}
+
+/* Badge styles - Enhanced for dark mode */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -508,16 +549,33 @@ tr:hover td {
     white-space: nowrap;
 }
 
+/* Category badges - Dark mode compatible */
 .b-security { background: var(--red-light); color: var(--red); }
 .b-maintenance { background: var(--blue-light); color: var(--blue); }
 .b-janitorial { background: var(--teal-light); color: var(--teal-dark); }
 .b-facilities { background: var(--amber-light); color: var(--amber); }
+
+/* Priority badges - Dark mode compatible */
 .b-high { background: var(--red-light); color: var(--red); }
 .b-medium { background: var(--amber-light); color: var(--amber); }
 .b-low { background: var(--green-light); color: var(--green); }
+
+/* Status badges - Dark mode compatible */
 .b-pending { background: var(--orange-light); color: var(--orange); }
 .b-progress { background: var(--blue-light); color: var(--blue); }
 .b-resolved { background: var(--green-light); color: var(--green); }
+
+/* Dark mode specific badge text colors */
+body.dark-mode .b-janitorial { color: var(--teal); }
+body.dark-mode .b-pending { color: var(--orange); }
+body.dark-mode .b-progress { color: var(--blue); }
+body.dark-mode .b-resolved { color: var(--green); }
+body.dark-mode .b-high { color: var(--red); }
+body.dark-mode .b-medium { color: var(--amber); }
+body.dark-mode .b-low { color: var(--green); }
+body.dark-mode .b-security { color: var(--red); }
+body.dark-mode .b-maintenance { color: var(--blue); }
+body.dark-mode .b-facilities { color: var(--amber); }
 
 .view-btn {
     background: var(--teal-light);
@@ -565,7 +623,7 @@ tr:hover td {
     border-color: var(--teal);
 }
 
-/* Bottom Navigation */
+/* Bottom Navigation - NO ANIMATION */
 .bottom-nav {
     display: none;
     position: fixed;
@@ -579,6 +637,7 @@ tr:hover td {
     justify-content: space-around;
     padding: 8px 16px;
     z-index: 400;
+    animation: none !important;
 }
 
 .bottom-nav-item {
@@ -763,6 +822,12 @@ tr:hover td {
     color: var(--muted);
 }
 
+.m-field-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+}
+
 .m-card-footer {
     display: flex;
     justify-content: space-between;
@@ -776,24 +841,233 @@ tr:hover td {
     color: var(--hint);
 }
 
+/* Chart text colors for dark mode - MAKE TEXT WHITE */
+body.dark-mode .chart-container canvas {
+    filter: brightness(0.9);
+}
+
+body.dark-mode .chart-card h3,
+body.dark-mode .chart-card .card-title,
+body.dark-mode .chart-card .card-sub {
+    color: var(--text) !important;
+}
+
+/* Chart.js specific - force text color in dark mode */
+body.dark-mode canvas {
+    filter: brightness(0.95) contrast(1.1);
+}
+
+/* ========== FIX DARK MODE TEXT COLORS - MAKE ALL TEXT VISIBLE ========== */
+
+/* Force all text to use the correct color in dark mode */
+body.dark-mode,
+body.dark-mode * {
+    color: var(--text) !important;
+}
+
+/* Keep drawer items in navy background - they need white text */
+body.dark-mode .drawer,
+body.dark-mode .drawer-item,
+body.dark-mode .drawer-name,
+body.dark-mode .drawer-role,
+body.dark-mode .drawer-logout {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+body.dark-mode .drawer-item:hover,
+body.dark-mode .drawer-item.active {
+    color: #fff !important;
+}
+
+body.dark-mode .drawer-name {
+    color: #fff !important;
+}
+
+body.dark-mode .drawer-role {
+    color: rgba(255, 255, 255, 0.55) !important;
+}
+
+body.dark-mode .drawer-logout {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.dark-mode .drawer-logout:hover {
+    color: #fff !important;
+}
+
+/* But preserve badge colors - they have specific meanings */
+body.dark-mode .badge {
+    color: inherit !important;
+}
+
+/* Keep specific badge colors (they need to maintain their meaning) */
+body.dark-mode .b-security { color: var(--red) !important; background: var(--red-light) !important; }
+body.dark-mode .b-maintenance { color: var(--blue) !important; background: var(--blue-light) !important; }
+body.dark-mode .b-janitorial { color: var(--teal) !important; background: var(--teal-light) !important; }
+body.dark-mode .b-facilities { color: var(--amber) !important; background: var(--amber-light) !important; }
+body.dark-mode .b-high { color: var(--red) !important; background: var(--red-light) !important; }
+body.dark-mode .b-medium { color: var(--amber) !important; background: var(--amber-light) !important; }
+body.dark-mode .b-low { color: var(--green) !important; background: var(--green-light) !important; }
+body.dark-mode .b-pending { color: var(--orange) !important; background: var(--orange-light) !important; }
+body.dark-mode .b-progress { color: var(--blue) !important; background: var(--blue-light) !important; }
+body.dark-mode .b-resolved { color: var(--green) !important; background: var(--green-light) !important; }
+
+/* Fix modal text in dark mode */
+body.dark-mode .modal-value,
+body.dark-mode .modal-label,
+body.dark-mode .modal-body,
+body.dark-mode .info-value,
+body.dark-mode .info-label {
+    color: var(--text) !important;
+}
+
+/* Fix description text in modal */
+body.dark-mode .description-text {
+    color: var(--text) !important;
+    background: var(--bg) !important;
+}
+
+/* Fix table text in dark mode */
+body.dark-mode td,
+body.dark-mode th,
+body.dark-mode .table-container {
+    color: var(--text) !important;
+}
+
+/* Fix cell content text - titles, locations, etc */
+body.dark-mode td strong,
+body.dark-mode td span,
+body.dark-mode .inc-title,
+body.dark-mode .inc-location {
+    color: var(--text) !important;
+}
+
+/* Fix mobile cards text */
+body.dark-mode .m-card,
+body.dark-mode .m-card-title,
+body.dark-mode .m-card-location,
+body.dark-mode .m-field-label,
+body.dark-mode .m-field-value,
+body.dark-mode .m-timestamp {
+    color: var(--text) !important;
+}
+
+/* Fix filter bar text */
+body.dark-mode .filter-label,
+body.dark-mode .filter-chip,
+body.dark-mode .filter-select,
+body.dark-mode .filter-input,
+body.dark-mode .search-bar input,
+body.dark-mode .search-bar input::placeholder {
+    color: var(--text) !important;
+}
+
+body.dark-mode .search-bar input::placeholder {
+    color: var(--hint) !important;
+}
+
+/* Fix pagination text */
+body.dark-mode .page-btn {
+    color: var(--text) !important;
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark-mode .page-btn.active {
+    background: var(--teal) !important;
+    color: white !important;
+}
+
+/* Fix view button */
+body.dark-mode .view-btn {
+    color: var(--teal) !important;
+    background: var(--teal-light) !important;
+}
+
+body.dark-mode .view-btn:hover {
+    color: white !important;
+    background: var(--teal) !important;
+}
+
+/* Fix stat cards text */
+body.dark-mode .stat-value,
+body.dark-mode .stat-label {
+    color: var(--text) !important;
+}
+
+/* Fix chart card headers */
+body.dark-mode .chart-card h3,
+body.dark-mode .chart-card .card-title,
+body.dark-mode .chart-card .card-sub {
+    color: var(--text) !important;
+}
+
+/* Fix select dropdowns in dark mode */
+body.dark-mode select,
+body.dark-mode .filter-select,
+body.dark-mode .modal-status-select {
+    color: var(--text) !important;
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark-mode select option {
+    color: var(--text) !important;
+    background: var(--surface) !important;
+}
+
+/* Fix toast messages in dark mode */
+body.dark-mode .toast {
+    color: white !important;
+    background: var(--teal) !important;
+}
+
+/* Fix modal close button */
+body.dark-mode .modal-close {
+    color: white !important;
+}
+
+/* Fix brand name gradient to be visible in dark mode */
+body.dark-mode .brand-name {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+
+/* Fix page header sub text */
+body.dark-mode .page-sub {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Fix any remaining text elements */
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode div,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode label,
+body.dark-mode .page-sub {
+    color: var(--text) !important;
+}
+
 /* ========== RESPONSIVE - MOBILE (max-width: 768px) ========== */
 @media (max-width: 768px) {
-    /* Hide drawer on mobile */
+
     .drawer {
         display: none !important;
     }
     
-    /* Show bottom navigation */
     .bottom-nav {
         display: flex;
     }
-    
-    /* Adjust body padding */
+
     body {
         padding-bottom: var(--bottom-nav-height);
     }
     
-    /* Topbar becomes full width */
     .topbar {
         margin-left: 0;
         width: 100%;
@@ -801,7 +1075,6 @@ tr:hover td {
         height: 56px;
     }
     
-    /* Smaller brand logo */
     .brand-logo img {
         width: 32px;
         height: 32px;
@@ -811,26 +1084,43 @@ tr:hover td {
         font-size: 16px;
     }
     
-    /* Main content full width */
     main {
         margin-left: 0;
         padding: 16px;
         padding-bottom: 20px;
     }
     
-    /* Smaller page header */
+    /* ===== HIDE ALL STATS AND FILTERS ON MOBILE ===== */
+    .stats-row {
+        display: none !important;
+    }
+    
+    .stats-grid {
+        display: none !important;
+    }
+    
+    .search-bar {
+        display: none !important;
+    }
+    
+    .filter-chip {
+        display: none !important;
+    }
+    
+    .filter-chips-wrapper {
+        display: none !important;
+    }
+    
+    .filter-bar {
+        display: none !important;
+    }
+    
     .page-header {
         padding: 20px;
     }
     
     .page-title {
         font-size: 20px;
-    }
-    
-    /* Stats grid - 2 columns */
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
     }
     
     .stat-card {
@@ -847,7 +1137,6 @@ tr:hover td {
         font-size: 22px;
     }
     
-    /* Charts - 1 column with smaller heights for mobile */
     .charts-row {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -863,64 +1152,24 @@ tr:hover td {
         margin-bottom: 12px;
     }
     
-    /* Smaller chart containers for mobile viewport */
     .chart-container {
         height: 200px;
     }
     
-    /* HIDE PENALTIES SECTION ON MOBILE */
     .penalties-section {
         display: none !important;
     }
-    
-    /* Further reduction for very narrow screens */
+
     @media (max-width: 480px) {
         .chart-container {
             height: 180px;
         }
     }
     
-    /* Filter bar adjustments for mobile - KEEP search bar and essential buttons */
-    .filter-bar {
-        gap: 8px;
-        margin-bottom: 16px;
-    }
-    
-    /* Make search bar full width on mobile */
-    .search-bar {
-        max-width: 100%;
-        width: 100%;
-        order: 1;
-    }
-    
-    /* Keep filter chips but make them scrollable horizontally */
-    .filter-chips-wrapper {
-        order: 2;
-        width: 100%;
-        overflow-x: auto;
-        white-space: nowrap;
-        display: flex;
-        gap: 8px;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .filter-chip {
-        display: inline-flex;
-        white-space: nowrap;
-    }
-    
-    /* Hide export button and some filter chips on mobile if needed */
     .export-btn {
-        display: none; /* Hide export button on mobile */
-    }
-    
-    /* Optional: Keep only essential filter chips, hide others */
-    .filter-chip.hide-on-mobile {
         display: none;
     }
     
-    /* Hide table on mobile, show cards */
     .table-container {
         display: none;
     }
@@ -929,7 +1178,6 @@ tr:hover td {
         display: flex;
     }
     
-    /* Modal adjustments */
     .modal-container {
         max-width: 360px;
         max-height: 70vh;
@@ -957,7 +1205,6 @@ tr:hover td {
         font-size: 13px;
     }
     
-    /* Pagination smaller */
     .pagination {
         gap: 6px;
     }
@@ -970,37 +1217,30 @@ tr:hover td {
 
 /* ========== RESPONSIVE - DESKTOP (min-width: 769px) ========== */
 @media (min-width: 769px) {
-    /* Show drawer on desktop */
     .drawer {
         display: flex !important;
     }
     
-    /* Hide bottom nav on desktop */
     .bottom-nav {
         display: none !important;
     }
     
-    /* Hide mobile cards on desktop */
     .mobile-cards {
         display: none !important;
     }
     
-    /* Show table on desktop */
     .table-container {
         display: block;
     }
     
-    /* Show penalties section on desktop */
     .penalties-section {
         display: block;
     }
     
-    /* Show export button on desktop */
     .export-btn {
         display: flex;
     }
     
-    /* No extra body padding on desktop */
     body {
         padding-bottom: 0;
     }
