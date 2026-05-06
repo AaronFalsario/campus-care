@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>CampusCare — Settings</title>
+    <title data-i18n="settings_title">CampusCare — Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" href="/Assets/Images/logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,7 +11,7 @@
 </head>
 <body>
 
-<!-- ========== DESKTOP VIEW (OLD FORMAT) ========== -->
+<!-- ========== DESKTOP VIEW ========== -->
 <div class="drawer" id="drawer">
     <div class="drawer-header">
         <div class="drawer-avatar" id="drawerAvatar">
@@ -21,27 +21,27 @@
             </svg>
         </div>
         <div class="drawer-name" id="drawerStudentName">Student</div>
-        <div class="drawer-role">Student</div>
+        <div class="drawer-role" data-i18n="student_role">Student</div>
     </div>
     <div class="drawer-nav">
         <button class="drawer-item" id="dashboardNav">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            <span>Dashboard</span>
+            <span data-i18n="dashboard">Dashboard</span>
         </button>
         <button class="drawer-item" id="reportNav">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
-            <span>New Report</span>
+            <span data-i18n="report">New Report</span>
         </button>
         <hr style="margin: 8px 16px; border-color: rgba(255,255,255,0.08);">
         <button class="drawer-item active" id="settingsNav">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-            <span>Settings</span>
+            <span data-i18n="settings">Settings</span>
         </button>
     </div>
     <div class="drawer-footer">
         <button class="drawer-logout" id="logoutBtn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>Logout</span>
+            <span data-i18n="logout">Logout</span>
         </button>
     </div>
 </div>
@@ -78,13 +78,17 @@
 
 <main class="main-content">
     <div class="page-header">
-        <h1 class="page-title">Settings</h1>
-        <p class="page-sub">Manage your account and preferences</p>
+        <h1 class="page-title" data-i18n="settings_title">Settings</h1>
+        <p class="page-sub" data-i18n="settings_subtitle">Manage your account and preferences</p>
     </div>
     <div id="alertMessage" class="alert"></div>
 
+    <!-- Profile Information Card -->
     <div class="settings-card">
-        <div class="card-header"><h2>Profile Information</h2><p>Update your personal details</p></div>
+        <div class="card-header">
+            <h2 data-i18n="profile_information">Profile Information</h2>
+            <p data-i18n="update_personal_details">Update your personal details</p>
+        </div>
         <div class="card-body">
             <div class="avatar-section">
                 <div class="avatar-preview" id="avatarPreviewDesktop">
@@ -93,62 +97,196 @@
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                 </div>
-                <div><button type="button" class="avatar-btn" id="uploadBtnDesktop">Change Photo</button><input type="file" id="avatarInputDesktop" accept="image/*" style="display: none;"></div>
+                <div>
+                    <button type="button" class="avatar-btn" id="uploadBtnDesktop" data-i18n="change_photo">Change Photo</button>
+                    <input type="file" id="avatarInputDesktop" accept="image/*" style="display: none;">
+                </div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Full Name</label><input type="text" id="fullNameDesktop" placeholder="Enter your full name"></div>
-                <div class="form-group"><label>Student ID</label><input type="text" id="studentIdDesktop" disabled></div>
+                <div class="form-group">
+                    <label data-i18n="full_name">Full Name</label>
+                    <input type="text" id="fullNameDesktop" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="student_id">Student ID</label>
+                    <input type="text" id="studentIdDesktop" disabled>
+                </div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Email Address</label><input type="email" id="emailDesktop" placeholder="student@campus.edu"></div>
-                <div class="form-group"><label>Contact Number</label><input type="tel" id="phoneDesktop" placeholder="+63 XXX XXX XXXX"></div>
+                <div class="form-group">
+                    <label data-i18n="email_address">Email Address</label>
+                    <input type="email" id="emailDesktop" placeholder="student@campus.edu">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="contact_number">Contact Number</label>
+                    <input type="tel" id="phoneDesktop" placeholder="+63 XXX XXX XXXX">
+                </div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Course/Program</label><input type="text" id="courseDesktop" placeholder="e.g., BS Information Technology"></div>
-                <div class="form-group"><label>Year Level</label><select id="yearLevelDesktop"><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
+                <div class="form-group">
+                    <label data-i18n="course_program">Course/Program</label>
+                    <input type="text" id="courseDesktop" placeholder="e.g., BS Information Technology">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="year_level">Year Level</label>
+                    <select id="yearLevelDesktop">
+                        <option value="1" data-i18n="1st_year">1st Year</option>
+                        <option value="2" data-i18n="2nd_year">2nd Year</option>
+                        <option value="3" data-i18n="3rd_year">3rd Year</option>
+                        <option value="4" data-i18n="4th_year">4th Year</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-actions"><button class="btn-save" id="saveProfileBtnDesktop">Save Changes</button></div>
+            <div class="form-actions">
+                <button class="btn-save" id="saveProfileBtnDesktop" data-i18n="save_changes">Save Changes</button>
+            </div>
         </div>
     </div>
 
+    <!-- Notifications Card -->
     <div class="settings-card">
-        <div class="card-header"><h2>Notifications</h2><p>Choose what alerts you receive</p></div>
+        <div class="card-header">
+            <h2 data-i18n="notifications">Notifications</h2>
+            <p data-i18n="choose_alerts">Choose what alerts you receive</p>
+        </div>
         <div class="card-body">
-            <div class="toggle-item"><div class="toggle-info"><span>Email Notifications</span><p>Receive updates via email</p></div><label class="toggle-switch"><input type="checkbox" id="emailNotifDesktop" checked><span class="toggle-slider"></span></label></div>
-            <div class="toggle-item"><div class="toggle-info"><span>Incident Updates</span><p>Get notified about report status changes</p></div><label class="toggle-switch"><input type="checkbox" id="incidentNotifDesktop" checked><span class="toggle-slider"></span></label></div>
-            <div class="toggle-item"><div class="toggle-info"><span>Campus Announcements</span><p>Receive important campus news</p></div><label class="toggle-switch"><input type="checkbox" id="announcementNotifDesktop" checked><span class="toggle-slider"></span></label></div>
-            <div class="form-actions"><button class="btn-save" id="saveNotifBtnDesktop">Save Preferences</button></div>
+            <div class="toggle-item">
+                <div class="toggle-info">
+                    <span data-i18n="email_notifications">Email Notifications</span>
+                    <p data-i18n="receive_updates_via_email">Receive updates via email</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="emailNotifDesktop" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-item">
+                <div class="toggle-info">
+                    <span data-i18n="incident_updates">Incident Updates</span>
+                    <p data-i18n="get_notified_about_reports">Get notified about report status changes</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="incidentNotifDesktop" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-item">
+                <div class="toggle-info">
+                    <span data-i18n="campus_announcements">Campus Announcements</span>
+                    <p data-i18n="receive_important_news">Receive important campus news</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="announcementNotifDesktop" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="form-actions">
+                <button class="btn-save" id="saveNotifBtnDesktop" data-i18n="save_preferences">Save Preferences</button>
+            </div>
         </div>
     </div>
 
-    <!-- REMOVED THE DUPLICATE LOGOUT BUTTON HERE -->
+    <!-- Language Settings Card -->
+    <div class="settings-card">
+        <div class="card-header">
+            <h2><i class="fas fa-globe"></i> <span data-i18n="language_settings">Language Settings</span></h2>
+            <p data-i18n="select_preferred_language">Choose your preferred language</p>
+        </div>
+        <div class="card-body">
+            <div class="language-options" style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <button class="language-btn" id="englishLangBtn" onclick="selectLanguageDesktop('English')" style="flex: 1; padding: 12px 24px; border-radius: 40px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-flag-usa"></i>
+                    <span>English</span>
+                    <i class="fas fa-check" id="checkEnglishDesktop" style="margin-left: auto; color: var(--primary); display: none;"></i>
+                </button>
+                <button class="language-btn" id="tagalogLangBtn" onclick="selectLanguageDesktop('Filipino')" style="flex: 1; padding: 12px 24px; border-radius: 40px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-flag"></i>
+                    <span>Filipino / Tagalog</span>
+                    <i class="fas fa-check" id="checkTagalogDesktop" style="margin-left: auto; color: var(--primary); display: none;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Feedback Card -->
+    <div class="settings-card">
+        <div class="card-header">
+            <h2><i class="fas fa-comment-dots"></i> <span data-i18n="send_feedback_desktop">Send Feedback</span></h2>
+            <p data-i18n="share_your_thoughts">Share your thoughts, suggestions, or report issues</p>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label data-i18n="rating_optional">Rating (Optional)</label>
+                <select id="feedbackRatingDesktop" style="width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface);">
+                    <option value="" data-i18n="select_rating">Select rating</option>
+                    <option value="5" data-i18n="excellent">★★★★★ - Excellent</option>
+                    <option value="4" data-i18n="good">★★★★☆ - Good</option>
+                    <option value="3" data-i18n="average">★★★☆☆ - Average</option>
+                    <option value="2" data-i18n="poor">★★☆☆☆ - Poor</option>
+                    <option value="1" data-i18n="very_poor">★☆☆☆☆ - Very Poor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="category">Category</label>
+                <select id="feedbackCategoryDesktop" style="width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface);">
+                    <option value="general" data-i18n="general_feedback">General Feedback</option>
+                    <option value="bug" data-i18n="bug_report">Bug Report</option>
+                    <option value="feature" data-i18n="feature_request">Feature Request</option>
+                    <option value="improvement" data-i18n="improvement_suggestion">Improvement Suggestion</option>
+                    <option value="complaint" data-i18n="complaint">Complaint</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="your_feedback">Your Feedback <span style="color: red;">*</span></label>
+                <textarea id="feedbackTextDesktop" rows="4" data-i18n-placeholder="write_opinion" placeholder="Write your opinion about CampusCare..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); font-family: inherit;"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn-save" id="sendFeedbackBtnDesktop" data-i18n="send_feedback">Send Feedback</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback History Card -->
+    <div class="settings-card">
+        <div class="card-header">
+            <h2><i class="fas fa-history"></i> <span data-i18n="feedback_history">Feedback History</span></h2>
+            <p data-i18n="your_previous_feedback">View your previous feedback and their status</p>
+        </div>
+        <div class="card-body">
+            <div id="feedbackHistoryDesktop" class="feedback-history-container">
+                <div class="feedback-loading" style="text-align: center; padding: 40px; color: var(--muted);">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <nav class="bottom-nav">
     <button class="bottom-nav-item" data-page="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        <span>Home</span>
+        <span data-i18n="home">Home</span>
     </button>
     <button class="bottom-nav-item" data-page="report">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/></svg>
-        <span>Report</span>
+        <span data-i18n="report">Report</span>
     </button>
     <button class="bottom-nav-item active" data-page="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-        <span>Settings</span>
+        <span data-i18n="settings">Settings</span>
     </button>
 </nav>
 
 <!-- Notification Panel Desktop -->
 <div id="notificationPanelDesktop" class="notification-panel">
     <div class="notification-header">
-        <h4>🔔 Notifications</h4>
-        <button class="notification-clear" id="clearNotificationsBtnDesktop">Clear all</button>
+        <h4>🔔 <span data-i18n="notifications">Notifications</span></h4>
+        <button class="notification-clear" id="clearNotificationsBtnDesktop" data-i18n="clear_all">Clear all</button>
     </div>
     <div id="notificationListDesktop" class="notification-list"></div>
 </div>
 
-<!-- ========== MOBILE VIEW (NEW FORMAT) ========== -->
+<!-- ========== MOBILE VIEW ========== -->
 <div class="mobile-container" id="mobileContainer">
     <!-- Profile Card -->
     <div class="mobile-profile-card" onclick="openProfileModalMobile()">
@@ -156,7 +294,7 @@
         <div class="mobile-profile-info">
             <h3 id="mobileName">Student Name</h3>
             <p><i class="fas fa-envelope" style="font-size: 11px;"></i> <span id="mobileEmail">student@campus.edu</span></p>
-            <div class="edit-badge"><i class="fas fa-pen"></i> Edit Profile</div>
+            <div class="edit-badge"><i class="fas fa-pen"></i> <span data-i18n="edit_profile">Edit Profile</span></div>
         </div>
     </div>
 
@@ -164,13 +302,13 @@
     <div class="mobile-settings-section">
         <div class="mobile-section-header">
             <i class="fas fa-user-circle"></i>
-            <span>ACCOUNT</span>
+            <span data-i18n="account">ACCOUNT</span>
         </div>
         <div class="mobile-settings-item" onclick="openProfileModalMobile()">
             <div class="mobile-item-left">
                 <i class="fas fa-user"></i>
                 <div>
-                    <div class="mobile-item-title">Your account</div>
+                    <div class="mobile-item-title" data-i18n="your_account">Your account</div>
                     <div class="mobile-item-sub" id="mobileAccountSub">Account</div>
                 </div>
             </div>
@@ -182,8 +320,8 @@
             <div class="mobile-item-left">
                 <i class="fas fa-moon"></i>
                 <div>
-                    <div class="mobile-item-title">Dark Mode</div>
-                    <div class="mobile-item-sub">Switch between light and dark theme</div>
+                    <div class="mobile-item-title" data-i18n="dark_mode">Dark Mode</div>
+                    <div class="mobile-item-sub" data-i18n="switch_light_dark">Switch between light and dark theme</div>
                 </div>
             </div>
             <div class="mobile-item-right">
@@ -199,13 +337,13 @@
     <div class="mobile-settings-section">
         <div class="mobile-section-header">
             <i class="fas fa-bell"></i>
-            <span>NOTIFICATIONS</span>
+            <span data-i18n="notifications_section">NOTIFICATIONS</span>
         </div>
         <div class="mobile-settings-item" onclick="openNotificationsModalMobile()">
             <div class="mobile-item-left">
                 <i class="fas fa-bell"></i>
                 <div>
-                    <div class="mobile-item-title">Notifications</div>
+                    <div class="mobile-item-title" data-i18n="notifications">Notifications</div>
                     <div class="mobile-item-sub" id="mobileNotifStatus">Allowed</div>
                 </div>
             </div>
@@ -217,7 +355,7 @@
             <div class="mobile-item-left">
                 <i class="fas fa-globe"></i>
                 <div>
-                    <div class="mobile-item-title">Language</div>
+                    <div class="mobile-item-title" data-i18n="language_section">Language</div>
                     <div class="mobile-item-sub" id="mobileLanguage">English</div>
                 </div>
             </div>
@@ -231,14 +369,14 @@
     <div class="mobile-settings-section">
         <div class="mobile-section-header">
             <i class="fas fa-info-circle"></i>
-            <span>ABOUT US</span>
+            <span data-i18n="about_us">ABOUT US</span>
         </div>
         <div class="mobile-settings-item" onclick="rateUsMobile()">
             <div class="mobile-item-left">
                 <i class="fab fa-github"></i>
                 <div>
-                    <div class="mobile-item-title">Rate us</div>
-                    <div class="mobile-item-sub">Write about us in your store</div>
+                    <div class="mobile-item-title" data-i18n="rate_us">Rate us</div>
+                    <div class="mobile-item-sub" data-i18n="write_about_us">Write about us in your store</div>
                 </div>
             </div>
             <div class="mobile-item-right">
@@ -249,8 +387,8 @@
             <div class="mobile-item-left">
                 <i class="fas fa-comment"></i>
                 <div>
-                    <div class="mobile-item-title">Feedback</div>
-                    <div class="mobile-item-sub">Write your opinion for us</div>
+                    <div class="mobile-item-title" data-i18n="feedback">Feedback</div>
+                    <div class="mobile-item-sub" data-i18n="write_your_opinion">Write your opinion for us</div>
                 </div>
             </div>
             <div class="mobile-item-right">
@@ -263,14 +401,14 @@
     <div class="mobile-settings-section">
         <div class="mobile-section-header">
             <i class="fas fa-exclamation-triangle"></i>
-            <span>DANGER ZONE</span>
+            <span data-i18n="danger_zone">DANGER ZONE</span>
         </div>
         <div class="mobile-settings-item danger" onclick="confirmLogoutMobile()">
             <div class="mobile-item-left">
                 <i class="fas fa-sign-out-alt"></i>
                 <div>
-                    <div class="mobile-item-title">Log out</div>
-                    <div class="mobile-item-sub">Sign out of your account</div>
+                    <div class="mobile-item-title" data-i18n="log_out">Log out</div>
+                    <div class="mobile-item-sub" data-i18n="sign_out_account">Sign out of your account</div>
                 </div>
             </div>
             <div class="mobile-item-right">
@@ -288,26 +426,26 @@
 <div id="profileModalMobile" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
-            <h3><i class="fas fa-user-edit"></i> Edit Profile</h3>
+            <h3><i class="fas fa-user-edit"></i> <span data-i18n="edit_profile_title">Edit Profile</span></h3>
             <button class="modal-close" onclick="closeProfileModalMobile()">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label>Full Name</label>
+                <label data-i18n="full_name">Full Name</label>
                 <input type="text" id="mobileFullNameInput" placeholder="Enter your full name">
             </div>
             <div class="form-group">
-                <label>Student ID</label>
+                <label data-i18n="student_id">Student ID</label>
                 <input type="text" id="mobileStudentIdInput" disabled>
             </div>
             <div class="form-group">
-                <label>Email Address</label>
+                <label data-i18n="email_address">Email Address</label>
                 <input type="email" id="mobileEmailInput" disabled>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeProfileModalMobile()">Cancel</button>
-            <button class="btn-save" onclick="saveProfileMobile()">Save Changes</button>
+            <button class="btn-cancel" onclick="closeProfileModalMobile()" data-i18n="cancel">Cancel</button>
+            <button class="btn-save" onclick="saveProfileMobile()" data-i18n="save_changes">Save Changes</button>
         </div>
     </div>
 </div>
@@ -316,19 +454,19 @@
 <div id="notificationsModalMobile" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
-            <h3><i class="fas fa-bell"></i> Notifications</h3>
+            <h3><i class="fas fa-bell"></i> <span data-i18n="notification_settings">Notification Settings</span></h3>
             <button class="modal-close" onclick="closeNotificationsModalMobile()">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label>📧 Email Notifications</label>
+                <label>📧 <span data-i18n="email_notifications">Email Notifications</span></label>
                 <label class="toggle-switch" style="display: block;">
                     <input type="checkbox" id="mobileEmailNotif">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
             <div class="form-group">
-                <label>🔔 Push Notifications</label>
+                <label>🔔 <span data-i18n="push_notifications">Push Notifications</span></label>
                 <label class="toggle-switch" style="display: block;">
                     <input type="checkbox" id="mobilePushNotif">
                     <span class="toggle-slider"></span>
@@ -336,8 +474,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeNotificationsModalMobile()">Cancel</button>
-            <button class="btn-save" onclick="saveNotificationSettingsMobile()">Save</button>
+            <button class="btn-cancel" onclick="closeNotificationsModalMobile()" data-i18n="cancel">Cancel</button>
+            <button class="btn-save" onclick="saveNotificationSettingsMobile()" data-i18n="save">Save</button>
         </div>
     </div>
 </div>
@@ -346,7 +484,7 @@
 <div id="languageModalMobile" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
-            <h3><i class="fas fa-globe"></i> Select Language</h3>
+            <h3><i class="fas fa-globe"></i> <span data-i18n="select_language">Select Language</span></h3>
             <button class="modal-close" onclick="closeLanguageModalMobile()">&times;</button>
         </div>
         <div class="modal-body">
@@ -366,7 +504,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeLanguageModalMobile()">Cancel</button>
+            <button class="btn-cancel" onclick="closeLanguageModalMobile()" data-i18n="cancel">Cancel</button>
         </div>
     </div>
 </div>
@@ -375,21 +513,43 @@
 <div id="feedbackModalMobile" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
-            <h3><i class="fas fa-comment-dots"></i> Send Feedback</h3>
+            <h3><i class="fas fa-comment-dots"></i> <span data-i18n="send_feedback">Send Feedback</span></h3>
             <button class="modal-close" onclick="closeFeedbackModalMobile()">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label>Your Feedback</label>
-                <textarea id="feedbackTextMobile" rows="4" placeholder="Write your opinion about CampusCare..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); font-family: inherit;"></textarea>
+                <label data-i18n="rating_optional">Rating (Optional)</label>
+                <select id="feedbackRating" style="width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface);">
+                    <option value="" data-i18n="select_rating">Select rating</option>
+                    <option value="5" data-i18n="excellent">★★★★★ - Excellent</option>
+                    <option value="4" data-i18n="good">★★★★☆ - Good</option>
+                    <option value="3" data-i18n="average">★★★☆☆ - Average</option>
+                    <option value="2" data-i18n="poor">★★☆☆☆ - Poor</option>
+                    <option value="1" data-i18n="very_poor">★☆☆☆☆ - Very Poor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="category">Category</label>
+                <select id="feedbackCategory" style="width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface);">
+                    <option value="general" data-i18n="general_feedback">General Feedback</option>
+                    <option value="bug" data-i18n="bug_report">Bug Report</option>
+                    <option value="feature" data-i18n="feature_request">Feature Request</option>
+                    <option value="improvement" data-i18n="improvement_suggestion">Improvement Suggestion</option>
+                    <option value="complaint" data-i18n="complaint">Complaint</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="your_feedback">Your Feedback <span style="color: red;">*</span></label>
+                <textarea id="feedbackTextMobile" rows="4" data-i18n-placeholder="write_opinion" placeholder="Write your opinion about CampusCare..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); font-family: inherit;"></textarea>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeFeedbackModalMobile()">Cancel</button>
-            <button class="btn-save" onclick="sendFeedbackMobile()">Send</button>
+            <button class="btn-cancel" onclick="closeFeedbackModalMobile()" data-i18n="cancel">Cancel</button>
+            <button class="btn-save" onclick="sendFeedbackMobile()" data-i18n="send">Send Feedback</button>
         </div>
     </div>
 </div>
+
 <script type="module" src="/Assets/Student_dashboard/setting/setting.js"></script>
 </body>
 </html>

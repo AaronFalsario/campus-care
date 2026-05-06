@@ -1187,9 +1187,21 @@ function setupEvents() {
     const adminPill = document.getElementById('adminPill');
     const notificationBell = document.getElementById('notificationBell');
     
-    if (hamburger) hamburger.onclick = () => { drawer.classList.toggle('open'); overlay.classList.toggle('open'); };
-    if (overlay) overlay.onclick = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
-    if (adminPill) adminPill.onclick = () => { drawer.classList.toggle('open'); overlay.classList.toggle('open'); };
+    // Removed hamburger code completely
+    
+    if (overlay) {
+        overlay.onclick = () => { 
+            if (drawer) drawer.classList.remove('open'); 
+            if (overlay) overlay.classList.remove('open'); 
+        };
+    }
+    
+    if (adminPill) {
+        adminPill.onclick = () => { 
+            if (drawer) drawer.classList.toggle('open'); 
+            if (overlay) overlay.classList.toggle('open'); 
+        };
+    }
     
     if (notificationBell) {
         notificationBell.onclick = (e) => {
@@ -1203,7 +1215,8 @@ function setupEvents() {
             document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
-            renderIncidents(); renderMobileCards();
+            renderIncidents(); 
+            renderMobileCards();
         };
     });
     
@@ -1215,7 +1228,8 @@ function setupEvents() {
             else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
             else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
             else if (page !== 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            drawer.classList.remove('open'); overlay.classList.remove('open');
+            if (drawer) drawer.classList.remove('open'); 
+            if (overlay) overlay.classList.remove('open');
         };
     });
     
@@ -1239,10 +1253,11 @@ function setupEvents() {
         }
     });
     
+    // Removed the click event that referenced hamburger
     document.addEventListener('click', (e) => { 
-        if (window.innerWidth <= 768 && drawer && hamburger && !drawer.contains(e.target) && !hamburger.contains(e.target)) { 
+        if (window.innerWidth <= 768 && drawer && !drawer.contains(e.target)) { 
             drawer.classList.remove('open'); 
-            overlay.classList.remove('open'); 
+            if (overlay) overlay.classList.remove('open'); 
         } 
     });
 }

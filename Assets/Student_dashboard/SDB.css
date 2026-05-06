@@ -470,6 +470,7 @@ body.dark-mode .drawer-nav::-webkit-scrollbar-thumb:hover {
     margin-left: var(--sidebar-width);
     padding: 32px 40px;
     max-width: 1200px;
+    will-change: opacity, transform;
 }
 
 /* Hero Section */
@@ -1065,7 +1066,7 @@ body.dark-mode .drawer-nav::-webkit-scrollbar-thumb:hover {
     color: var(--muted);
 }
 
-/* BOTTOM NAVIGATION */
+/* BOTTOM NAVIGATION - NO SLIDE ANIMATIONS */
 .bottom-nav {
     display: none;
     position: fixed;
@@ -1080,6 +1081,13 @@ body.dark-mode .drawer-nav::-webkit-scrollbar-thumb:hover {
     padding: 8px 16px;
     z-index: 400;
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+}
+
+/* REMOVED SLIDE ANIMATIONS - bottom nav stays static */
+.bottom-nav.nav-exit,
+.bottom-nav.nav-enter {
+    animation: none !important;
+    transform: none !important;
 }
 
 .bottom-nav-item {
@@ -1097,6 +1105,8 @@ body.dark-mode .drawer-nav::-webkit-scrollbar-thumb:hover {
     color: var(--muted);
     font-size: 11px;
     font-weight: 500;
+    position: relative;
+    overflow: hidden;
 }
 
 .bottom-nav-item svg {
@@ -1113,6 +1123,27 @@ body.dark-mode .drawer-nav::-webkit-scrollbar-thumb:hover {
 
 .bottom-nav-item:active {
     transform: scale(0.95);
+}
+
+/* Ripple effect on bottom nav buttons */
+.bottom-nav-item .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.2) 100%);
+    transform: scale(0);
+    animation: rippleEffect 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes rippleEffect {
+    0% {
+        transform: scale(0);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
 }
 
 /* ========== DARK MODE STYLES ========== */
@@ -1281,6 +1312,156 @@ body * {
                 color 0.2s ease;
 }
 
+/* ===== PAGE CONTENT TRANSITION ANIMATIONS (FAST - NO WHITE FLASH) ===== */
+@keyframes fadeOutContent {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+}
+
+@keyframes fadeInContent {
+    0% {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.main-content {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    will-change: opacity, transform;
+}
+
+.main-content.fade-out {
+    animation: fadeOutContent 0.12s ease forwards;
+}
+
+.main-content.fade-in {
+    animation: fadeInContent 0.15s ease forwards;
+}
+
+/* Hero section subtle animation on load */
+.hero {
+    animation: heroGlow 0.5s ease-out;
+}
+
+@keyframes heroGlow {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stats cards staggered animation */
+.stat-card {
+    animation: cardFadeUp 0.4s ease-out backwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes cardFadeUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Incident cards staggered animation */
+.incident-card {
+    animation: cardScaleIn 0.35s ease-out backwards;
+}
+
+.incident-card:nth-child(1) { animation-delay: 0.05s; }
+.incident-card:nth-child(2) { animation-delay: 0.1s; }
+.incident-card:nth-child(3) { animation-delay: 0.15s; }
+.incident-card:nth-child(4) { animation-delay: 0.2s; }
+.incident-card:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes cardScaleIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Filter chips subtle animation */
+.filter-chip {
+    animation: chipFadeIn 0.3s ease-out backwards;
+}
+
+.filter-chip:nth-child(1) { animation-delay: 0s; }
+.filter-chip:nth-child(2) { animation-delay: 0.03s; }
+.filter-chip:nth-child(3) { animation-delay: 0.06s; }
+.filter-chip:nth-child(4) { animation-delay: 0.09s; }
+.filter-chip:nth-child(5) { animation-delay: 0.12s; }
+.filter-chip:nth-child(6) { animation-delay: 0.15s; }
+
+@keyframes chipFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Section header animation */
+.section-header {
+    animation: slideInFromLeft 0.4s ease-out;
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Modal animation */
+.modal-container {
+    animation: modalPopIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@keyframes modalPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .drawer {
@@ -1295,10 +1476,6 @@ body * {
         margin-left: 0;
         width: 100%;
         padding: 12px 16px;
-    }
-    
-    .hamburger {
-        display: flex;
     }
     
     .main-content {

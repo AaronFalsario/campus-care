@@ -15,11 +15,280 @@ let realtimeSubscription = null;
 // Sensitive categories
 const SENSITIVE_CATEGORIES = ['weapon', 'violence', 'threat', 'danger', 'security', 'harassment', 'bullying'];
 
+// ========== TRANSLATIONS ==========
+const translations = {
+    en: {
+        // Navigation
+        'dashboard': 'Dashboard',
+        'report': 'New Report',
+        'settings': 'Settings',
+        'home': 'Home',
+        'logout': 'Logout',
+        
+        // Stats
+        'your_reports': 'Your Reports',
+        'in_progress': 'In Progress',
+        'resolved': 'Resolved',
+        'total_campus_reports': 'Total Campus Reports',
+        
+        // Filter
+        'all_reports': 'All Reports',
+        'security': 'Security',
+        'maintenance': 'Maintenance',
+        'janitorial': 'Janitorial',
+        'facilities': 'Facilities',
+        'view_my_reports': 'View My Reports',
+        
+        // Incident Card
+        'your_report': 'Your Report',
+        'by': 'By',
+        'sensitive_report': '🔒 Sensitive report - details restricted to security personnel',
+        'reported_by_you': 'Reported by you',
+        'reported_by': 'Reported by',
+        'restricted': '🔒 Restricted',
+        
+        // Modal
+        'incident_details': 'Incident Details',
+        'title': 'Title',
+        'location': 'Location',
+        'category': 'Category',
+        'priority': 'Priority',
+        'status': 'Status',
+        'reported_by': 'Reported By',
+        'description': 'Description',
+        'date': 'Date',
+        'close': 'Close',
+        'security_restriction': '⚠️ Security Restriction',
+        'security_message': 'This report contains sensitive safety information. Campus security has been notified and is handling the situation.',
+        'confidential': '🔒 Confidential - Restricted Access',
+        'you': 'You',
+        'another_student': 'Another Student',
+        
+        // Status
+        'pending': 'Pending',
+        'in_progress': 'In Progress',
+        'resolved': 'Resolved',
+        
+        // Priority
+        'high': 'High',
+        'medium': 'Medium',
+        'low': 'Low',
+        
+        // Categories
+        'security_cat': 'Security',
+        'maintenance_cat': 'Maintenance',
+        'janitorial_cat': 'Janitorial',
+        'facilities_cat': 'Facilities',
+        
+        // Empty States
+        'no_reports_yet': 'No reports yet',
+        'click_new_report': 'Click the "New Report" button to submit your first incident report',
+        'no_incidents_reported': 'No incidents reported yet',
+        'be_first_to_report': 'Be the first to report an incident!',
+        
+        // Notifications
+        'new_report_update': 'New Report Update',
+        'new_reports_added': 'new report has been added to your reports',
+        'new_reports_added_plural': 'new reports have been added to your reports',
+        'report_status_update': 'Report Status Update',
+        'being_processed': 'Your report is now being processed',
+        'has_been_resolved': 'Your report has been resolved!',
+        'pending_review': 'Your report is pending review',
+        
+        // Welcome
+        'welcome_back': 'Welcome back',
+        
+        // Toast
+        'logged_out': 'Logged out successfully',
+        'profile_updated': 'Profile picture updated successfully!',
+        'invalid_image': 'Please select a valid image file (JPEG, PNG)',
+        'confirm_logout': 'Are you sure you want to logout?',
+        'no_notifications': 'No notifications yet',
+        'clear_all': 'Clear all',
+        'notifications_cleared': 'All notifications cleared'
+    },
+    tl: {
+        // Navigation
+        'dashboard': 'Dashboard',
+        'report': 'Bagong Ulat',
+        'settings': 'Mga Setting',
+        'home': 'Bahay',
+        'logout': 'Mag-logout',
+        
+        // Stats
+        'your_reports': 'Iyong mga Ulat',
+        'in_progress': 'Isinasagawa',
+        'resolved': 'Naresolba',
+        'total_campus_reports': 'Kabuuang Ulat sa Campus',
+        
+        // Filter
+        'all_reports': 'Lahat ng Ulat',
+        'security': 'Seguridad',
+        'maintenance': 'Pagpapanatili',
+        'janitorial': 'Paglilinis',
+        'facilities': 'Pasilidad',
+        'view_my_reports': 'Tingnan ang Aking mga Ulat',
+        
+        // Incident Card
+        'your_report': 'Iyong Ulat',
+        'by': 'Ni',
+        'sensitive_report': '🔒 Sensitibong ulat - ang mga detalye ay para lamang sa seguridad',
+        'reported_by_you': 'Ulat mo',
+        'reported_by': 'Ulat ni',
+        'restricted': '🔒 Limitado',
+        
+        // Modal
+        'incident_details': 'Detalye ng Insidente',
+        'title': 'Pamagat',
+        'location': 'Lokasyon',
+        'category': 'Kategorya',
+        'priority': 'Priyoridad',
+        'status': 'Status',
+        'reported_by': 'Iniulat ni',
+        'description': 'Paglalarawan',
+        'date': 'Petsa',
+        'close': 'Isara',
+        'security_restriction': '⚠️ Restriksyon sa Seguridad',
+        'security_message': 'Ang ulat na ito ay naglalaman ng sensitibong impormasyon. Ang seguridad ng campus ay naabisuhan at hinahawakan ang sitwasyon.',
+        'confidential': '🔒 Kumpidensyal - Limitadong Access',
+        'you': 'Ikaw',
+        'another_student': 'Ibang Mag-aaral',
+        
+        // Status
+        'pending': 'Nakabinbin',
+        'in_progress': 'Isinasagawa',
+        'resolved': 'Naresolba',
+        
+        // Priority
+        'high': 'Mataas',
+        'medium': 'Katamtaman',
+        'low': 'Mababa',
+        
+        // Categories
+        'security_cat': 'Seguridad',
+        'maintenance_cat': 'Pagpapanatili',
+        'janitorial_cat': 'Paglilinis',
+        'facilities_cat': 'Pasilidad',
+        
+        // Empty States
+        'no_reports_yet': 'Wala pang ulat',
+        'click_new_report': 'I-click ang "Bagong Ulat" para magsumite ng iyong unang ulat',
+        'no_incidents_reported': 'Wala pang naiulat na insidente',
+        'be_first_to_report': 'Maging una upang mag-ulat ng insidente!',
+        
+        // Notifications
+        'new_report_update': 'Bagong Update sa Ulat',
+        'new_reports_added': 'bagong ulat ay naidagdag sa iyong mga ulat',
+        'new_reports_added_plural': 'bagong mga ulat ay naidagdag sa iyong mga ulat',
+        'report_status_update': 'Update sa Status ng Ulat',
+        'being_processed': 'Ang iyong ulat ay kasalukuyang pinoproseso',
+        'has_been_resolved': 'Ang iyong ulat ay naresolba na!',
+        'pending_review': 'Ang iyong ulat ay naghihintay ng pagsusuri',
+        
+        // Welcome
+        'welcome_back': 'Maligayang pagbabalik',
+        
+        // Toast
+        'logged_out': 'Matagumpay na naka-logout',
+        'profile_updated': 'Matagumpay na na-update ang larawan ng profile!',
+        'invalid_image': 'Mangyaring pumili ng wastong larawan (JPEG, PNG)',
+        'confirm_logout': 'Sigurado ka bang gusto mong mag-logout?',
+        'no_notifications': 'Wala pang abiso',
+        'clear_all': 'Linisin lahat',
+        'notifications_cleared': 'Linisin lahat ng abiso'
+    }
+};
+
+let currentLanguage = 'en';
+
+function t(key) {
+    return translations[currentLanguage][key] || translations['en'][key] || key;
+}
+
+function updateUIText() {
+    // Update elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            const placeholderKey = el.getAttribute('data-i18n-placeholder');
+            if (placeholderKey) el.placeholder = t(placeholderKey);
+        } else {
+            el.textContent = t(key);
+        }
+    });
+    
+    // Update stats labels
+    const statLabels = document.querySelectorAll('.stat-label');
+    const statKeys = ['your_reports', 'in_progress', 'resolved', 'total_campus_reports'];
+    statLabels.forEach((label, index) => {
+        if (statKeys[index]) label.textContent = t(statKeys[index]);
+    });
+    
+    // Update filter chips
+    const filterChips = document.querySelectorAll('.filter-chip');
+    const filterKeys = ['all_reports', 'security', 'maintenance', 'janitorial', 'facilities'];
+    filterChips.forEach((chip, index) => {
+        if (filterKeys[index] && !chip.id) {
+            chip.textContent = t(filterKeys[index]);
+        }
+    });
+    
+    // Update view mode toggle
+    const viewToggle = document.getElementById('viewModeToggle');
+    if (viewToggle) {
+        viewToggle.innerHTML = viewMode === 'my' ? '🌐 ' + t('all_reports') : '📋 ' + t('view_my_reports');
+    }
+    
+    // Update section title
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) sectionTitle.textContent = t('recent_incidents') || 'Recent Incidents';
+    
+    // Update drawer items
+    const drawerSpans = document.querySelectorAll('.drawer-item span');
+    const drawerKeys = ['dashboard', 'report', 'settings'];
+    drawerSpans.forEach((span, index) => {
+        if (drawerKeys[index]) span.textContent = t(drawerKeys[index]);
+    });
+    
+    // Update logout button
+    const logoutSpan = document.querySelector('.drawer-logout span');
+    if (logoutSpan) logoutSpan.textContent = t('logout');
+    
+    // Update bottom nav
+    const bottomSpans = document.querySelectorAll('.bottom-nav-item span');
+    const bottomKeys = ['home', 'report', 'settings'];
+    bottomSpans.forEach((span, index) => {
+        if (bottomKeys[index]) span.textContent = t(bottomKeys[index]);
+    });
+    
+    // Update hero date prefix if exists
+    const heroDate = document.querySelector('.hero-date');
+    if (heroDate && heroDate.innerHTML.includes('Today is')) {
+        // Optional: add translation for date prefix
+    }
+}
+
+function setLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('student_language', lang);
+    document.documentElement.lang = lang === 'tl' ? 'tl' : 'en';
+    updateUIText();
+    loadAndDisplayReports(); // Refresh incident cards to update translated text
+}
+
+function loadLanguage() {
+    const saved = localStorage.getItem('student_language');
+    if (saved === 'tl') {
+        setLanguage('tl');
+    } else {
+        setLanguage('en');
+    }
+}
+
 // ========== NOTIFICATION SYSTEM ==========
 let notifications = [];
 let unreadCount = 0;
 
-// Load notifications from localStorage
 function loadNotifications() {
     const saved = localStorage.getItem('student_notifications');
     if (saved) {
@@ -28,17 +297,15 @@ function loadNotifications() {
     }
 }
 
-// Save notifications to localStorage
 function saveNotifications() {
     localStorage.setItem('student_notifications', JSON.stringify(notifications));
 }
 
-// Add new notification
 function addNotification(title, message, type = 'info') {
     const notification = {
         id: Date.now(),
-        title: title,
-        message: message,
+        title: t(title) || title,
+        message: t(message) || message,
         type: type,
         timestamp: new Date().toISOString(),
         read: false
@@ -47,18 +314,14 @@ function addNotification(title, message, type = 'info') {
     notifications.unshift(notification);
     saveNotifications();
     updateNotificationBadge();
+    showNotificationToast(notification.title, notification.message);
     
-    // Show toast notification
-    showNotificationToast(title, message);
-    
-    // Keep only last 50 notifications
     if (notifications.length > 50) {
         notifications = notifications.slice(0, 50);
         saveNotifications();
     }
 }
 
-// Update notification badge count
 function updateNotificationBadge() {
     unreadCount = notifications.filter(n => !n.read).length;
     const badge = document.getElementById('notificationBadge');
@@ -72,7 +335,6 @@ function updateNotificationBadge() {
     }
 }
 
-// Show toast notification
 function showNotificationToast(title, message) {
     const toast = document.createElement('div');
     toast.className = 'notification-toast';
@@ -105,7 +367,6 @@ function showNotificationToast(title, message) {
     }, 4000);
 }
 
-// Render notification panel
 function renderNotificationPanel() {
     const panel = document.getElementById('notificationPanel');
     const list = document.getElementById('notificationList');
@@ -116,7 +377,7 @@ function renderNotificationPanel() {
         list.innerHTML = `
             <div class="notification-empty">
                 <div>🔔</div>
-                <p>No notifications yet</p>
+                <p>${t('no_notifications')}</p>
                 <small>You'll see updates here when reports are updated</small>
             </div>
         `;
@@ -131,7 +392,6 @@ function renderNotificationPanel() {
         </div>
     `).join('');
     
-    // Add click handlers for notifications
     document.querySelectorAll('.notification-item').forEach(item => {
         item.addEventListener('click', () => {
             const id = parseInt(item.dataset.id);
@@ -140,7 +400,6 @@ function renderNotificationPanel() {
     });
 }
 
-// Mark notification as read
 function markNotificationAsRead(id) {
     const notif = notifications.find(n => n.id === id);
     if (notif && !notif.read) {
@@ -151,33 +410,30 @@ function markNotificationAsRead(id) {
     }
 }
 
-// Clear all notifications
 function clearAllNotifications() {
-    if (confirm('Clear all notifications?')) {
+    if (confirm(t('clear_all') + '?')) {
         notifications = [];
         saveNotifications();
         updateNotificationBadge();
         renderNotificationPanel();
-        showNotification('All notifications cleared');
+        showNotification(t('notifications_cleared'));
     }
 }
 
-// Create notification panel in DOM
 function createNotificationPanel() {
     if (document.getElementById('notificationPanel')) return;
     
     const panelHTML = `
         <div id="notificationPanel" class="notification-panel">
             <div class="notification-header">
-                <h4>🔔 Notifications</h4>
-                <button class="notification-clear" id="clearNotificationsBtn">Clear all</button>
+                <h4>🔔 ${t('notifications') || 'Notifications'}</h4>
+                <button class="notification-clear" id="clearNotificationsBtn">${t('clear_all')}</button>
             </div>
             <div id="notificationList" class="notification-list"></div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', panelHTML);
     
-    // Setup clear button
     const clearBtn = document.getElementById('clearNotificationsBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAllNotifications);
@@ -186,7 +442,6 @@ function createNotificationPanel() {
     renderNotificationPanel();
 }
 
-// Setup notification button
 function setupNotificationSystem() {
     createNotificationPanel();
     loadNotifications();
@@ -195,7 +450,6 @@ function setupNotificationSystem() {
     const panel = document.getElementById('notificationPanel');
     
     if (notifBtn) {
-        // Remove existing listeners
         const newNotifBtn = notifBtn.cloneNode(true);
         notifBtn.parentNode.replaceChild(newNotifBtn, notifBtn);
         
@@ -206,7 +460,6 @@ function setupNotificationSystem() {
         });
     }
     
-    // Close panel when clicking outside
     document.addEventListener('click', (e) => {
         const panelEl = document.getElementById('notificationPanel');
         const btnEl = document.getElementById('notificationBtn');
@@ -220,7 +473,6 @@ function setupNotificationSystem() {
 function initDarkMode() {
     console.log('Initializing dark mode...');
     
-    // Check for saved dark mode preference
     const savedMode = localStorage.getItem('darkMode');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
@@ -230,10 +482,8 @@ function initDarkMode() {
         disableDarkMode();
     }
     
-    // Setup toggle button
     const toggleBtn = document.getElementById('darkModeToggle');
     if (toggleBtn) {
-        // Remove existing listeners
         const newToggleBtn = toggleBtn.cloneNode(true);
         toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
         
@@ -242,8 +492,6 @@ function initDarkMode() {
             toggleDarkMode();
         });
         console.log('Dark mode button setup complete');
-    } else {
-        console.log('Dark mode toggle button not found');
     }
 }
 
@@ -260,14 +508,14 @@ function enableDarkMode() {
     document.body.classList.add('dark-mode');
     localStorage.setItem('darkMode', 'enabled');
     updateDarkModeIcons(true);
-    showNotification('Dark mode enabled 🌙', 'success');
+    showNotification(t('dark_mode_enabled') || 'Dark mode enabled 🌙');
 }
 
 function disableDarkMode() {
     document.body.classList.remove('dark-mode');
     localStorage.setItem('darkMode', 'disabled');
     updateDarkModeIcons(false);
-    showNotification('Light mode enabled ☀️', 'success');
+    showNotification(t('light_mode_enabled') || 'Light mode enabled ☀️');
 }
 
 function updateDarkModeIcons(isDark) {
@@ -285,44 +533,41 @@ function updateDarkModeIcons(isDark) {
     }
 }
 
-// ========== AUTO-NOTIFICATIONS FOR REPORT UPDATES ==========
+// ========== AUTO-NOTIFICATIONS ==========
 let lastIncidentCount = 0;
 let lastStatusUpdates = {};
 
 function checkForUpdates() {
     if (!currentStudent) return;
     
-    // Check for status changes in student's reports
     const myReports = allIncidents.filter(inc => 
         String(inc.student_id) === String(currentStudent?.studentId)
     );
     
-    // Check if new reports added
     if (myReports.length > lastIncidentCount && lastIncidentCount !== 0) {
         const newCount = myReports.length - lastIncidentCount;
         addNotification(
-            'New Report Update',
-            `${newCount} new ${newCount === 1 ? 'report has' : 'reports have'} been added to your reports`,
+            'new_report_update',
+            `${newCount} ${newCount === 1 ? 'new_reports_added' : 'new_reports_added_plural'}`,
             'info'
         );
     }
     
-    // Check for status changes in student's reports
     myReports.forEach(report => {
         const lastStatus = lastStatusUpdates[report.id];
         if (lastStatus && lastStatus !== report.status) {
             let statusMessage = '';
             if (report.status === 'in-progress') {
-                statusMessage = 'Your report is now being processed';
+                statusMessage = 'being_processed';
             } else if (report.status === 'resolved') {
-                statusMessage = 'Your report has been resolved!';
+                statusMessage = 'has_been_resolved';
             } else if (report.status === 'pending') {
-                statusMessage = 'Your report is pending review';
+                statusMessage = 'pending_review';
             }
             
             if (statusMessage) {
                 addNotification(
-                    `Report Status Update: ${report.name.substring(0, 40)}`,
+                    'report_status_update',
                     statusMessage,
                     report.status === 'resolved' ? 'success' : 'info'
                 );
@@ -333,23 +578,6 @@ function checkForUpdates() {
     
     lastIncidentCount = myReports.length;
 }
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing...');
-    init();
-    startAutoRefresh();
-});
-
-function startAutoRefresh() {
-    console.log('Auto-refresh is disabled');
-    return;
-}
-
-window.addEventListener('beforeunload', () => {
-    if (refreshInterval) clearInterval(refreshInterval);
-    if (realtimeSubscription) realtimeSubscription.unsubscribe();
-});
 
 // ========== AUTHENTICATION ==========
 async function checkAuth() {
@@ -583,16 +811,16 @@ function displayIncidents(reports) {
             emptyMessage = `
                 <div class="empty-state">
                     <div class="empty-icon">📭</div>
-                    <div class="empty-title">No reports yet</div>
-                    <div class="empty-sub">Click the "New Report" button to submit your first incident report</div>
+                    <div class="empty-title">${t('no_reports_yet')}</div>
+                    <div class="empty-sub">${t('click_new_report')}</div>
                 </div>
             `;
         } else {
             emptyMessage = `
                 <div class="empty-state">
                     <div class="empty-icon">📭</div>
-                    <div class="empty-title">No incidents reported yet</div>
-                    <div class="empty-sub">Be the first to report an incident!</div>
+                    <div class="empty-title">${t('no_incidents_reported')}</div>
+                    <div class="empty-sub">${t('be_first_to_report')}</div>
                 </div>
             `;
         }
@@ -605,22 +833,22 @@ function displayIncidents(reports) {
 
 function createIncidentCard(report) {
     const categoryColors = {
-        security: { bg: '#FEF2F2', color: '#DC2626', label: 'Security' },
-        maintenance: { bg: '#EFF6FF', color: '#2563EB', label: 'Maintenance' },
-        janitorial: { bg: '#E1F5EE', color: '#085041', label: 'Janitorial' },
-        facilities: { bg: '#FFFBEB', color: '#D97706', label: 'Facilities' }
+        security: { bg: '#FEF2F2', color: '#DC2626', label: t('security_cat') },
+        maintenance: { bg: '#EFF6FF', color: '#2563EB', label: t('maintenance_cat') },
+        janitorial: { bg: '#E1F5EE', color: '#085041', label: t('janitorial_cat') },
+        facilities: { bg: '#FFFBEB', color: '#D97706', label: t('facilities_cat') }
     };
     
     const priorityColors = {
-        high: { bg: '#FEF2F2', color: '#DC2626', label: 'High' },
-        medium: { bg: '#FFFBEB', color: '#D97706', label: 'Medium' },
-        low: { bg: '#F0FDF4', color: '#16A34A', label: 'Low' }
+        high: { bg: '#FEF2F2', color: '#DC2626', label: t('high') },
+        medium: { bg: '#FFFBEB', color: '#D97706', label: t('medium') },
+        low: { bg: '#F0FDF4', color: '#16A34A', label: t('low') }
     };
     
     const statusColors = {
-        pending: { bg: '#FFF7ED', color: '#EA580C', label: 'Pending' },
-        'in-progress': { bg: '#EFF6FF', color: '#2563EB', label: 'In Progress' },
-        resolved: { bg: '#F0FDF4', color: '#16A34A', label: 'Resolved' }
+        pending: { bg: '#FFF7ED', color: '#EA580C', label: t('pending') },
+        'in-progress': { bg: '#EFF6FF', color: '#2563EB', label: t('in_progress') },
+        resolved: { bg: '#F0FDF4', color: '#16A34A', label: t('resolved') }
     };
     
     const cat = categoryColors[report.category] || categoryColors.maintenance;
@@ -639,7 +867,7 @@ function createIncidentCard(report) {
     else if (report.status === 'resolved') statusClass = 'resolved';
     
     const safetyBadge = (!canSeeDetails && !isYourReport) ? 
-        '<span class="badge safety">🔒 Restricted</span>' : '';
+        `<span class="badge safety">🔒 ${t('restricted')}</span>` : '';
     
     const reporterDisplay = report.is_anonymous === 'true' ? 'Anonymous Reporter' : (report.reporter || 'Student');
     
@@ -651,7 +879,7 @@ function createIncidentCard(report) {
                     <span class="badge ${report.category}">${cat.label}</span>
                     <span class="badge ${report.priority}">${pri.label}</span>
                     <span class="badge ${statusClass}">${stat.label}</span>
-                    ${isYourReport ? '<span class="badge your">Your Report</span>' : '<span class="badge other">By: ' + escapeHtml(reporterDisplay) + '</span>'}
+                    ${isYourReport ? `<span class="badge your">${t('your_report')}</span>` : `<span class="badge other">${t('by')}: ${escapeHtml(reporterDisplay)}</span>`}
                     ${safetyBadge}
                 </div>
             </div>
@@ -659,8 +887,8 @@ function createIncidentCard(report) {
             <div class="card-footer">
                 <div class="reporter-info">
                     ${!canSeeDetails && !isYourReport ? 
-                        '🔒 Sensitive report - details restricted to security personnel' : 
-                        `👤 ${isYourReport ? 'Reported by you' : `Reported by: ${escapeHtml(reporterDisplay)}`}`}
+                        t('sensitive_report') : 
+                        `👤 ${isYourReport ? t('reported_by_you') : `${t('reported_by')}: ${escapeHtml(reporterDisplay)}`}`}
                 </div>
                 <div class="timestamp">${timeAgo}</div>
             </div>
@@ -740,7 +968,7 @@ function toggleViewMode() {
     viewMode = viewMode === 'all' ? 'my' : 'all';
     const toggleBtn = document.getElementById('viewModeToggle');
     if (toggleBtn) {
-        toggleBtn.textContent = viewMode === 'my' ? '🌐 View All Reports' : '📋 View My Reports';
+        toggleBtn.innerHTML = viewMode === 'my' ? '🌐 ' + t('all_reports') : '📋 ' + t('view_my_reports');
     }
     loadAndDisplayReports();
 }
@@ -763,20 +991,20 @@ window.viewIncident = function(id) {
     
     document.getElementById('modalTitle').innerText = safeTitle;
     document.getElementById('modalLocation').innerHTML = safeLocation;
-    document.getElementById('modalCategory').innerHTML = `<span class="badge ${inc.category}">${inc.category}</span>`;
-    document.getElementById('modalPriority').innerHTML = `<span class="badge ${inc.priority}">${inc.priority}</span>`;
+    document.getElementById('modalCategory').innerHTML = `<span class="badge ${inc.category}">${t(inc.category + '_cat') || inc.category}</span>`;
+    document.getElementById('modalPriority').innerHTML = `<span class="badge ${inc.priority}">${t(inc.priority) || inc.priority}</span>`;
     
     let statusClass = '';
     let statusLabel = '';
     if (inc.status === 'pending') {
         statusClass = 'pending';
-        statusLabel = 'Pending';
+        statusLabel = t('pending');
     } else if (inc.status === 'in-progress') {
         statusClass = 'progress';
-        statusLabel = 'In Progress';
+        statusLabel = t('in_progress');
     } else {
         statusClass = 'resolved';
-        statusLabel = 'Resolved';
+        statusLabel = t('resolved');
     }
     document.getElementById('modalStatus').innerHTML = `<span class="badge ${statusClass}">${statusLabel}</span>`;
     
@@ -786,8 +1014,8 @@ window.viewIncident = function(id) {
     } else {
         descriptionElement.innerHTML = `
             <div style="background: #FEF2F2; padding: 16px; border-radius: 12px; border-left: 4px solid #DC2626;">
-                <strong style="color: #DC2626;">⚠️ Security Restriction</strong><br>
-                <span style="color: #475569;">This report contains sensitive safety information. Campus security has been notified and is handling the situation.</span>
+                <strong style="color: #DC2626;">${t('security_restriction')}</strong><br>
+                <span style="color: #475569;">${t('security_message')}</span>
             </div>
         `;
     }
@@ -798,11 +1026,17 @@ window.viewIncident = function(id) {
     if (modalReporter) {
         const reporterDisplay = inc.is_anonymous === 'true' ? 'Anonymous Reporter' : (inc.reporter || 'Another Student');
         if (!canSeeDetails && !isYourReport) {
-            modalReporter.innerHTML = `<span class="badge safety">🔒 Confidential - Restricted Access</span>`;
+            modalReporter.innerHTML = `<span class="badge safety">🔒 ${t('confidential')}</span>`;
         } else {
-            modalReporter.innerHTML = `<span class="badge other">${isYourReport ? 'You' : escapeHtml(reporterDisplay)}</span>`;
+            modalReporter.innerHTML = `<span class="badge other">${isYourReport ? t('you') : escapeHtml(reporterDisplay)}</span>`;
         }
     }
+    
+    const modalHeader = modal.querySelector('.modal-header h3');
+    if (modalHeader) modalHeader.innerHTML = `📋 ${t('incident_details')}`;
+    
+    const closeBtn = modal.querySelector('.modal-footer .modal-btn');
+    if (closeBtn) closeBtn.textContent = t('close');
     
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -821,20 +1055,20 @@ function createModal() {
         <div id="incidentModal" class="modal-overlay">
             <div class="modal-container">
                 <div class="modal-header">
-                    <h3>📋 Incident Details</h3>
+                    <h3>📋 ${t('incident_details')}</h3>
                     <button class="modal-close" onclick="closeModal()">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="modal-row"><div class="modal-label">Title</div><div class="modal-value" id="modalTitle"></div></div>
-                    <div class="modal-row"><div class="modal-label">Location</div><div class="modal-value" id="modalLocation"></div></div>
-                    <div class="modal-row"><div class="modal-label">Category</div><div class="modal-value" id="modalCategory"></div></div>
-                    <div class="modal-row"><div class="modal-label">Priority</div><div class="modal-value" id="modalPriority"></div></div>
-                    <div class="modal-row"><div class="modal-label">Status</div><div class="modal-value" id="modalStatus"></div></div>
-                    <div class="modal-row"><div class="modal-label">Reported By</div><div class="modal-value" id="modalReporter"></div></div>
-                    <div class="modal-row"><div class="modal-label">Description</div><div class="modal-value" id="modalDescription"></div></div>
-                    <div class="modal-row"><div class="modal-label">Date</div><div class="modal-value" id="modalDate"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('title')}</div><div class="modal-value" id="modalTitle"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('location')}</div><div class="modal-value" id="modalLocation"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('category')}</div><div class="modal-value" id="modalCategory"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('priority')}</div><div class="modal-value" id="modalPriority"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('status')}</div><div class="modal-value" id="modalStatus"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('reported_by')}</div><div class="modal-value" id="modalReporter"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('description')}</div><div class="modal-value" id="modalDescription"></div></div>
+                    <div class="modal-row"><div class="modal-label">${t('date')}</div><div class="modal-value" id="modalDate"></div></div>
                 </div>
-                <div class="modal-footer"><button class="modal-btn modal-btn-primary" onclick="closeModal()">Close</button></div>
+                <div class="modal-footer"><button class="modal-btn modal-btn-primary" onclick="closeModal()">${t('close')}</button></div>
             </div>
         </div>
     `;
@@ -864,7 +1098,6 @@ function loadStudentFromLogin() {
         return;
     }
     
-    // Update student name
     const studentNameElements = document.querySelectorAll('#studentName, .drawer-name');
     studentNameElements.forEach(el => {
         if (el) {
@@ -872,7 +1105,6 @@ function loadStudentFromLogin() {
         }
     });
     
-    // FIXED: Display student number in drawer
     const studentNumberEl = document.getElementById('studentNumber');
     if (studentNumberEl && currentStudent.studentId) {
         studentNumberEl.textContent = `ID: ${currentStudent.studentId}`;
@@ -880,14 +1112,12 @@ function loadStudentFromLogin() {
         studentNumberEl.textContent = 'ID: Not assigned';
     }
     
-    // Update welcome message
     const welcomeHeader = document.getElementById('welcomeMessage');
     if (welcomeHeader) {
         const firstName = currentStudent.name ? currentStudent.name.split(' ')[0] : 'Student';
-        welcomeHeader.innerHTML = `Welcome back, ${firstName}! 👋`;
+        welcomeHeader.innerHTML = `${t('welcome_back')}, ${firstName}! 👋`;
     }
     
-    // Update date
     const currentDateEl = document.getElementById('currentDate');
     if (currentDateEl) {
         currentDateEl.textContent = new Date().toLocaleDateString('en-US', {
@@ -926,11 +1156,11 @@ function setupAvatarUpload() {
                     const imageData = ev.target.result;
                     localStorage.setItem(`avatar_${currentStudent.studentId}`, imageData);
                     avatarContainer.innerHTML = `<img src="${imageData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-                    showNotification('Profile picture updated successfully!');
+                    showNotification(t('profile_updated'));
                 };
                 reader.readAsDataURL(file);
             } else {
-                showNotification('Please select a valid image file (JPEG, PNG)', 'error');
+                showNotification(t('invalid_image'), 'error');
             }
             fileInput.value = '';
         });
@@ -954,7 +1184,6 @@ function setupFilters() {
     });
 }
 
-// FIXED: Changed initial button text to match viewMode = 'all'
 function addViewModeToggle() {
     const filterBar = document.querySelector('.filter-bar');
     if (filterBar && !document.getElementById('viewModeToggle')) {
@@ -963,7 +1192,7 @@ function addViewModeToggle() {
         toggleBtn.className = 'filter-chip';
         toggleBtn.style.background = '#2563EB';
         toggleBtn.style.color = 'white';
-        toggleBtn.innerHTML = '📋 View My Reports';  
+        toggleBtn.innerHTML = '📋 ' + t('view_my_reports');  
         toggleBtn.onclick = () => toggleViewMode();
         filterBar.appendChild(toggleBtn);
     }
@@ -1006,9 +1235,9 @@ function initializeDrawer() {
         
         newLogoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm(t('confirm_logout'))) {
                 localStorage.removeItem('currentStudent');
-                showNotification('Logged out successfully');
+                showNotification(t('logged_out'));
                 setTimeout(() => {
                     window.location.href = '/land.html';
                 }, 1000);
@@ -1071,7 +1300,7 @@ function setupUI() {
     });
 }
 
-// Setup bottom navigation
+// ========== BOTTOM NAVIGATION ==========
 function setupBottomNav() {
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     const drawerItems = document.querySelectorAll('.drawer-item');
@@ -1114,7 +1343,6 @@ function setupBottomNav() {
         });
     });
     
-    // Determine which nav is active based on URL
     const currentPath = window.location.pathname;
     if (currentPath.includes('SDB.html') || currentPath.includes('dashboard')) {
         setActiveNav('dashboard');
@@ -1125,6 +1353,180 @@ function setupBottomNav() {
     }
 }
 
+// ========== PAGE TRANSITION ANIMATIONS ==========
+function createLoader() {
+    if (document.getElementById('pageLoader')) return;
+    
+    const loader = document.createElement('div');
+    loader.id = 'pageLoader';
+    loader.className = 'page-transition-loader';
+    loader.innerHTML = '<div class="spinner"></div>';
+    document.body.appendChild(loader);
+    return loader;
+}
+
+function createRippleEffect(event, element) {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    
+    element.appendChild(ripple);
+    
+    setTimeout(() => {
+        if (ripple && ripple.remove) ripple.remove();
+    }, 500);
+}
+
+function navigateWithAnimation(targetUrl) {
+    const mainContent = document.querySelector('.main-content');
+    const loader = document.getElementById('pageLoader') || createLoader();
+    
+    if (mainContent) {
+        mainContent.classList.add('fade-out');
+        mainContent.classList.remove('fade-in');
+    }
+    
+    if (loader) {
+        setTimeout(() => {
+            loader.classList.add('show');
+        }, 100);
+    }
+    
+    setTimeout(() => {
+        window.location.href = targetUrl;
+    }, 280);
+}
+
+function setupBeautifulBottomNav() {
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    const currentPath = window.location.pathname;
+    
+    const pageUrls = {
+        'dashboard': '/Assets/Student_dashboard/SDB.html',
+        'report': '/Assets/Student_reporting/report.html',
+        'settings': '/Assets/Student_dashboard/setting/setting.html'
+    };
+    
+    function getCurrentPageKey() {
+        if (currentPath.includes('SDB.html') || currentPath.includes('dashboard')) {
+            return 'dashboard';
+        } else if (currentPath.includes('report.html')) {
+            return 'report';
+        } else if (currentPath.includes('setting.html')) {
+            return 'settings';
+        }
+        return 'dashboard';
+    }
+    
+    const currentPage = getCurrentPageKey();
+    
+    bottomNavItems.forEach(item => {
+        const pageKey = item.dataset.page;
+        if (pageKey === currentPage) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+    
+    bottomNavItems.forEach(item => {
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const targetPage = newItem.dataset.page;
+            const targetUrl = pageUrls[targetPage];
+            const currentPageKey = getCurrentPageKey();
+            
+            if (targetPage === currentPageKey) {
+                createRippleEffect(e, newItem);
+                return;
+            }
+            
+            createRippleEffect(e, newItem);
+            
+            const storedStudent = localStorage.getItem('currentStudent');
+            if (storedStudent) {
+                localStorage.setItem('currentStudent', storedStudent);
+            }
+            
+            navigateWithAnimation(targetUrl);
+        });
+    });
+}
+
+function fadeInMainContentBeautiful() {
+    const mainContent = document.querySelector('.main-content');
+    if (!mainContent) return;
+    
+    mainContent.classList.remove('fade-out');
+    mainContent.classList.add('fade-in');
+    
+    setTimeout(() => {
+        mainContent.classList.remove('fade-in');
+    }, 400);
+}
+
+function hideLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+        loader.classList.remove('show');
+    }
+}
+
+function initBeautifulAnimations() {
+    createLoader();
+    
+    setTimeout(() => {
+        fadeInMainContentBeautiful();
+        setupBeautifulBottomNav();
+        hideLoader();
+    }, 50);
+}
+
+function setupReportButtonBeautiful() {
+    const reportBtn = document.querySelector('.bottom-nav-item[data-page="report"]');
+    if (!reportBtn) return;
+    
+    reportBtn.addEventListener('click', (e) => {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        const rect = reportBtn.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        reportBtn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 500);
+        
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) mainContent.classList.add('fade-out');
+        
+        const loader = document.getElementById('pageLoader');
+        if (loader) setTimeout(() => loader.classList.add('show'), 100);
+        
+        const storedStudent = localStorage.getItem('currentStudent');
+        if (storedStudent) localStorage.setItem('currentStudent', storedStudent);
+        
+        setTimeout(() => {
+            window.location.href = '/Assets/Student_reporting/report.html';
+        }, 280);
+    });
+}
+
 // ========== INITIALIZATION ==========
 async function init() {
     console.log('Initializing dashboard...');
@@ -1133,6 +1535,7 @@ async function init() {
     console.log('Auth success:', authSuccess);
     
     loadStudentFromLogin();
+    loadLanguage(); // Load language preference
     await loadIncidents();
     setupUI();
     setupRealtimeSubscription();
@@ -1140,7 +1543,6 @@ async function init() {
     initDarkMode();
     setupBottomNav();
     
-    // Auto-check for updates every 10 seconds
     setInterval(() => {
         if (allIncidents.length > 0) {
             checkForUpdates();
@@ -1148,8 +1550,29 @@ async function init() {
     }, 10000);
 }
 
+// Initialize animations on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    initBeautifulAnimations();
+    setupReportButtonBeautiful();
+});
+
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        hideLoader();
+        fadeInMainContentBeautiful();
+        setupBeautifulBottomNav();
+    }
+});
+
+window.addEventListener('load', () => {
+    hideLoader();
+});
+
 // Export functions
 window.getReports = getReports;
 window.saveReports = saveReports;
 window.viewIncident = viewIncident;
 window.closeModal = closeModal;
+
+// Start the dashboard
+init();
