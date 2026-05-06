@@ -337,7 +337,7 @@ loginBtn.addEventListener('click', async () => {
         showNotification('Login successful! Redirecting...', false, 1500);
         
         setTimeout(() => {
-            window.location.href = './Assets/Student_dashboard/SDB.html';  // Relative path
+            window.location.href = '/Assets/Student_dashboard/SDB.html';  
         }, 1500);
 
     } catch (error) {

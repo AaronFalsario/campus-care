@@ -1371,9 +1371,21 @@ window.testNotification = function() {
     showToastMessage('Test notification sent! Check your notifications.', 'info');
 };
 
-// ============ INITIALIZATION ============
+// ============ INITIALIZATION ==========
 async function init() {
     console.log('🚀 Initializing Admin Dashboard...');
+    
+    // FIX: Force reset filter to 'all' on tablets
+    currentFilter = 'all';
+    
+    // FIX: Ensure filter chips show correctly
+    setTimeout(() => {
+        const activeChip = document.querySelector('.filter-chip.active');
+        if (!activeChip) {
+            const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+            if (allChip) allChip.classList.add('active');
+        }
+    }, 100);
     
     loadAdminToDrawer();
     loadNotifications();
@@ -1382,6 +1394,18 @@ async function init() {
     setupEvents();
     startAutoCleanupScheduler();
     setupRealtimeSubscription();
+    
+    // FIX: Force display after loading
+    setTimeout(() => {
+        console.log('🔄 Forcing display refresh...');
+        console.log('Total incidents loaded:', allIncidents.length);
+        console.log('Current filter:', currentFilter);
+        updateAll();
+        
+        // Log urgent incidents
+        const urgentIncidents = allIncidents.filter(i => i.priority === 'high' || i.priority === 'urgent');
+        console.log('Urgent incidents:', urgentIncidents.length);
+    }, 500);
     
     // Request notification permission on page load
     setTimeout(() => {
@@ -1402,6 +1426,49 @@ async function init() {
         } 
     }); 
 }
+
+// ============ TABLET FIX - FORCE SHOW ALL INCIDENTS ============
+window.forceShowAllIncidents = function() {
+    console.log('🔧 Force showing all incidents...');
+    currentFilter = 'all';
+    
+    // Update filter chips
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === 'all') {
+            btn.classList.add('active');
+        }
+    });
+    
+    updateAll();
+    showToastMessage('Showing all incidents', 'success');
+};
+
+// ============ DEBUG FUNCTION FOR TABLET ============
+window.debugIncidents = function() {
+    console.log('=== DEBUG INCIDENTS ===');
+    console.log('Total incidents:', allIncidents.length);
+    console.log('Current filter:', currentFilter);
+    console.log('All incidents list:', allIncidents);
+    console.log('Filtered incidents:', getFiltered());
+    console.log('Urgent incidents:', allIncidents.filter(i => i.priority === 'high' || i.priority === 'urgent'));
+    
+    // Check DOM elements
+    const tableBody = document.getElementById('incidentsTableBody');
+    const mobileContainer = document.getElementById('mobileCards');
+    console.log('Table body exists:', !!tableBody);
+    console.log('Mobile container exists:', !!mobileContainer);
+    
+    // Force refresh
+    updateAll();
+    
+    return {
+        total: allIncidents.length,
+        filter: currentFilter,
+        filtered: getFiltered().length,
+        urgent: allIncidents.filter(i => i.priority === 'high' || i.priority === 'urgent').length
+    };
+};
 
 // Start the dashboard
 init();

@@ -12,81 +12,126 @@ let viewMode = 'all';
 let refreshInterval = null;
 let realtimeSubscription = null;
 
-// Sensitive categories
-const SENSITIVE_CATEGORIES = ['weapon', 'violence', 'threat', 'danger', 'security', 'harassment', 'bullying'];
+// Sensitive categories and keywords for security reports
+const SENSITIVE_CATEGORIES = ['weapon', 'violence', 'threat', 'danger', 'security', 'harassment', 'bullying', 'gun', 'firearm', 'knife', 'assault'];
+const SECURITY_KEYWORDS = ['gun', 'firearm', 'weapon', 'knife', 'blade', 'shooting', 'threat', 'danger', 'violence'];
+
+// Function to check if a report is security-sensitive
+function isSecuritySensitive(incident) {
+    if (!incident) return false;
+    
+    // Check category
+    if (incident.category && SENSITIVE_CATEGORIES.includes(incident.category.toLowerCase())) {
+        return true;
+    }
+    
+    // Check title for security keywords
+    if (incident.name) {
+        const titleLower = incident.name.toLowerCase();
+        if (SECURITY_KEYWORDS.some(keyword => titleLower.includes(keyword))) {
+            return true;
+        }
+    }
+    
+    // Check description for security keywords
+    if (incident.description) {
+        const descLower = incident.description.toLowerCase();
+        if (SECURITY_KEYWORDS.some(keyword => descLower.includes(keyword))) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Function to get safe reporter name (hidden for security reports)
+function getSafeReporterName(incident, isYourReport) {
+    // If it's the user's own report, they can see their own name
+    if (isYourReport) {
+        if (incident.is_anonymous === 'true') {
+            return 'Anonymous Reporter';
+        }
+        return incident.reporter || 'You';
+    }
+    
+    // Check if this is a security-sensitive report
+    if (isSecuritySensitive(incident)) {
+        return '🔒 Confidential Reporter';
+    }
+    
+    // For non-security reports, show the reporter name (or anonymous)
+    if (incident.is_anonymous === 'true') {
+        return 'Anonymous Reporter';
+    }
+    
+    return incident.reporter || 'Another Student';
+}
+
+// Function to get safe description (hidden for security reports)
+function getSafeDescription(incident, isYourReport, canSeeDetails) {
+    if (isYourReport || canSeeDetails) {
+        return incident.description || 'No description provided';
+    }
+    
+    // For security reports that aren't yours, hide description
+    if (isSecuritySensitive(incident)) {
+        return '🔒 This report contains sensitive security information and has been restricted.';
+    }
+    
+    return incident.description || 'No description provided';
+}
 
 // ========== TRANSLATIONS ==========
 const translations = {
     en: {
-        // Navigation
         'dashboard': 'Dashboard',
         'report': 'New Report',
         'settings': 'Settings',
         'home': 'Home',
         'logout': 'Logout',
-        
-        // Stats
         'your_reports': 'Your Reports',
         'in_progress': 'In Progress',
         'resolved': 'Resolved',
         'total_campus_reports': 'Total Campus Reports',
-        
-        // Filter
         'all_reports': 'All Reports',
         'security': 'Security',
         'maintenance': 'Maintenance',
         'janitorial': 'Janitorial',
         'facilities': 'Facilities',
         'view_my_reports': 'View My Reports',
-        
-        // Incident Card
         'your_report': 'Your Report',
         'by': 'By',
         'sensitive_report': '🔒 Sensitive report - details restricted to security personnel',
         'reported_by_you': 'Reported by you',
         'reported_by': 'Reported by',
         'restricted': '🔒 Restricted',
-        
-        // Modal
+        'confidential_reporter': '🔒 Confidential Reporter',
         'incident_details': 'Incident Details',
         'title': 'Title',
         'location': 'Location',
         'category': 'Category',
         'priority': 'Priority',
         'status': 'Status',
-        'reported_by': 'Reported By',
         'description': 'Description',
         'date': 'Date',
         'close': 'Close',
         'security_restriction': '⚠️ Security Restriction',
         'security_message': 'This report contains sensitive safety information. Campus security has been notified and is handling the situation.',
-        'confidential': '🔒 Confidential - Restricted Access',
+        'confidential': '🔒 Confidential - Reporter Identity Protected',
         'you': 'You',
         'another_student': 'Another Student',
-        
-        // Status
         'pending': 'Pending',
-        'in_progress': 'In Progress',
-        'resolved': 'Resolved',
-        
-        // Priority
         'high': 'High',
         'medium': 'Medium',
         'low': 'Low',
-        
-        // Categories
         'security_cat': 'Security',
         'maintenance_cat': 'Maintenance',
         'janitorial_cat': 'Janitorial',
         'facilities_cat': 'Facilities',
-        
-        // Empty States
         'no_reports_yet': 'No reports yet',
         'click_new_report': 'Click the "New Report" button to submit your first incident report',
         'no_incidents_reported': 'No incidents reported yet',
         'be_first_to_report': 'Be the first to report an incident!',
-        
-        // Notifications
         'new_report_update': 'New Report Update',
         'new_reports_added': 'new report has been added to your reports',
         'new_reports_added_plural': 'new reports have been added to your reports',
@@ -94,89 +139,66 @@ const translations = {
         'being_processed': 'Your report is now being processed',
         'has_been_resolved': 'Your report has been resolved!',
         'pending_review': 'Your report is pending review',
-        
-        // Welcome
         'welcome_back': 'Welcome back',
-        
-        // Toast
         'logged_out': 'Logged out successfully',
         'profile_updated': 'Profile picture updated successfully!',
         'invalid_image': 'Please select a valid image file (JPEG, PNG)',
         'confirm_logout': 'Are you sure you want to logout?',
         'no_notifications': 'No notifications yet',
         'clear_all': 'Clear all',
-        'notifications_cleared': 'All notifications cleared'
+        'notifications_cleared': 'All notifications cleared',
+        'dark_mode_enabled': 'Dark mode enabled 🌙',
+        'light_mode_enabled': 'Light mode enabled ☀️'
     },
     tl: {
-        // Navigation
         'dashboard': 'Dashboard',
         'report': 'Bagong Ulat',
         'settings': 'Mga Setting',
         'home': 'Bahay',
         'logout': 'Mag-logout',
-        
-        // Stats
         'your_reports': 'Iyong mga Ulat',
         'in_progress': 'Isinasagawa',
         'resolved': 'Naresolba',
         'total_campus_reports': 'Kabuuang Ulat sa Campus',
-        
-        // Filter
         'all_reports': 'Lahat ng Ulat',
         'security': 'Seguridad',
         'maintenance': 'Pagpapanatili',
         'janitorial': 'Paglilinis',
         'facilities': 'Pasilidad',
         'view_my_reports': 'Tingnan ang Aking mga Ulat',
-        
-        // Incident Card
         'your_report': 'Iyong Ulat',
         'by': 'Ni',
         'sensitive_report': '🔒 Sensitibong ulat - ang mga detalye ay para lamang sa seguridad',
         'reported_by_you': 'Ulat mo',
         'reported_by': 'Ulat ni',
         'restricted': '🔒 Limitado',
-        
-        // Modal
+        'confidential_reporter': '🔒 Kumpidensyal na Reporter',
         'incident_details': 'Detalye ng Insidente',
         'title': 'Pamagat',
         'location': 'Lokasyon',
         'category': 'Kategorya',
         'priority': 'Priyoridad',
         'status': 'Status',
-        'reported_by': 'Iniulat ni',
         'description': 'Paglalarawan',
         'date': 'Petsa',
         'close': 'Isara',
         'security_restriction': '⚠️ Restriksyon sa Seguridad',
         'security_message': 'Ang ulat na ito ay naglalaman ng sensitibong impormasyon. Ang seguridad ng campus ay naabisuhan at hinahawakan ang sitwasyon.',
-        'confidential': '🔒 Kumpidensyal - Limitadong Access',
+        'confidential': '🔒 Kumpidensyal - Protektado ang Pagkakakilanlan',
         'you': 'Ikaw',
         'another_student': 'Ibang Mag-aaral',
-        
-        // Status
         'pending': 'Nakabinbin',
-        'in_progress': 'Isinasagawa',
-        'resolved': 'Naresolba',
-        
-        // Priority
         'high': 'Mataas',
         'medium': 'Katamtaman',
         'low': 'Mababa',
-        
-        // Categories
         'security_cat': 'Seguridad',
         'maintenance_cat': 'Pagpapanatili',
         'janitorial_cat': 'Paglilinis',
         'facilities_cat': 'Pasilidad',
-        
-        // Empty States
         'no_reports_yet': 'Wala pang ulat',
         'click_new_report': 'I-click ang "Bagong Ulat" para magsumite ng iyong unang ulat',
         'no_incidents_reported': 'Wala pang naiulat na insidente',
         'be_first_to_report': 'Maging una upang mag-ulat ng insidente!',
-        
-        // Notifications
         'new_report_update': 'Bagong Update sa Ulat',
         'new_reports_added': 'bagong ulat ay naidagdag sa iyong mga ulat',
         'new_reports_added_plural': 'bagong mga ulat ay naidagdag sa iyong mga ulat',
@@ -184,18 +206,16 @@ const translations = {
         'being_processed': 'Ang iyong ulat ay kasalukuyang pinoproseso',
         'has_been_resolved': 'Ang iyong ulat ay naresolba na!',
         'pending_review': 'Ang iyong ulat ay naghihintay ng pagsusuri',
-        
-        // Welcome
         'welcome_back': 'Maligayang pagbabalik',
-        
-        // Toast
         'logged_out': 'Matagumpay na naka-logout',
         'profile_updated': 'Matagumpay na na-update ang larawan ng profile!',
         'invalid_image': 'Mangyaring pumili ng wastong larawan (JPEG, PNG)',
         'confirm_logout': 'Sigurado ka bang gusto mong mag-logout?',
         'no_notifications': 'Wala pang abiso',
         'clear_all': 'Linisin lahat',
-        'notifications_cleared': 'Linisin lahat ng abiso'
+        'notifications_cleared': 'Linisin lahat ng abiso',
+        'dark_mode_enabled': 'Pinagana ang madilim na mode 🌙',
+        'light_mode_enabled': 'Pinagana ang maliwanag na mode ☀️'
     }
 };
 
@@ -206,7 +226,6 @@ function t(key) {
 }
 
 function updateUIText() {
-    // Update elements with data-i18n
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
@@ -217,14 +236,12 @@ function updateUIText() {
         }
     });
     
-    // Update stats labels
     const statLabels = document.querySelectorAll('.stat-label');
     const statKeys = ['your_reports', 'in_progress', 'resolved', 'total_campus_reports'];
     statLabels.forEach((label, index) => {
         if (statKeys[index]) label.textContent = t(statKeys[index]);
     });
     
-    // Update filter chips
     const filterChips = document.querySelectorAll('.filter-chip');
     const filterKeys = ['all_reports', 'security', 'maintenance', 'janitorial', 'facilities'];
     filterChips.forEach((chip, index) => {
@@ -233,39 +250,28 @@ function updateUIText() {
         }
     });
     
-    // Update view mode toggle
     const viewToggle = document.getElementById('viewModeToggle');
     if (viewToggle) {
         viewToggle.innerHTML = viewMode === 'my' ? '🌐 ' + t('all_reports') : '📋 ' + t('view_my_reports');
     }
     
-    // Update section title
     const sectionTitle = document.querySelector('.section-title');
     if (sectionTitle) sectionTitle.textContent = t('recent_incidents') || 'Recent Incidents';
     
-    // Update drawer items
     const drawerSpans = document.querySelectorAll('.drawer-item span');
     const drawerKeys = ['dashboard', 'report', 'settings'];
     drawerSpans.forEach((span, index) => {
         if (drawerKeys[index]) span.textContent = t(drawerKeys[index]);
     });
     
-    // Update logout button
     const logoutSpan = document.querySelector('.drawer-logout span');
     if (logoutSpan) logoutSpan.textContent = t('logout');
     
-    // Update bottom nav
     const bottomSpans = document.querySelectorAll('.bottom-nav-item span');
     const bottomKeys = ['home', 'report', 'settings'];
     bottomSpans.forEach((span, index) => {
         if (bottomKeys[index]) span.textContent = t(bottomKeys[index]);
     });
-    
-    // Update hero date prefix if exists
-    const heroDate = document.querySelector('.hero-date');
-    if (heroDate && heroDate.innerHTML.includes('Today is')) {
-        // Optional: add translation for date prefix
-    }
 }
 
 function setLanguage(lang) {
@@ -273,7 +279,7 @@ function setLanguage(lang) {
     localStorage.setItem('student_language', lang);
     document.documentElement.lang = lang === 'tl' ? 'tl' : 'en';
     updateUIText();
-    loadAndDisplayReports(); // Refresh incident cards to update translated text
+    loadAndDisplayReports();
 }
 
 function loadLanguage() {
@@ -508,14 +514,14 @@ function enableDarkMode() {
     document.body.classList.add('dark-mode');
     localStorage.setItem('darkMode', 'enabled');
     updateDarkModeIcons(true);
-    showNotification(t('dark_mode_enabled') || 'Dark mode enabled 🌙');
+    showNotification(t('dark_mode_enabled'));
 }
 
 function disableDarkMode() {
     document.body.classList.remove('dark-mode');
     localStorage.setItem('darkMode', 'disabled');
     updateDarkModeIcons(false);
-    showNotification(t('light_mode_enabled') || 'Light mode enabled ☀️');
+    showNotification(t('light_mode_enabled'));
 }
 
 function updateDarkModeIcons(isDark) {
@@ -642,6 +648,9 @@ function canStudentSeeDescription(incident) {
     if (String(incident.student_id) === String(currentStudent?.studentId)) {
         return true;
     }
+    if (isSecuritySensitive(incident)) {
+        return false;
+    }
     if (incident.category && SENSITIVE_CATEGORIES.includes(incident.category.toLowerCase())) {
         return false;
     }
@@ -652,6 +661,10 @@ function getSafeLocation(incident) {
     if (!currentStudent) return incident.location || 'Location not specified';
     if (String(incident.student_id) === String(currentStudent?.studentId)) {
         return incident.location || 'Location not specified';
+    }
+    
+    if (isSecuritySensitive(incident)) {
+        return '<span class="location-restricted">🔒 LOCATION RESTRICTED - Security Purposes</span>';
     }
     
     if (incident.category === 'security') {
@@ -670,6 +683,9 @@ function getSafeTitle(incident) {
     if (!currentStudent) return incident.name || 'Incident Report';
     if (canStudentSeeDescription(incident)) {
         return incident.name;
+    }
+    if (isSecuritySensitive(incident)) {
+        return '⚠️ SECURITY ALERT - Details Restricted ⚠️';
     }
     if (incident.category === 'security') {
         return '⚠️ Security Alert - Admin Notified';
@@ -860,6 +876,7 @@ function createIncidentCard(report) {
     const canSeeDetails = canStudentSeeDescription(report);
     const safeTitle = getSafeTitle(report);
     const safeLocation = getSafeLocation(report);
+    const safeReporterName = getSafeReporterName(report, isYourReport);
     
     let statusClass = '';
     if (report.status === 'pending') statusClass = 'pending';
@@ -869,7 +886,9 @@ function createIncidentCard(report) {
     const safetyBadge = (!canSeeDetails && !isYourReport) ? 
         `<span class="badge safety">🔒 ${t('restricted')}</span>` : '';
     
-    const reporterDisplay = report.is_anonymous === 'true' ? 'Anonymous Reporter' : (report.reporter || 'Student');
+    const isSecurity = isSecuritySensitive(report);
+    const securityBadge = isSecurity && !isYourReport ? 
+        `<span class="badge security-alert">⚠️ SECURITY CONCERN</span>` : '';
     
     return `
         <div class="incident-card" onclick="viewIncident(${report.id})">
@@ -879,16 +898,17 @@ function createIncidentCard(report) {
                     <span class="badge ${report.category}">${cat.label}</span>
                     <span class="badge ${report.priority}">${pri.label}</span>
                     <span class="badge ${statusClass}">${stat.label}</span>
-                    ${isYourReport ? `<span class="badge your">${t('your_report')}</span>` : `<span class="badge other">${t('by')}: ${escapeHtml(reporterDisplay)}</span>`}
+                    ${isYourReport ? `<span class="badge your">${t('your_report')}</span>` : `<span class="badge other">${t('by')}: ${escapeHtml(safeReporterName)}</span>`}
                     ${safetyBadge}
+                    ${securityBadge}
                 </div>
             </div>
             <div class="incident-location">${safeLocation}</div>
             <div class="card-footer">
                 <div class="reporter-info">
                     ${!canSeeDetails && !isYourReport ? 
-                        t('sensitive_report') : 
-                        `👤 ${isYourReport ? t('reported_by_you') : `${t('reported_by')}: ${escapeHtml(reporterDisplay)}`}`}
+                        (isSecurity ? '🔒 SECURITY REPORT - Identity Protected' : t('sensitive_report')) : 
+                        `👤 ${isYourReport ? t('reported_by_you') : `${t('reported_by')}: ${escapeHtml(safeReporterName)}`}`}
                 </div>
                 <div class="timestamp">${timeAgo}</div>
             </div>
@@ -906,7 +926,8 @@ function updateStats() {
     const myReports = allIncidents.filter(inc => String(inc.student_id) === String(currentStudent.studentId));
     
     const total = myReports.length;
-    const inProgressCount = myReports.filter(r => r.status === 'in-progress' || r.status === 'pending').length;
+    const inProgressCount = myReports.filter(r => r.status === 'in-progress').length;
+    const pendingCount = myReports.filter(r => r.status === 'pending').length;
     const resolvedCount = myReports.filter(r => r.status === 'resolved').length;
     const totalCampus = allIncidents.length;
     
@@ -919,6 +940,8 @@ function updateStats() {
     if (inProgressEl) inProgressEl.textContent = inProgressCount;
     if (resolvedEl) resolvedEl.textContent = resolvedCount;
     if (totalReportsEl) totalReportsEl.textContent = totalCampus;
+    
+    console.log(`Stats updated: Total: ${total}, Pending: ${pendingCount}, In Progress: ${inProgressCount}, Resolved: ${resolvedCount}`);
 }
 
 function getTimeAgo(date) {
@@ -988,11 +1011,23 @@ window.viewIncident = function(id) {
     const canSeeDetails = canStudentSeeDescription(inc);
     const safeTitle = getSafeTitle(inc);
     const safeLocation = getSafeLocation(inc);
+    const safeReporterName = getSafeReporterName(inc, isYourReport);
+    const safeDescription = getSafeDescription(inc, isYourReport, canSeeDetails);
+    const isSecurity = isSecuritySensitive(inc);
     
-    document.getElementById('modalTitle').innerText = safeTitle;
-    document.getElementById('modalLocation').innerHTML = safeLocation;
-    document.getElementById('modalCategory').innerHTML = `<span class="badge ${inc.category}">${t(inc.category + '_cat') || inc.category}</span>`;
-    document.getElementById('modalPriority').innerHTML = `<span class="badge ${inc.priority}">${t(inc.priority) || inc.priority}</span>`;
+    const titleEl = document.getElementById('modalTitle');
+    const locationEl = document.getElementById('modalLocation');
+    const categoryEl = document.getElementById('modalCategory');
+    const priorityEl = document.getElementById('modalPriority');
+    const statusEl = document.getElementById('modalStatus');
+    const descriptionEl = document.getElementById('modalDescription');
+    const dateEl = document.getElementById('modalDate');
+    const reporterEl = document.getElementById('modalReporter');
+    
+    if (titleEl) titleEl.innerText = safeTitle;
+    if (locationEl) locationEl.innerHTML = safeLocation;
+    if (categoryEl) categoryEl.innerHTML = `<span class="badge ${inc.category}">${t(inc.category + '_cat') || inc.category}</span>`;
+    if (priorityEl) priorityEl.innerHTML = `<span class="badge ${inc.priority}">${t(inc.priority) || inc.priority}</span>`;
     
     let statusClass = '';
     let statusLabel = '';
@@ -1006,29 +1041,37 @@ window.viewIncident = function(id) {
         statusClass = 'resolved';
         statusLabel = t('resolved');
     }
-    document.getElementById('modalStatus').innerHTML = `<span class="badge ${statusClass}">${statusLabel}</span>`;
+    if (statusEl) statusEl.innerHTML = `<span class="badge ${statusClass}">${statusLabel}</span>`;
     
-    const descriptionElement = document.getElementById('modalDescription');
-    if (isYourReport || canSeeDetails) {
-        descriptionElement.innerHTML = `<div style="padding: 8px 0;">${escapeHtml(inc.description || 'No description provided')}</div>`;
-    } else {
-        descriptionElement.innerHTML = `
-            <div style="background: #FEF2F2; padding: 16px; border-radius: 12px; border-left: 4px solid #DC2626;">
-                <strong style="color: #DC2626;">${t('security_restriction')}</strong><br>
-                <span style="color: #475569;">${t('security_message')}</span>
-            </div>
-        `;
+    if (descriptionEl) {
+        if (isYourReport || canSeeDetails) {
+            descriptionEl.innerHTML = `<div style="padding: 8px 0;">${escapeHtml(safeDescription)}</div>`;
+        } else {
+            if (isSecurity) {
+                descriptionEl.innerHTML = `
+                    <div style="background: #FEF2F2; padding: 16px; border-radius: 12px; border-left: 4px solid #DC2626;">
+                        <strong style="color: #DC2626;">⚠️ SECURITY REPORT ⚠️</strong><br>
+                        <span style="color: #475569;">This report contains sensitive security information. For the safety of all parties, details are only available to campus security personnel and the original reporter.</span>
+                    </div>
+                `;
+            } else {
+                descriptionEl.innerHTML = `
+                    <div style="background: #FEF2F2; padding: 16px; border-radius: 12px; border-left: 4px solid #DC2626;">
+                        <strong style="color: #DC2626;">${t('security_restriction')}</strong><br>
+                        <span style="color: #475569;">${t('security_message')}</span>
+                    </div>
+                `;
+            }
+        }
     }
     
-    document.getElementById('modalDate').innerText = new Date(inc.timestamp).toLocaleString();
+    if (dateEl) dateEl.innerText = new Date(inc.timestamp).toLocaleString();
     
-    const modalReporter = document.getElementById('modalReporter');
-    if (modalReporter) {
-        const reporterDisplay = inc.is_anonymous === 'true' ? 'Anonymous Reporter' : (inc.reporter || 'Another Student');
+    if (reporterEl) {
         if (!canSeeDetails && !isYourReport) {
-            modalReporter.innerHTML = `<span class="badge safety">🔒 ${t('confidential')}</span>`;
+            reporterEl.innerHTML = `<span class="badge safety">🔒 ${t('confidential')}</span>`;
         } else {
-            modalReporter.innerHTML = `<span class="badge other">${isYourReport ? t('you') : escapeHtml(reporterDisplay)}</span>`;
+            reporterEl.innerHTML = `<span class="badge other">${isYourReport ? t('you') : escapeHtml(safeReporterName)}</span>`;
         }
     }
     
@@ -1267,6 +1310,12 @@ function addDrawerStyles() {
         }
         .badge.other { background: #E2E8F0; color: #475569; }
         .badge.safety { background: #FEF2F2; color: #DC2626; font-weight: 500; }
+        .badge.security-alert { background: #DC2626; color: white; font-weight: 600; animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
         .filter-chip.active { background: #2563EB; color: white; }
         #viewModeToggle { transition: all 0.2s ease; }
         .incident-card {
@@ -1527,6 +1576,81 @@ function setupReportButtonBeautiful() {
     });
 }
 
+// ========== CROSS-TAB SYNC FOR PROFILE UPDATES ==========
+function setupCrossTabSync() {
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'student_data_updated') {
+            console.log('Student data updated in another tab, refreshing...');
+            refreshStudentData();
+        }
+    });
+    
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'STUDENT_UPDATE' && event.data.student) {
+            console.log('Received student update from settings page');
+            currentStudent = event.data.student;
+            updateDashboardUI(currentStudent);
+            showNotification('Profile updated successfully!', 'success');
+        }
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            console.log('Tab became active, checking for updates...');
+            refreshStudentData();
+        }
+    });
+    
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            console.log('Page restored from bfcache, refreshing...');
+            refreshStudentData();
+        }
+    });
+}
+
+async function refreshStudentData() {
+    const stored = localStorage.getItem('currentStudent');
+    if (stored) {
+        try {
+            const parsedStudent = JSON.parse(stored);
+            if (currentStudent && parsedStudent.name !== currentStudent.name) {
+                currentStudent = parsedStudent;
+                updateDashboardUI(currentStudent);
+                await loadIncidents();
+                updateStats();
+                showNotification('Profile updated!', 'success');
+            }
+        } catch(e) {
+            console.error('Error refreshing dashboard data:', e);
+        }
+    }
+}
+
+function updateDashboardUI(student) {
+    if (!student) return;
+    
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    if (welcomeMessage) {
+        const firstName = student.name ? student.name.split(' ')[0] : 'Student';
+        welcomeMessage.innerHTML = `${t('welcome_back') || 'Welcome back'}, ${firstName}! 👋`;
+    }
+    
+    const drawerName = document.getElementById('studentName');
+    if (drawerName) {
+        drawerName.textContent = student.name || 'Student';
+    }
+    
+    const studentNumber = document.getElementById('studentNumber');
+    if (studentNumber && student.studentId) {
+        studentNumber.textContent = `ID: ${student.studentId}`;
+    }
+    
+    document.querySelectorAll('.student-name, .user-name, .drawer-name').forEach(el => {
+        el.textContent = student.name || 'Student';
+    });
+}
+
 // ========== INITIALIZATION ==========
 async function init() {
     console.log('Initializing dashboard...');
@@ -1535,13 +1659,14 @@ async function init() {
     console.log('Auth success:', authSuccess);
     
     loadStudentFromLogin();
-    loadLanguage(); // Load language preference
+    loadLanguage();
     await loadIncidents();
     setupUI();
     setupRealtimeSubscription();
     setupNotificationSystem();
     initDarkMode();
     setupBottomNav();
+    setupCrossTabSync();
     
     setInterval(() => {
         if (allIncidents.length > 0) {
@@ -1561,6 +1686,7 @@ window.addEventListener('pageshow', (event) => {
         hideLoader();
         fadeInMainContentBeautiful();
         setupBeautifulBottomNav();
+        refreshStudentData();
     }
 });
 
@@ -1573,6 +1699,21 @@ window.getReports = getReports;
 window.saveReports = saveReports;
 window.viewIncident = viewIncident;
 window.closeModal = closeModal;
+window.updateWelcomeMessage = function(newName) {
+    if (newName && currentStudent) {
+        currentStudent.name = newName;
+        const firstName = newName.split(' ')[0];
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        if (welcomeMessage) {
+            welcomeMessage.innerHTML = `${t('welcome_back') || 'Welcome back'}, ${firstName}! 👋`;
+        }
+        const drawerName = document.getElementById('studentName');
+        if (drawerName) drawerName.textContent = newName;
+        document.querySelectorAll('#studentName, .drawer-name').forEach(el => {
+            if (el) el.textContent = newName;
+        });
+    }
+};
 
 // Start the dashboard
 init();

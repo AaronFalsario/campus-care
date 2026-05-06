@@ -494,20 +494,61 @@ async function deleteStudent(id) {
     }
 }
 
-// ========== EDIT STUDENT ==========
+// ========== EDIT STUDENT - MAKE NAME, ID, EMAIL NON-EDITABLE ==========
 function editStudent(id) {
     const student = students.find(s => s.id == id);
     if (!student) return;
     
     editingStudentId = id;
+    
+    // Set values
     document.getElementById('studentId').value = student.id;
     document.getElementById('studentFullName').value = student.name;
     document.getElementById('studentIdNumber').value = student.idNumber;
     document.getElementById('studentCourse').value = student.course;
     document.getElementById('studentYear').value = student.year;
     document.getElementById('studentEmail').value = student.email;
+    
+    // IMPORTANT: Disable the fields that should NOT be editable (Name, ID Number, Email)
+    const nameInput = document.getElementById('studentFullName');
+    const idNumberInput = document.getElementById('studentIdNumber');
+    const emailInput = document.getElementById('studentEmail');
+    
+    if (nameInput) nameInput.disabled = true;
+    if (idNumberInput) idNumberInput.disabled = true;
+    if (emailInput) emailInput.disabled = true;
+    
+    // Add visual hint for disabled fields (optional but nice)
+    if (nameInput) nameInput.style.opacity = '0.7';
+    if (idNumberInput) idNumberInput.style.opacity = '0.7';
+    if (emailInput) emailInput.style.opacity = '0.7';
+    
     document.getElementById('modalTitle').textContent = 'Edit Student';
     openModal();
+}
+
+// ========== RESET FORM FIELDS WHEN ADDING NEW STUDENT ==========
+function resetFormForAdd() {
+    const nameInput = document.getElementById('studentFullName');
+    const idNumberInput = document.getElementById('studentIdNumber');
+    const emailInput = document.getElementById('studentEmail');
+    
+    if (nameInput) {
+        nameInput.disabled = false;
+        nameInput.style.opacity = '1';
+    }
+    if (idNumberInput) {
+        idNumberInput.disabled = false;
+        idNumberInput.style.opacity = '1';
+    }
+    if (emailInput) {
+        emailInput.disabled = false;
+        emailInput.style.opacity = '1';
+    }
+    
+    document.getElementById('studentForm').reset();
+    document.getElementById('studentId').value = '';
+    editingStudentId = null;
 }
 
 // ========== FORM SUBMIT ==========
@@ -516,13 +557,15 @@ if (studentForm) {
     studentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const isEditing = editingStudentId !== null;
+        
         const studentData = {
             full_name: document.getElementById('studentFullName')?.value.trim() || '',
             student_id: document.getElementById('studentIdNumber')?.value.trim() || '',
             course: document.getElementById('studentCourse')?.value || 'N/A',
             year_level: document.getElementById('studentYear')?.value || '1',
             email: document.getElementById('studentEmail')?.value.trim() || '',
-            status: 'inactive',
+            status: document.getElementById('studentStatus')?.value || 'inactive',
             updated_at: new Date().toISOString()
         };
         
@@ -533,18 +576,30 @@ if (studentForm) {
         
         const existingId = document.getElementById('studentId')?.value;
         
-        if (existingId) {
+        if (existingId && isEditing) {
+            // UPDATE - only update allowed fields (course, year_level, status)
+            // Do NOT update full_name, student_id, email
+            const updateData = {
+                course: studentData.course,
+                year_level: studentData.year_level,
+                status: studentData.status,
+                updated_at: studentData.updated_at
+            };
+            
             const { error } = await supabase
                 .from('student')
-                .update(studentData)
+                .update(updateData)
                 .eq('id', existingId);
             
             if (error) {
                 showToast('Failed to update student', 'error');
+                console.error('Update error:', error);
                 return;
             }
             showToast(`✓ ${studentData.full_name} has been updated`, 'success');
+            addInternalNotification('Student Updated', `${studentData.full_name}'s info has been modified`, false);
         } else {
+            // INSERT new student
             studentData.created_at = new Date().toISOString();
             const { error } = await supabase
                 .from('student')
@@ -552,12 +607,15 @@ if (studentForm) {
             
             if (error) {
                 showToast('Failed to add student', 'error');
+                console.error('Insert error:', error);
                 return;
             }
             showToast(`✓ ${studentData.full_name} has been added`, 'success');
+            addInternalNotification('Student Added', `${studentData.full_name} has been added to the system`, false);
         }
         
         await loadStudents();
+        resetFormForAdd();
         closeModal();
     });
 }
@@ -572,9 +630,7 @@ function openModal() {
 function closeModal() {
     const modal = document.getElementById('studentModal');
     if (modal) modal.classList.remove('active');
-    document.getElementById('studentForm')?.reset();
-    document.getElementById('studentId').value = '';
-    editingStudentId = null;
+    resetFormForAdd();
     document.getElementById('modalTitle').textContent = 'Add New Student';
     document.body.style.overflow = '';
 }
@@ -627,7 +683,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== NAVIGATION SETUP (FIXED - WITH USERS) ==========
+// ========== NAVIGATION SETUP ==========
 function setupNavigation() {
     const drawerItems = document.querySelectorAll('.drawer-item');
     drawerItems.forEach(item => {
@@ -650,7 +706,7 @@ function setupNavigation() {
     });
 }
 
-// ========== BOTTOM NAVIGATION (FIXED - WITH USERS) ==========
+// ========== BOTTOM NAVIGATION ==========
 function setupBottomNav() {
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     bottomNavItems.forEach(item => {
@@ -669,7 +725,6 @@ function setupBottomNav() {
 }
 
 // ========== HIGHLIGHT ACTIVE BOTTOM NAV ==========
-// ========== HIGHLIGHT ACTIVE BOTTOM NAV ==========
 function highlightActiveBottomNav() {
     const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     const currentPath = window.location.pathname;
@@ -678,7 +733,6 @@ function highlightActiveBottomNav() {
         const page = item.dataset.page;
         item.classList.remove('active');
         
-        // Check each page with exact conditions
         if (page === 'dashboard' && (currentPath.includes('Admin.html') || currentPath === '/' || currentPath.includes('/dashboard'))) {
             item.classList.add('active');
         } 
@@ -708,7 +762,12 @@ function setupUI() {
     if (notificationBell) notificationBell.onclick = (e) => { e.stopPropagation(); toggleNotificationDropdown(); };
     
     const addBtn = document.getElementById('addStudentBtn');
-    if (addBtn) addBtn.addEventListener('click', openModal);
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            resetFormForAdd();
+            openModal();
+        });
+    }
     
     const closeBtn = document.getElementById('closeModalBtn');
     if (closeBtn) closeBtn.addEventListener('click', closeModal);

@@ -52,6 +52,7 @@
         <span class="brand-name">CampusCare</span>
     </div>
     <div class="action-buttons">
+        <!-- Dark Mode Toggle Only - Notification Button REMOVED -->
         <button class="action-btn" id="darkModeToggleDesktop">
             <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="5"/>
@@ -66,13 +67,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
         </button>
-        <button class="action-btn" id="notificationBtnDesktop">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <span class="notification-badge" id="notifBadgeDesktop" style="display:none">0</span>
-        </button>
+        <!-- NOTIFICATION BUTTON COMPLETELY REMOVED -->
     </div>
 </header>
 
@@ -277,14 +272,7 @@
     </button>
 </nav>
 
-<!-- Notification Panel Desktop -->
-<div id="notificationPanelDesktop" class="notification-panel">
-    <div class="notification-header">
-        <h4>🔔 <span data-i18n="notifications">Notifications</span></h4>
-        <button class="notification-clear" id="clearNotificationsBtnDesktop" data-i18n="clear_all">Clear all</button>
-    </div>
-    <div id="notificationListDesktop" class="notification-list"></div>
-</div>
+<!-- NOTIFICATION PANEL REMOVED - No longer needed -->
 
 <!-- ========== MOBILE VIEW ========== -->
 <div class="mobile-container" id="mobileContainer">

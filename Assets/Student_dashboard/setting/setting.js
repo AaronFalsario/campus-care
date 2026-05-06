@@ -264,6 +264,53 @@ function setLanguage(lang) {
     if (mobileLanguage) mobileLanguage.textContent = lang === 'en' ? 'English' : 'Tagalog';
 }
 
+// ========== DATABASE UPDATE FUNCTIONS ==========
+async function updateStudentInDatabase(studentData) {
+    try {
+        const { data, error } = await supabase
+            .from('student')
+            .update({
+                full_name: studentData.full_name,
+                email: studentData.email
+            })
+            .eq('student_id', studentData.student_id)
+            .select();
+        
+        if (error) {
+            console.error('Supabase update error:', error);
+            return { success: false, error: error.message };
+        }
+        
+        console.log('Student updated in database:', data);
+        return { success: true, data: data };
+    } catch (error) {
+        console.error('Error updating student:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Broadcast update to other tabs/windows
+function broadcastStudentUpdate(studentData) {
+    // Store update timestamp in localStorage for cross-tab sync
+    localStorage.setItem('student_data_updated', JSON.stringify({
+        timestamp: Date.now(),
+        student: studentData
+    }));
+    
+    // Also try to send via postMessage if windows are open
+    if (window.opener && !window.opener.closed) {
+        try {
+            window.opener.postMessage({
+                type: 'STUDENT_UPDATE',
+                student: studentData
+            }, '*');
+        } catch(e) { console.log('Cannot send to opener'); }
+    }
+    
+    // Remove the storage trigger after a short delay
+    setTimeout(() => localStorage.removeItem('student_data_updated'), 500);
+}
+
 // ========== STUDENT DATA ==========
 let currentStudent = null;
 
@@ -323,15 +370,59 @@ function loadStudentData() {
     }
 }
 
-function saveProfileMobile() {
+// UPDATED: Mobile save profile with database sync
+async function saveProfileMobile() {
     const newName = document.getElementById('mobileFullNameInput').value;
-    if (!newName) { showToast(t('enter_name'), 'error'); return; }
-    if (currentStudent) {
-        currentStudent.name = newName;
-        localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-        loadStudentData();
-        showToast(t('profile_updated'), 'success');
-        closeProfileModalMobile();
+    if (!newName) { 
+        showToast(t('enter_name'), 'error'); 
+        return; 
+    }
+    
+    if (!currentStudent) {
+        showToast('Session expired. Please login again.', 'error');
+        return;
+    }
+    
+    const saveBtn = document.querySelector('#profileModalMobile .btn-save');
+    const originalText = saveBtn?.textContent;
+    
+    if (saveBtn) {
+        saveBtn.textContent = t('sending') || 'Saving...';
+        saveBtn.disabled = true;
+    }
+    
+    try {
+        // Update in database
+        const result = await updateStudentInDatabase({
+            student_id: currentStudent.studentId,
+            full_name: newName,
+            email: currentStudent.email
+        });
+        
+        if (result.success) {
+            // Update local storage
+            currentStudent.name = newName;
+            localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+            
+            // Reload UI
+            loadStudentData();
+            
+            // Broadcast update to other tabs
+            broadcastStudentUpdate(currentStudent);
+            
+            showToast(t('profile_updated'), 'success');
+            closeProfileModalMobile();
+        } else {
+            showToast('Failed to update: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        showToast('An error occurred. Please try again.', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+        }
     }
 }
 
@@ -724,7 +815,7 @@ function updateDarkModeIcons(isDark) {
 
 // ========== NAVIGATION ==========
 function goBack() {
-    window.location.href = '/Assets/Student_dashboard/SDB.html';
+    window.location.href = '/Assets/Student_dashboard/SDB.html' + Date.now();;
 }
 
 function confirmLogoutDesktop() {
@@ -759,17 +850,61 @@ function setupNavigation() {
     
     const saveProfileBtnDesktop = document.getElementById('saveProfileBtnDesktop');
     if (saveProfileBtnDesktop) {
-        saveProfileBtnDesktop.addEventListener('click', () => {
+        // Remove old listeners and add new async handler
+        const newSaveBtn = saveProfileBtnDesktop.cloneNode(true);
+        saveProfileBtnDesktop.parentNode.replaceChild(newSaveBtn, saveProfileBtnDesktop);
+        
+        newSaveBtn.addEventListener('click', async () => {
             const newName = document.getElementById('fullNameDesktop')?.value;
-            if (newName && currentStudent) {
-                currentStudent.name = newName;
-                currentStudent.email = document.getElementById('emailDesktop')?.value || '';
-                currentStudent.phone = document.getElementById('phoneDesktop')?.value || '';
-                currentStudent.course = document.getElementById('courseDesktop')?.value || '';
-                currentStudent.yearLevel = document.getElementById('yearLevelDesktop')?.value || '1';
-                localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-                loadStudentData();
-                showToast(t('profile_updated'), 'success');
+            if (!newName) {
+                showToast(t('enter_name'), 'error');
+                return;
+            }
+            
+            if (!currentStudent) {
+                showToast('Session expired. Please login again.', 'error');
+                return;
+            }
+            
+            const originalText = newSaveBtn.textContent;
+            newSaveBtn.textContent = t('sending') || 'Saving...';
+            newSaveBtn.disabled = true;
+            
+            try {
+                // Update in database
+                const newEmail = document.getElementById('emailDesktop')?.value || currentStudent.email;
+                
+                const result = await updateStudentInDatabase({
+                    student_id: currentStudent.studentId,
+                    full_name: newName,
+                    email: newEmail
+                });
+                
+                if (result.success) {
+                    // Update local storage
+                    currentStudent.name = newName;
+                    currentStudent.email = newEmail;
+                    currentStudent.phone = document.getElementById('phoneDesktop')?.value || '';
+                    currentStudent.course = document.getElementById('courseDesktop')?.value || '';
+                    currentStudent.yearLevel = document.getElementById('yearLevelDesktop')?.value || '1';
+                    localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+                    
+                    // Reload UI
+                    loadStudentData();
+                    
+                    // Broadcast update to other tabs
+                    broadcastStudentUpdate(currentStudent);
+                    
+                    showToast(t('profile_updated'), 'success');
+                } else {
+                    showToast('Failed to update: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            } finally {
+                newSaveBtn.textContent = originalText;
+                newSaveBtn.disabled = false;
             }
         });
     }
@@ -856,6 +991,43 @@ function closeFeedbackModalMobile() {
         modal.classList.remove('active');
         document.body.style.overflow = '';
     }
+}
+
+// Setup cross-tab sync listener
+function setupCrossTabSync() {
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'student_data_updated' && e.newValue) {
+            try {
+                const data = JSON.parse(e.newValue);
+                console.log('Received cross-tab update:', data);
+                if (data.student && currentStudent && data.student.studentId === currentStudent.studentId) {
+                    currentStudent = data.student;
+                    localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+                    loadStudentData();
+                    showToast('Profile updated from another tab', 'success');
+                }
+            } catch (err) {
+                console.error('Error parsing storage event:', err);
+            }
+        }
+    });
+    
+    // Also listen for page visibility (when tab becomes active)
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            const stored = localStorage.getItem('currentStudent');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (currentStudent && parsed.name !== currentStudent.name) {
+                        currentStudent = parsed;
+                        loadStudentData();
+                        showToast('Profile updated', 'success');
+                    }
+                } catch(e) {}
+            }
+        }
+    });
 }
 
 // Attach functions to window
@@ -1014,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupBottomNav();
     setupNotificationBell();
     initDarkMode();
+    setupCrossTabSync(); // Add cross-tab sync
     
     // Setup desktop feedback button
     const sendFeedbackBtn = document.getElementById('sendFeedbackBtnDesktop');

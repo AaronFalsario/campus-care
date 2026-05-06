@@ -817,22 +817,22 @@ body.dark-mode .status-inactive {
     background: var(--teal-light);
 }
 
-/* ===== MODAL ===== */
+/* ===== MODAL - FIXED WITH PROPER DARK BACKGROUND OVERLAY ===== */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
     z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(4px);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .modal-overlay.active {
@@ -840,108 +840,120 @@ body.dark-mode .status-inactive {
     visibility: visible;
 }
 
-.modal-container {
+/* Target the modal class used in your HTML (not modal-container) */
+.modal-overlay .modal {
     background: var(--surface);
-    border-radius: 24px;
+    border-radius: 28px;
     width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
+    max-width: 520px;
+    max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 25px 50px var(--shadow-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+    transform: scale(0.96);
+    transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+.modal-overlay.active .modal {
+    transform: scale(1);
 }
 
 .modal-header {
-    padding: 18px 24px;
+    padding: 20px 24px;
     background: linear-gradient(135deg, var(--teal), var(--teal-dark));
     color: white;
-    border-radius: 24px 24px 0 0;
+    border-radius: 28px 28px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
+    z-index: 10;
 }
 
 .modal-header h3 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
+    margin: 0;
 }
 
 .modal-close {
-    background: none;
+    background: rgba(255,255,255,0.2);
     border: none;
-    font-size: 28px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 24px;
     cursor: pointer;
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
-.modal-body {
-    padding: 24px;
+.modal-close:hover {
+    background: rgba(255,255,255,0.4);
+    transform: rotate(90deg);
+}
+
+.modal form {
+    padding: 24px 28px;
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
     display: block;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     margin-bottom: 6px;
     color: var(--text);
 }
 
-.form-group input, .form-group select, .form-group textarea {
+.form-group input,
+.form-group select,
+.form-group textarea {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 14px;
     background: var(--surface);
     color: var(--text);
+    transition: all 0.2s;
 }
 
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.2);
 }
 
-.modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-.btn-cancel {
-    padding: 8px 20px;
-    background: #F3F4F6;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-.btn-save {
-    padding: 8px 20px;
+.modal-submit {
     background: var(--teal);
     color: white;
     border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-size: 15px;
     font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 16px;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
 }
 
-body.dark-mode .btn-cancel {
-    background: #334155;
-    color: #F1F5F9;
+.modal-submit:hover {
+    background: var(--teal-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
 }
 
 /* Toast Notification */
@@ -1073,23 +1085,23 @@ body.dark-mode .btn-cancel {
         top: 60px !important;
     }
     
-    /* Modal adjustments */
-    .modal-container {
-        max-width: 360px;
-        max-height: 70vh;
-        border-radius: 20px;
+    /* Modal adjustments for mobile */
+    .modal-overlay .modal {
+        max-width: 92%;
+        max-height: 75vh;
+        border-radius: 24px;
     }
     
     .modal-header {
-        padding: 14px 18px;
+        padding: 16px 20px;
     }
     
     .modal-header h3 {
-        font-size: 16px;
+        font-size: 18px;
     }
     
-    .modal-body {
-        padding: 16px 18px;
+    .modal form {
+        padding: 20px;
     }
 }
 
@@ -1119,6 +1131,10 @@ body.dark-mode .btn-cancel {
     
     .page-title {
         font-size: 18px;
+    }
+    
+    .modal-overlay .modal {
+        max-width: 95%;
     }
 }
 

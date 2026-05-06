@@ -398,6 +398,7 @@ body.dark-mode .page-header {
 .chart-container {
     position: relative;
     height: 260px;
+    width: 100%;
 }
 
 /* Penalties Section */
@@ -1264,4 +1265,76 @@ body.dark-mode .page-sub {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--teal-dark);
+}
+
+/* ========== CRITICAL FIXES TO PREVENT OVERRIDING ========== */
+/* These fixes prevent element overlap and display issues */
+
+/* Fix for charts container - prevents overlapping */
+.charts-row,
+.two-columns {
+    display: grid !important;
+    width: 100% !important;
+}
+
+/* Ensure chart containers don't overlap */
+.chart-card,
+.violations-list {
+    overflow: hidden !important;
+    width: 100% !important;
+}
+
+/* Fix for chart canvas responsiveness */
+.chart-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Prevent brand name from being hidden */
+.brand-name {
+    display: inline-block !important;
+    visibility: visible !important;
+}
+
+/* Mobile specific fixes for charts */
+@media (max-width: 768px) {
+    .charts-row,
+    .two-columns {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .chart-card,
+    .violations-list {
+        margin-bottom: 0 !important;
+        width: 100% !important;
+    }
+    
+    .chart-container {
+        height: 220px !important;
+        min-height: 200px !important;
+    }
+    
+    .brand-name {
+        font-size: 14px !important;
+        display: inline-block !important;
+    }
+}
+
+/* Small phone fixes */
+@media (max-width: 480px) {
+    .brand-name {
+        font-size: 13px !important;
+    }
+    
+    .chart-container {
+        height: 180px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .brand-name {
+        font-size: 12px !important;
+        display: inline-block !important;
+    }
 }
