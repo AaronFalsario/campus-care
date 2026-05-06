@@ -752,7 +752,7 @@ function setupNavigation() {
                 localStorage.removeItem('isAdminLoggedIn');
                 showToast('Logged out successfully');
                 setTimeout(() => {
-                    window.location.href = '/Assets/Landing_page/land.html';
+                    window.location.href = '/land.html';
                 }, 500);
             }
         });

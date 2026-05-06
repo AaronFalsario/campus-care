@@ -206,7 +206,7 @@
         if (confirm('Are you sure you want to logout?')) {
             localStorage.removeItem('currentStudent');
             showToast('Logged out successfully');
-            setTimeout(() => window.location.href = '/Assets/Landing_page/land.html', 1000);
+            setTimeout(() => window.location.href = '/land.html', 1000);
         }
     }
     
@@ -214,7 +214,7 @@
         if (confirm('Are you sure you want to logout?')) {
             localStorage.removeItem('currentStudent');
             showToast('Logged out successfully');
-            setTimeout(() => window.location.href = '/Assets/Landing_page/land.html', 1000);
+            setTimeout(() => window.location.href = '/land.html', 1000);
         }
     }
 

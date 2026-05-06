@@ -303,174 +303,335 @@ footer p { font-size: 13px; color: #94a3b8; }
     background-color: #fef2f2 !important;
 }
 
-/* ════════════════════════════════════════
-   MOBILE — max-width: 480px
-   ACTUALLY TINY — micro compact!
-   ════════════════════════════════════════ */
-@media (max-width: 480px) {
+/* ============================================
+   MOBILE RESPONSIVE FIXES
+   Proper scaling for all screen sizes
+   ============================================ */
 
+/* Tablets and small desktops (481px - 768px) */
+@media (max-width: 768px) {
     body {
-        padding: 4px;
-        justify-content: flex-start;
-        padding-top: 4px;
-    }
-
-    .login-card {
-        padding: 6px 8px;
-        border-radius: 8px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .app-icon img {
-        width: 16px;
-        height: 16px;
-        border-radius: 3px;
-        margin-bottom: 2px;
-    }
-
-    h1 { 
-        font-size: 8px; 
-    }
-
-    .header p { 
-        font-size: 6px; 
-        margin-top: 1px; 
-    }
-
-    .header { 
-        margin-bottom: 2px; 
-    }
-
-    .user-icon {
-        width: 18px;
-        height: 18px;
-        font-size: 8px;
-        margin-bottom: 2px;
-    }
-
-    h2 { 
-        font-size: 9px; 
-        margin-bottom: 0px; 
-    }
-
-    .login-card p {
-        font-size: 6px;
-        margin: 0px 0 3px;
-        line-height: 1.2;
-    }
-
-    label {
-        font-size: 6px;
-        font-weight: 600;
-        margin-bottom: 1px;
-    }
-
-    input {
-        padding: 3px 4px 3px 18px;
-        font-size: 7px;
-        border-radius: 3px;
-        border-width: 0.5px;
-        min-height: 0;
-    }
-
-    .password-container input {
-        padding-right: 18px;
-    }
-
-    .input-icon i {
-        left: 5px;
-        font-size: 7px;
-    }
-
-    .password-container .toggle-password {
-        right: 5px;
-        font-size: 7px;
-    }
-
-    .input-group { 
-        margin-bottom: 3px; 
-    }
-
-    .login-btn {
-        padding: 4px;
-        font-size: 7px;
-        border-radius: 3px;
-        margin-top: 4px;
-        font-weight: 600;
-    }
-
-    .signup-text {
-        font-size: 6px;
-        margin-top: 4px;
-    }
-
-    .signup-btn {
-        font-size: 6px;
-        margin-top: 1px;
-    }
-
-    .Forgot-password {
-        font-size: 5px;
-        margin-top: 2px;
-    }
-
-    .email-hint { 
-        font-size: 5px; 
-        margin-top: 1px;
+        padding: 20px 16px;
     }
     
-    .email-hint i { 
-        font-size: 5px; 
-    }
-
-    footer {
-        padding: 3px;
-        margin-top: 4px;
-    }
-
-    footer p { 
-        font-size: 5px; 
+    .login-card {
+        padding: 32px 28px;
     }
 }
 
-/* ════════════════════════════════════════
-   EXTRA SMALL — max-width: 360px  
-   ════════════════════════════════════════ */
-@media (max-width: 360px) {
-
-    .login-card { 
-        padding: 4px 5px; 
+/* Mobile devices (320px - 480px) */
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+        justify-content: center;
     }
-
-    h2 { 
-        font-size: 8px; 
+    
+    .mobile-container {
+        max-width: 100%;
     }
-
-    .login-card p { 
-        font-size: 5px; 
+    
+    .login-card {
+        padding: 24px 20px;
+        border-radius: 20px;
     }
-
-    label { 
-        font-size: 5px; 
+    
+    .app-icon img {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 10px;
     }
-
+    
+    h1 {
+        font-size: 20px;
+    }
+    
+    .header p {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+    
+    .user-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 26px;
+        margin-bottom: 12px;
+    }
+    
+    h2 {
+        font-size: 22px;
+        margin-bottom: 6px;
+    }
+    
+    .login-card p {
+        font-size: 13px;
+        margin: 4px 0 16px;
+    }
+    
+    label {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
     input {
-        padding: 2px 3px 2px 14px;
-        font-size: 6px;
+        padding: 12px 14px 12px 40px;
+        font-size: 15px;
     }
-
+    
     .input-icon i {
-        font-size: 6px;
-        left: 4px;
+        left: 12px;
+        font-size: 14px;
     }
-
+    
+    .password-container .toggle-password {
+        right: 12px;
+        font-size: 14px;
+    }
+    
+    .input-group {
+        margin-bottom: 14px;
+    }
+    
     .login-btn {
-        padding: 3px;
-        font-size: 6px;
+        padding: 11px;
+        font-size: 14px;
+        margin-top: 12px;
     }
+    
+    .signup-text {
+        font-size: 13px;
+        margin-top: 16px;
+    }
+    
+    .signup-btn {
+        font-size: 13px;
+        margin-top: 6px;
+    }
+    
+    .Forgot-password {
+        font-size: 12px;
+        margin-top: 10px;
+    }
+    
+    .email-hint {
+        font-size: 10px;
+        margin-top: 4px;
+    }
+    
+    .email-hint i {
+        font-size: 9px;
+    }
+    
+    footer {
+        padding: 12px;
+        margin-top: 16px;
+    }
+    
+    footer p {
+        font-size: 11px;
+    }
+}
 
-    .signup-text, 
-    .signup-btn { 
-        font-size: 5px; 
+/* Small mobile devices (under 380px) */
+@media (max-width: 380px) {
+    body {
+        padding: 8px;
+    }
+    
+    .login-card {
+        padding: 20px 16px;
+        border-radius: 18px;
+    }
+    
+    .app-icon img {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
+    }
+    
+    h1 {
+        font-size: 18px;
+    }
+    
+    .header p {
+        font-size: 11px;
+    }
+    
+    .user-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+    
+    .login-card p {
+        font-size: 12px;
+        margin-bottom: 14px;
+    }
+    
+    label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+    
+    input {
+        padding: 10px 12px 10px 38px;
+        font-size: 14px;
+    }
+    
+    .input-icon i {
+        left: 10px;
+        font-size: 13px;
+    }
+    
+    .password-container .toggle-password {
+        right: 10px;
+        font-size: 13px;
+    }
+    
+    .input-group {
+        margin-bottom: 12px;
+    }
+    
+    .login-btn {
+        padding: 10px;
+        font-size: 13px;
+        margin-top: 10px;
+    }
+    
+    .signup-text {
+        font-size: 12px;
+        margin-top: 14px;
+    }
+    
+    .signup-btn {
+        font-size: 12px;
+    }
+    
+    .Forgot-password {
+        font-size: 11px;
+    }
+    
+    .email-hint {
+        font-size: 9px;
+    }
+}
+
+/* Very small devices (under 320px) */
+@media (max-width: 320px) {
+    .login-card {
+        padding: 16px 12px;
+    }
+    
+    .app-icon img {
+        width: 36px;
+        height: 36px;
+    }
+    
+    h1 {
+        font-size: 16px;
+    }
+    
+    .header p {
+        font-size: 10px;
+    }
+    
+    .user-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+    }
+    
+    h2 {
+        font-size: 18px;
+    }
+    
+    .login-card p {
+        font-size: 11px;
+    }
+    
+    label {
+        font-size: 12px;
+    }
+    
+    input {
+        padding: 9px 10px 9px 36px;
+        font-size: 13px;
+    }
+    
+    .login-btn {
+        padding: 9px;
+        font-size: 12px;
+    }
+}
+
+/* Landscape mode fix for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        padding: 8px;
+    }
+    
+    .login-card {
+        padding: 16px 20px;
+    }
+    
+    .app-icon img {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 6px;
+    }
+    
+    h1 {
+        font-size: 16px;
+    }
+    
+    .header p {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    
+    .user-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+    
+    h2 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+    
+    .login-card p {
+        font-size: 11px;
+        margin-bottom: 12px;
+    }
+    
+    .input-group {
+        margin-bottom: 10px;
+    }
+    
+    label {
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+    
+    input {
+        padding: 8px 10px 8px 36px;
+        font-size: 13px;
+    }
+    
+    .login-btn {
+        padding: 8px;
+        font-size: 12px;
+        margin-top: 8px;
+    }
+    
+    .signup-text {
+        margin-top: 10px;
+        font-size: 11px;
     }
 }

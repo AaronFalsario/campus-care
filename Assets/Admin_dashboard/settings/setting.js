@@ -1014,7 +1014,7 @@ function confirmLogout() {
         localStorage.removeItem('currentStudent');
         localStorage.removeItem('currentAdmin');
         localStorage.removeItem('isAdminLoggedIn');
-        window.location.href = '/Assets/Landing_page/land.html';
+        window.location.href = '/land.html';
     }
 }
 

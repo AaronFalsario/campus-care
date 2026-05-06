@@ -1184,7 +1184,6 @@ function escape(t) { if (!t) return ''; return String(t).replace(/[&<>]/g, m => 
 function setupEvents() {
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
-    const hamburger = document.getElementById('hamburger');
     const adminPill = document.getElementById('adminPill');
     const notificationBell = document.getElementById('notificationBell');
     
@@ -1227,7 +1226,7 @@ function setupEvents() {
                 localStorage.removeItem('currentStudent'); 
                 localStorage.removeItem('currentAdmin');
                 localStorage.removeItem('isAdminLoggedIn');
-                window.location.href = '/Assets/Landing_page/land.html'; 
+                window.location.href = '/land.html'; 
             } 
         };
     }

@@ -1010,7 +1010,7 @@ function initializeDrawer() {
                 localStorage.removeItem('currentStudent');
                 showNotification('Logged out successfully');
                 setTimeout(() => {
-                    window.location.href = '/Assets/Landing_page/land.html';
+                    window.location.href = '/land.html';
                 }, 1000);
             }
         });

@@ -821,7 +821,7 @@ function setupNav() {
                 localStorage.removeItem('currentAdmin');
                 localStorage.removeItem('isAdminLoggedIn');
                 showToast('Logged out successfully', 'success');
-                setTimeout(() => { window.location.href = '/Assets/Landing_page/land.html'; }, 500);
+                setTimeout(() => { window.location.href = '/land.html'; }, 500);
             }
         });
     }
