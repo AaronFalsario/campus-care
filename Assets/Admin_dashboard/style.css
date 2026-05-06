@@ -1325,160 +1325,72 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
 
 /* =====================================================
    SAMSUNG A17 & TABLET OPTIMIZATION (393px - 730px)
-   Makes it look like a tablet with scaled elements
    ===================================================== */
 @media (min-width: 393px) and (max-width: 730px) {
-    
-    /* Base font smaller */
-    body {
-        font-size: 12px;
-    }
-    
-    /* Topbar - more compact */
-    .topbar {
-        padding: 0 16px;
-        height: 52px;
-    }
-    
-    .brand {
-        gap: 6px;
-    }
-    
-    .brand-name {
-        font-size: 13px;
-        display: inline-block !important;
-    }
-    
-    .brand-logo img {
-        width: 28px;
-        height: 28px;
-    }
-    
-    /* Admin pill smaller */
-    .admin-pill {
-        padding: 4px 10px;
-        font-size: 10px;
-    }
-    
-    /* Icons smaller */
-    .dark-mode-toggle,
-    .notification-bell {
-        width: 30px;
-        height: 30px;
-    }
-    
-    .dark-mode-toggle svg,
-    .notification-bell svg {
-        width: 15px;
-        height: 15px;
-    }
-    
-    /* Main content - less padding */
+
+    body { font-size: 12px; }
+
+    .topbar { padding: 0 16px; height: 52px; }
+    .brand { gap: 6px; }
+    .brand-name { font-size: 13px; display: inline-block !important; }
+    .brand-logo img { width: 28px; height: 28px; }
+    .admin-pill { padding: 4px 10px; font-size: 10px; }
+    .dark-mode-toggle, .notification-bell { width: 30px; height: 30px; }
+    .dark-mode-toggle svg, .notification-bell svg { width: 15px; height: 15px; }
+
     main {
         padding: 16px 20px 70px;
         margin-left: 0;
         max-width: 100%;
     }
-    
-    /* Stats row - 4 columns but smaller */
+
     .stats-row {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
         margin-bottom: 16px;
     }
-    
-    .stat-card {
-        padding: 10px 8px;
-        gap: 8px;
-    }
-    
-    .stat-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-        border-radius: 10px;
-    }
-    
-    .stat-number {
-        font-size: 18px;
-    }
-    
-    .stat-label {
-        font-size: 9px;
-    }
-    
-    /* Category strip - 4 columns */
+
+    .stat-card { padding: 10px 8px; gap: 8px; }
+    .stat-icon { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
+    .stat-number { font-size: 18px; }
+    .stat-label { font-size: 9px; }
+
+    /* ── CATEGORY CARDS: tablet-mid fix ── */
     .cat-strip {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
         margin-bottom: 16px;
     }
-    
+
     .cat-card {
-        padding: 12px 8px;
+        padding: 10px 6px;
+        border-radius: 12px;
     }
-    
-    .cat-num {
-        font-size: 24px;
-    }
-    
+
+    .cat-num { font-size: 20px; }
+
     .cat-label {
-        font-size: 10px;
-        margin-top: 4px;
+        font-size: 9px;
+        margin-top: 3px;
+        line-height: 1.2;
+        letter-spacing: 0.1px;
     }
-    
-    /* Page header smaller */
-    .page-header {
-        padding: 16px 20px;
-        margin-bottom: 16px;
-    }
-    
-    .page-title {
-        font-size: 20px;
-    }
-    
-    .page-sub {
-        font-size: 11px;
-    }
-    
-    /* Two columns - keep side by side */
-    .two-columns {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-    
-    .chart-card, .violations-list {
-        padding: 12px;
-    }
-    
-    .card-title {
-        font-size: 13px;
-    }
-    
-    .card-sub {
-        font-size: 10px;
-    }
-    
-    .chart-container {
-        height: 180px;
-    }
-    
-    /* Violations list compact */
-    .violation-item {
-        padding: 8px 0;
-    }
-    
-    .violation-name {
-        font-size: 12px;
-    }
-    
-    .violation-count {
-        font-size: 11px;
-        padding: 3px 10px;
-    }
-    
-    /* Filter bar - horizontal scrollable */
+    /* ── end category cards ── */
+
+    .page-header { padding: 16px 20px; margin-bottom: 16px; }
+    .page-title { font-size: 20px; }
+    .page-sub { font-size: 11px; }
+
+    .two-columns { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .chart-card, .violations-list { padding: 12px; }
+    .card-title { font-size: 13px; }
+    .card-sub { font-size: 10px; }
+    .chart-container { height: 180px; }
+
+    .violation-item { padding: 8px 0; }
+    .violation-name { font-size: 12px; }
+    .violation-count { font-size: 11px; padding: 3px 10px; }
+
     .filter-bar {
         flex-wrap: nowrap;
         gap: 8px;
@@ -1486,97 +1398,38 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
         padding-bottom: 4px;
         margin-bottom: 16px;
     }
-    
-    .search-bar {
-        max-width: 180px;
-        flex-shrink: 0;
-        padding: 5px 12px;
-    }
-    
-    .search-bar input {
-        font-size: 12px;
-    }
-    
-    .filter-chip {
-        padding: 5px 12px;
-        font-size: 11px;
-        flex-shrink: 0;
-    }
-    
-    /* Hide export button on this size */
-    .export-btn {
-        display: none;
-    }
-    
-    /* Section header */
-    .section-header h3 {
-        font-size: 16px;
-    }
-    
-    /* Show table, hide mobile cards on tablet size */
-    .table-wrap {
-        display: block;
-        overflow-x: auto;
-    }
-    
-    .mobile-cards {
-        display: none;
-    }
-    
-    /* Table compact */
-    th, td {
-        padding: 12px 12px;
-        font-size: 11px;
-    }
-    
-    th {
-        font-size: 10px;
-    }
-    
-    /* Hide bottom nav on tablet */
-    .bottom-nav {
-        display: none;
-    }
-    
-    /* Show drawer on tablet? Keep hidden, use hamburger */
-    .drawer {
-        left: -100%;
-    }
-    
-    .drawer.open {
-        left: 0;
-    }
-    
-    .hamburger {
-        display: flex;
-    }
-    
-    /* Pagination */
-    .pagination {
-        gap: 6px;
-        margin-top: 16px;
-    }
-    
-    .page-btn {
-        padding: 6px 12px;
-        font-size: 11px;
-    }
+
+    .search-bar { max-width: 180px; flex-shrink: 0; padding: 5px 12px; }
+    .search-bar input { font-size: 12px; }
+    .filter-chip { padding: 5px 12px; font-size: 11px; flex-shrink: 0; }
+    .export-btn { display: none; }
+    .section-header h3 { font-size: 16px; }
+
+    .table-wrap { display: block; overflow-x: auto; }
+    .mobile-cards { display: none; }
+
+    th, td { padding: 12px 12px; font-size: 11px; }
+    th { font-size: 10px; }
+
+    .bottom-nav { display: none; }
+
+    .drawer { left: -100%; }
+    .drawer.open { left: 0; }
+    .hamburger { display: flex; }
+
+    .pagination { gap: 6px; margin-top: 16px; }
+    .page-btn { padding: 6px 12px; font-size: 11px; }
 }
 
 /* =====================================================
-   STANDARD MOBILE (max-width: 768px) - OVERRIDES
+   STANDARD MOBILE (max-width: 768px)
    ===================================================== */
 @media (max-width: 768px) {
-    body {
-        overflow-x: hidden !important;
-        width: 100% !important;
-    }
+    body { overflow-x: hidden !important; width: 100% !important; }
 
-    /* Drawer slides in */
     .drawer {
         position: fixed;
-        top: 0;
-        bottom: 0;
+        top: 0; bottom: 0;
         left: -100%;
         width: 280px;
         transition: left 0.3s ease;
@@ -1596,60 +1449,23 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
         transition: all 0.3s ease;
     }
 
-    .drawer-overlay.open {
-        opacity: 1;
-        visibility: visible;
-    }
+    .drawer-overlay.open { opacity: 1; visibility: visible; }
 
-    /* Show hamburger */
-    .hamburger {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Show bottom nav */
+    .hamburger { display: flex; align-items: center; justify-content: center; }
     .bottom-nav { display: flex; }
 
-    /* Topbar */
-    .topbar {
-        margin-left: 0;
-        width: 100%;
-        padding: 0 14px;
-        height: 56px;
-    }
-
+    .topbar { margin-left: 0; width: 100%; padding: 0 14px; height: 56px; }
     .topbar-left { gap: 8px; }
     .topbar-right { gap: 8px; }
 
-    /* Brand — visible on mobile */
     .brand { gap: 6px; }
     .brand-logo img { width: 30px; height: 30px; }
-    .brand-name { 
-        font-size: 14px;
-        display: inline-block !important;
-    }
+    .brand-name { font-size: 14px; display: inline-block !important; }
 
-    /* Icons */
-    .dark-mode-toggle,
-    .notification-bell {
-        width: 32px;
-        height: 32px;
-    }
+    .dark-mode-toggle, .notification-bell { width: 32px; height: 32px; }
+    .dark-mode-toggle svg, .notification-bell svg { width: 16px; height: 16px; }
+    .admin-pill { padding: 5px 12px; font-size: 11px; }
 
-    .dark-mode-toggle svg,
-    .notification-bell svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    /* Admin pill */
-    .admin-pill {
-        padding: 5px 12px;
-        font-size: 11px;
-    }
-
-    /* Main */
     main {
         margin-left: 0;
         padding: 12px;
@@ -1659,61 +1475,45 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
         overflow-x: hidden !important;
     }
 
-    /* Stats */
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .stat-card { padding: 12px; }
     .stat-icon { width: 40px; height: 40px; font-size: 20px; }
     .stat-number { font-size: 22px; }
 
-    /* Category strip */
+    /* ── CATEGORY CARDS: mobile fix ── */
     .cat-strip {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-
-    /* Charts */
-    .two-columns {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .chart-container { height: 200px; }
-
-    /* Filter bar */
-    .filter-bar { 
-        flex-wrap: wrap;
+        grid-template-columns: repeat(4, 1fr);
         gap: 8px;
     }
 
-    .search-bar {
-        max-width: 100%;
-        width: 100%;
-        order: 1;
+    .cat-card {
+        padding: 10px 6px;
+        border-radius: 12px;
     }
 
-    .filter-chip { 
-        padding: 6px 14px; 
-        font-size: 11px; 
-        white-space: nowrap; 
-    }
+    .cat-num { font-size: 20px; }
 
-    /* Page header */
-    .page-header { 
-        padding: 20px; 
-        margin-bottom: 20px; 
+    .cat-label {
+        font-size: 9px;
+        margin-top: 3px;
+        line-height: 1.2;
     }
+    /* ── end category cards ── */
+
+    .two-columns { grid-template-columns: 1fr; gap: 16px; }
+    .chart-container { height: 200px; }
+
+    .filter-bar { flex-wrap: wrap; gap: 8px; }
+    .search-bar { max-width: 100%; width: 100%; order: 1; }
+    .filter-chip { padding: 6px 14px; font-size: 11px; white-space: nowrap; }
+
+    .page-header { padding: 20px; margin-bottom: 20px; }
     .page-title { font-size: 20px; }
 
-    /* Table/cards */
     .table-wrap { display: none; }
     .mobile-cards { display: flex; }
     .export-btn { display: none; }
 
-    /* Notification dropdown */
     .notification-dropdown {
         top: 62px;
         left: 50%;
@@ -1722,18 +1522,9 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
         transform: translateX(-50%) translateY(-10px);
     }
 
-    .notification-dropdown.show {
-        transform: translateX(-50%) translateY(0);
-    }
+    .notification-dropdown.show { transform: translateX(-50%) translateY(0); }
 
-    /* Modal */
-    .modal-container {
-        width: 95%;
-        max-width: 420px;
-        max-height: 84vh;
-        border-radius: 18px;
-    }
-
+    .modal-container { width: 95%; max-width: 420px; max-height: 84vh; border-radius: 18px; }
     .modal-header { padding: 14px 16px; border-radius: 18px 18px 0 0; }
     .modal-header h3 { font-size: 14px; }
     .modal-body { padding: 14px 16px; }
@@ -1743,7 +1534,6 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
     .modal-footer { padding: 12px 16px; }
     .btn-cancel, .btn-save { padding: 8px 18px; font-size: 11px; }
 
-    /* Pagination */
     .pagination { gap: 6px; }
     .page-btn { padding: 6px 10px; font-size: 12px; }
 }
@@ -1753,18 +1543,13 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
    ===================================================== */
 @media (max-width: 480px) {
     .topbar { padding: 0 10px; }
-
     .brand { gap: 5px; }
     .brand-name { font-size: 13px; }
     .brand-logo img { width: 26px; height: 26px; }
-
     .admin-pill { padding: 4px 10px; font-size: 10px; }
-
-    .dark-mode-toggle,
-    .notification-bell { width: 28px; height: 28px; }
+    .dark-mode-toggle, .notification-bell { width: 28px; height: 28px; }
 
     .mobile-cards { gap: 12px; }
-
     .m-card { padding: 14px; border-radius: 16px; }
     .m-card-header { gap: 10px; margin-bottom: 12px; padding-bottom: 10px; }
     .m-card-icon { width: 44px; height: 44px; font-size: 22px; border-radius: 12px; }
@@ -1788,26 +1573,61 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
     .stat-card { padding: 10px; }
     .stat-number { font-size: 18px; }
     .stat-label { font-size: 10px; }
+
+    /* ── CATEGORY CARDS: small phone fix ── */
+    .cat-strip {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .cat-card {
+        padding: 8px 4px;
+        border-radius: 10px;
+    }
+
+    .cat-num { font-size: 18px; }
+
+    .cat-label {
+        font-size: 8px;
+        margin-top: 2px;
+        line-height: 1.2;
+    }
+    /* ── end category cards ── */
 }
 
 /* =====================================================
-   SMALL PHONES (max-width: 392px) - For very old/small devices
+   SMALL PHONES (max-width: 392px)
    ===================================================== */
 @media (max-width: 392px) {
     .stats-row { grid-template-columns: 1fr; gap: 8px; }
-    .cat-strip { grid-template-columns: 1fr; gap: 10px; }
     .m-card-body { grid-template-columns: 1fr; }
 
     .topbar { padding: 0 8px; }
-    .brand-name { 
-        font-size: 12px;
-        display: inline-block !important;
-    }
+    .brand-name { font-size: 12px; display: inline-block !important; }
     .admin-pill { padding: 4px 8px; font-size: 9px; }
 
     .page-title { font-size: 18px; }
     .page-sub { font-size: 11px; }
     .stat-card { padding: 12px; }
+
+    /* ── CATEGORY CARDS: very small phone fix ── */
+    .cat-strip {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .cat-card {
+        padding: 10px 8px;
+        border-radius: 10px;
+    }
+
+    .cat-num { font-size: 22px; }
+
+    .cat-label {
+        font-size: 9px;
+        margin-top: 3px;
+    }
+    /* ── end category cards ── */
 }
 
 /* =====================================================
