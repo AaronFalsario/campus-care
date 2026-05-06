@@ -1324,7 +1324,247 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
 }
 
 /* =====================================================
-   MOBILE (max-width: 768px)
+   SAMSUNG A17 & TABLET OPTIMIZATION (393px - 730px)
+   Makes it look like a tablet with scaled elements
+   ===================================================== */
+@media (min-width: 393px) and (max-width: 730px) {
+    
+    /* Base font smaller */
+    body {
+        font-size: 12px;
+    }
+    
+    /* Topbar - more compact */
+    .topbar {
+        padding: 0 16px;
+        height: 52px;
+    }
+    
+    .brand {
+        gap: 6px;
+    }
+    
+    .brand-name {
+        font-size: 13px;
+        display: inline-block !important;
+    }
+    
+    .brand-logo img {
+        width: 28px;
+        height: 28px;
+    }
+    
+    /* Admin pill smaller */
+    .admin-pill {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+    
+    /* Icons smaller */
+    .dark-mode-toggle,
+    .notification-bell {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .dark-mode-toggle svg,
+    .notification-bell svg {
+        width: 15px;
+        height: 15px;
+    }
+    
+    /* Main content - less padding */
+    main {
+        padding: 16px 20px 70px;
+        margin-left: 0;
+        max-width: 100%;
+    }
+    
+    /* Stats row - 4 columns but smaller */
+    .stats-row {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    
+    .stat-card {
+        padding: 10px 8px;
+        gap: 8px;
+    }
+    
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    
+    .stat-number {
+        font-size: 18px;
+    }
+    
+    .stat-label {
+        font-size: 9px;
+    }
+    
+    /* Category strip - 4 columns */
+    .cat-strip {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    
+    .cat-card {
+        padding: 12px 8px;
+    }
+    
+    .cat-num {
+        font-size: 24px;
+    }
+    
+    .cat-label {
+        font-size: 10px;
+        margin-top: 4px;
+    }
+    
+    /* Page header smaller */
+    .page-header {
+        padding: 16px 20px;
+        margin-bottom: 16px;
+    }
+    
+    .page-title {
+        font-size: 20px;
+    }
+    
+    .page-sub {
+        font-size: 11px;
+    }
+    
+    /* Two columns - keep side by side */
+    .two-columns {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .chart-card, .violations-list {
+        padding: 12px;
+    }
+    
+    .card-title {
+        font-size: 13px;
+    }
+    
+    .card-sub {
+        font-size: 10px;
+    }
+    
+    .chart-container {
+        height: 180px;
+    }
+    
+    /* Violations list compact */
+    .violation-item {
+        padding: 8px 0;
+    }
+    
+    .violation-name {
+        font-size: 12px;
+    }
+    
+    .violation-count {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+    
+    /* Filter bar - horizontal scrollable */
+    .filter-bar {
+        flex-wrap: nowrap;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        margin-bottom: 16px;
+    }
+    
+    .search-bar {
+        max-width: 180px;
+        flex-shrink: 0;
+        padding: 5px 12px;
+    }
+    
+    .search-bar input {
+        font-size: 12px;
+    }
+    
+    .filter-chip {
+        padding: 5px 12px;
+        font-size: 11px;
+        flex-shrink: 0;
+    }
+    
+    /* Hide export button on this size */
+    .export-btn {
+        display: none;
+    }
+    
+    /* Section header */
+    .section-header h3 {
+        font-size: 16px;
+    }
+    
+    /* Show table, hide mobile cards on tablet size */
+    .table-wrap {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .mobile-cards {
+        display: none;
+    }
+    
+    /* Table compact */
+    th, td {
+        padding: 12px 12px;
+        font-size: 11px;
+    }
+    
+    th {
+        font-size: 10px;
+    }
+    
+    /* Hide bottom nav on tablet */
+    .bottom-nav {
+        display: none;
+    }
+    
+    /* Show drawer on tablet? Keep hidden, use hamburger */
+    .drawer {
+        left: -100%;
+    }
+    
+    .drawer.open {
+        left: 0;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    /* Pagination */
+    .pagination {
+        gap: 6px;
+        margin-top: 16px;
+    }
+    
+    .page-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+}
+
+/* =====================================================
+   STANDARD MOBILE (max-width: 768px) - OVERRIDES
    ===================================================== */
 @media (max-width: 768px) {
     body {
@@ -1382,15 +1622,13 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
     .topbar-left { gap: 8px; }
     .topbar-right { gap: 8px; }
 
-    /* Brand — tighter on mobile only */
+    /* Brand — visible on mobile */
     .brand { gap: 6px; }
-
-    .brand-logo img {
-        width: 30px;
-        height: 30px;
+    .brand-logo img { width: 30px; height: 30px; }
+    .brand-name { 
+        font-size: 14px;
+        display: inline-block !important;
     }
-
-    .brand-name { font-size: 15px; }
 
     /* Icons */
     .dark-mode-toggle,
@@ -1405,13 +1643,10 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
         height: 16px;
     }
 
-    /* Admin pill — consistent blue pill */
+    /* Admin pill */
     .admin-pill {
         padding: 5px 12px;
         font-size: 11px;
-        height: auto;
-        min-width: auto;
-        width: auto;
     }
 
     /* Main */
@@ -1449,7 +1684,10 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
     .chart-container { height: 200px; }
 
     /* Filter bar */
-    .filter-bar { flex-wrap: wrap; gap: 8px; }
+    .filter-bar { 
+        flex-wrap: wrap;
+        gap: 8px;
+    }
 
     .search-bar {
         max-width: 100%;
@@ -1457,10 +1695,17 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
         order: 1;
     }
 
-    .filter-chip { padding: 6px 14px; font-size: 11px; white-space: nowrap; }
+    .filter-chip { 
+        padding: 6px 14px; 
+        font-size: 11px; 
+        white-space: nowrap; 
+    }
 
     /* Page header */
-    .page-header { padding: 20px; margin-bottom: 20px; }
+    .page-header { 
+        padding: 20px; 
+        margin-bottom: 20px; 
+    }
     .page-title { font-size: 20px; }
 
     /* Table/cards */
@@ -1510,7 +1755,7 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
     .topbar { padding: 0 10px; }
 
     .brand { gap: 5px; }
-    .brand-name { font-size: 14px; }
+    .brand-name { font-size: 13px; }
     .brand-logo img { width: 26px; height: 26px; }
 
     .admin-pill { padding: 4px 10px; font-size: 10px; }
@@ -1546,15 +1791,18 @@ body.dark-mode .btn-cancel:hover { background: #475569; }
 }
 
 /* =====================================================
-   VERY SMALL (max-width: 360px)
+   SMALL PHONES (max-width: 392px) - For very old/small devices
    ===================================================== */
-@media (max-width: 360px) {
+@media (max-width: 392px) {
     .stats-row { grid-template-columns: 1fr; gap: 8px; }
     .cat-strip { grid-template-columns: 1fr; gap: 10px; }
     .m-card-body { grid-template-columns: 1fr; }
 
     .topbar { padding: 0 8px; }
-    .brand-name { display: none; }
+    .brand-name { 
+        font-size: 12px;
+        display: inline-block !important;
+    }
     .admin-pill { padding: 4px 8px; font-size: 9px; }
 
     .page-title { font-size: 18px; }
