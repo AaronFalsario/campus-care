@@ -833,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ============ FORGOT PASSWORD FUNCTION WITH HARDCODED URL ============
+    // ============ FORGOT PASSWORD FUNCTION - FIXED (NO ?type=) ============
     async function forgotPassword() {
         const email = await showAdminEmailPrompt();
         
@@ -856,9 +856,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
                 
-                // ✅ HARDCODED URL - NO ${window.location.origin}
+                // ✅ FINAL FIX - NO ?type=admin parameter
                 const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-                    redirectTo: `https://campus-care-iota.vercel.app/Assets/login/password_admin/reset_password.html?type=admin`
+                    redirectTo: `https://campus-care-iota.vercel.app/Assets/login/password_admin/reset_password.html`
                 });
                 
                 if (error) throw error;
