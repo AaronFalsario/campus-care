@@ -266,11 +266,30 @@ if (loginBtn) {
 
         try {
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
+            
+            if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    throw new Error('Invalid email or password. Please try again.');
+                } else if (error.message.includes('Email not confirmed')) {
+                    throw new Error('Please verify your email first. Check your inbox for the confirmation link.');
+                } else {
+                    throw error;
+                }
+            }
+            
             if (!data.user) throw new Error('Login failed — no user returned.');
 
             if (!data.user.email_confirmed_at) {
-                showNotification('Please verify your email first. Check your inbox for confirmation link.', true);
+                const { error: resendError } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: email
+                });
+                
+                if (!resendError) {
+                    showNotification('📧 Email not verified! A new confirmation link has been sent to your email.', false, 5000);
+                } else {
+                    showNotification('Please verify your email before logging in. Check your spam folder.', true);
+                }
                 hideLoader();
                 return;
             }
@@ -279,11 +298,55 @@ if (loginBtn) {
                 .from('student')
                 .select('*')
                 .eq('id', data.user.id)
-                .single();
+                .maybeSingle();
 
-            if (dbError || !studentData) {
-                await supabase.auth.signOut();
-                throw new Error('Account not found. Please sign up first.');
+            if (dbError) {
+                console.error('Database error:', dbError);
+                throw new Error('Error fetching user data. Please try again.');
+            }
+
+            if (!studentData) {
+                console.log('Student record missing, creating one...');
+                const { error: insertError } = await supabase
+                    .from('student')
+                    .insert([{
+                        id: data.user.id,
+                        full_name: data.user.user_metadata?.full_name || email.split('@')[0],
+                        student_id: data.user.user_metadata?.student_id || 'N/A',
+                        email: email,
+                        status: 'active',
+                        is_active: true,
+                        last_login: new Date().toISOString(),
+                        last_logout: null
+                    }]);
+                
+                if (insertError) {
+                    console.error('Insert error:', insertError);
+                    throw new Error('Account setup failed. Please contact support.');
+                }
+                
+                const { data: newStudentData } = await supabase
+                    .from('student')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+                    
+                if (newStudentData) {
+                    localStorage.setItem('currentStudent', JSON.stringify({
+                        name:      newStudentData.full_name,
+                        studentId: newStudentData.student_id,
+                        email:     newStudentData.email,
+                        userId:    data.user.id,
+                        status:    'active'
+                    }));
+                    
+                    showNotification('Login successful! Redirecting...', false, 1500);
+                    setTimeout(() => {
+                        window.location.href = '/Assets/Student_dashboard/SDB.html';
+                    }, 1500);
+                    hideLoader();
+                    return;
+                }
             }
 
             await updateStudentActivityOnLogin(data.user.id);
@@ -385,9 +448,7 @@ if (signupBtn) {
                     status:      'pending',  
                     is_active:   false,      
                     last_login:  null,
-                    last_logout: null,
-                    created_at:  new Date().toISOString(),
-                    updated_at:  new Date().toISOString()
+                    last_logout: null
                 }]);
 
             if (dbError) throw dbError;
@@ -458,7 +519,7 @@ window.studentLogout = async function () {
     }
 };
 
-// ========== FORGOT PASSWORD WITH HARDCODED URL ==========
+// ========== FORGOT PASSWORD ==========
 const forgotPasswordBtn = document.getElementById('showForgotPassword');
 if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', async () => {
@@ -485,9 +546,8 @@ if (forgotPasswordBtn) {
                 return;
             }
 
-            // ✅ HARDCODED URL - NO ${window.location.origin}
             const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-                redirectTo: `https://campus-care-iota.vercel.app/Assets/login/password_admin/reset_password.html?type=student`
+                redirectTo: `https://campus-care-iota.vercel.app/Assets/login/password_admin/reset_password.html`
             });
 
             if (error) throw error;
