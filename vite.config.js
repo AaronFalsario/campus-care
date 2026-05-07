@@ -48,7 +48,8 @@ export default defineConfig({
         adminUsers: resolve(__dirname, 'Assets/Admin_dashboard/user_page/user.html'),
         adminSettings: resolve(__dirname, 'Assets/Admin_dashboard/settings/setting.html'),
         studentSettings: resolve(__dirname, 'Assets/Student_dashboard/setting/setting.html'),
-        adminAnalytics: resolve(__dirname, 'Assets/Admin_dashboard/analytics/analytics.html')
+        adminAnalytics: resolve(__dirname, 'Assets/Admin_dashboard/analytics/analytics.html'),
+        resetPassword: resolve(__dirname, 'Assets/login/password_admin/reset_password.html')
       }
     }
   },
