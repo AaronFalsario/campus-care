@@ -42,40 +42,18 @@ function showMessage(message, isError = false) {
     }
 }
 
-// ✅ NEW: Detect user type from email after session is set
-async function getUserTypeFromEmail() {
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email) {
-            // Check if email exists in admin table
-            const { data: adminData } = await supabase
-                .from('admin')
-                .select('email')
-                .eq('email', user.email)
-                .maybeSingle();
-            
-            if (adminData) return 'admin';
-            
-            // Check if email exists in student table
-            const { data: studentData } = await supabase
-                .from('student')
-                .select('email')
-                .eq('email', user.email)
-                .maybeSingle();
-            
-            if (studentData) return 'student';
-        }
-        return 'admin'; // default
-    } catch (error) {
-        console.error('Error detecting user type:', error);
-        return 'admin';
-    }
+// Get user type from URL parameter
+function getUserType() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    return type === 'student' ? 'student' : 'admin';
 }
 
 async function updatePassword() {
     const newPassword = document.getElementById('newPassword')?.value;
     const confirmPassword = document.getElementById('confirmPassword')?.value;
     const resetBtn = document.getElementById('resetBtn');
+    const userType = getUserType();
     
     if (!newPassword || !confirmPassword) {
         showMessage('Please fill in both fields', true);
@@ -128,9 +106,6 @@ async function updatePassword() {
         localStorage.removeItem('isAdminLoggedIn');
         localStorage.removeItem('currentStudent');
         
-        // ✅ Get user type from email after session is set
-        const userType = await getUserTypeFromEmail();
-        
         // Redirect based on user type
         setTimeout(() => {
             if (userType === 'student') {
@@ -157,7 +132,12 @@ async function checkSession() {
             const resetBtn = document.getElementById('resetBtn');
             if (resetBtn) resetBtn.disabled = true;
             setTimeout(() => {
-                window.location.href = '/Assets/login/admin/admin.html';
+                const userType = getUserType();
+                if (userType === 'student') {
+                    window.location.href = '/Assets/login/log.html';
+                } else {
+                    window.location.href = '/Assets/login/admin/admin.html';
+                }
             }, 3000);
         }
     }
