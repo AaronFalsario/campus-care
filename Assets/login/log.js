@@ -363,8 +363,6 @@ if (signupBtn) {
                 return;
             }
 
-            // ✅ UPDATED: Create auth account with email confirmation
-            // The user will receive a confirmation email
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -373,7 +371,6 @@ if (signupBtn) {
                         full_name: fullName, 
                         student_id: studentId 
                     },
-                    // Redirect to login page after confirmation
                     emailRedirectTo: `${window.location.origin}/Assets/login/log.html`
                 }
             });
@@ -381,7 +378,6 @@ if (signupBtn) {
             if (error) throw error;
             if (!data.user) throw new Error('Signup failed.');
 
-            // ✅ NEW: Insert student record with pending status (is_active = false until email confirmed)
             const { error: dbError } = await supabase
                 .from('student')
                 .insert([{
@@ -389,8 +385,8 @@ if (signupBtn) {
                     full_name:   fullName,
                     student_id:  studentId,
                     email:       email,
-                    status:      'pending',  // ← Changed from 'active' to 'pending'
-                    is_active:   false,      // ← Set to false until email confirmation
+                    status:      'pending',  
+                    is_active:   false,      
                     last_login:  null,
                     last_logout: null,
                     created_at:  new Date().toISOString(),
@@ -399,7 +395,6 @@ if (signupBtn) {
 
             if (dbError) throw dbError;
 
-            // ✅ Show success message asking user to verify email
             showNotification('✅ Account created! Please check your email to verify your account before logging in.', false, 6000);
             
             // Clear form fields
@@ -496,8 +491,9 @@ if (forgotPasswordBtn) {
                 return;
             }
 
+            // ✅ UPDATED PATH for student reset
             const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-                redirectTo: `${window.location.origin}/Assets/login/student/reset-password.html?type=student`
+                redirectTo: `${window.location.origin}/Assets/login/password_admin/reset_password.html?type=student`
             });
 
             if (error) throw error;

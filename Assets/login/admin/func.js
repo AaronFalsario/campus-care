@@ -850,7 +850,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ============ FORGOT PASSWORD FUNCTION ============
 // ============ FORGOT PASSWORD FUNCTION ============
 async function forgotPassword() {
     const email = await showAdminEmailPrompt();
@@ -874,11 +873,10 @@ async function forgotPassword() {
             
             console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
             
-            // ⬇️⬇️⬇️ THIS IS THE CORRECT PATH ⬇️⬇️⬇️
+            // ✅ UPDATED PATH - using password_admin folder (no spaces!)
             const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-                redirectTo: `${window.location.origin}/Assets/login/reset%20password/reset_password.html?type=admin`
+                redirectTo: `${window.location.origin}/Assets/login/password_admin/reset_password.html?type=admin`
             });
-            // ⬆️⬆️⬆️ THIS IS THE CORRECT PATH ⬆️⬆️⬆️
             
             if (error) throw error;
             

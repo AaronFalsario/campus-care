@@ -42,10 +42,18 @@ function showMessage(message, isError = false) {
     }
 }
 
+// Get user type from URL parameter
+function getUserType() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    return type === 'student' ? 'student' : 'admin';
+}
+
 async function updatePassword() {
     const newPassword = document.getElementById('newPassword')?.value;
     const confirmPassword = document.getElementById('confirmPassword')?.value;
     const resetBtn = document.getElementById('resetBtn');
+    const userType = getUserType();
     
     if (!newPassword || !confirmPassword) {
         showMessage('Please fill in both fields', true);
@@ -91,14 +99,20 @@ async function updatePassword() {
         const { error } = await supabase.auth.updateUser({ password: newPassword });
         if (error) throw error;
         
-        showMessage('✅ Password updated successfully! Redirecting to admin login...', false);
+        showMessage('✅ Password updated successfully! Redirecting to login...', false);
         
-        // Clear stored admin session
+        // Clear stored sessions
         localStorage.removeItem('currentAdmin');
         localStorage.removeItem('isAdminLoggedIn');
+        localStorage.removeItem('currentStudent');
         
+        // Redirect based on user type
         setTimeout(() => {
-            window.location.href = '/Assets/login/admin/admin.html';
+            if (userType === 'student') {
+                window.location.href = '/Assets/login/log.html';
+            } else {
+                window.location.href = '/Assets/login/admin/admin.html';
+            }
         }, 2000);
         
     } catch (error) {
@@ -118,7 +132,12 @@ async function checkSession() {
             const resetBtn = document.getElementById('resetBtn');
             if (resetBtn) resetBtn.disabled = true;
             setTimeout(() => {
-                window.location.href = '/Assets/login/admin/admin.html';
+                const userType = getUserType();
+                if (userType === 'student') {
+                    window.location.href = '/Assets/login/log.html';
+                } else {
+                    window.location.href = '/Assets/login/admin/admin.html';
+                }
             }, 3000);
         }
     }
