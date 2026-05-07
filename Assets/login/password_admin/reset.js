@@ -42,18 +42,10 @@ function showMessage(message, isError = false) {
     }
 }
 
-// Get user type from URL parameter
-function getUserType() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get('type');
-    return type === 'student' ? 'student' : 'admin';
-}
-
 async function updatePassword() {
     const newPassword = document.getElementById('newPassword')?.value;
     const confirmPassword = document.getElementById('confirmPassword')?.value;
     const resetBtn = document.getElementById('resetBtn');
-    const userType = getUserType();
     
     if (!newPassword || !confirmPassword) {
         showMessage('Please fill in both fields', true);
@@ -81,6 +73,8 @@ async function updatePassword() {
             const refreshToken = hashParams.get('refresh_token');
             const type = hashParams.get('type');
             
+            console.log('Recovery token found, type:', type);
+            
             if (accessToken && type === 'recovery') {
                 const { error: sessionError } = await supabase.auth.setSession({
                     access_token: accessToken,
@@ -106,13 +100,9 @@ async function updatePassword() {
         localStorage.removeItem('isAdminLoggedIn');
         localStorage.removeItem('currentStudent');
         
-        // Redirect based on user type
+        // Redirect to admin login (default) after 2 seconds
         setTimeout(() => {
-            if (userType === 'student') {
-                window.location.href = '/Assets/login/log.html';
-            } else {
-                window.location.href = '/Assets/login/admin/admin.html';
-            }
+            window.location.href = '/Assets/login/admin/admin.html';
         }, 2000);
         
     } catch (error) {
@@ -125,6 +115,8 @@ async function updatePassword() {
 
 async function checkSession() {
     const hasToken = window.location.hash && window.location.hash.includes('access_token');
+    console.log('Has reset token:', hasToken);
+    
     if (!hasToken) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
@@ -132,14 +124,13 @@ async function checkSession() {
             const resetBtn = document.getElementById('resetBtn');
             if (resetBtn) resetBtn.disabled = true;
             setTimeout(() => {
-                const userType = getUserType();
-                if (userType === 'student') {
-                    window.location.href = '/Assets/login/log.html';
-                } else {
-                    window.location.href = '/Assets/login/admin/admin.html';
-                }
+                window.location.href = '/Assets/login/admin/admin.html';
             }, 3000);
+        } else {
+            showMessage('Enter your new password below', false);
         }
+    } else {
+        showMessage('Enter your new password below', false);
     }
 }
 
