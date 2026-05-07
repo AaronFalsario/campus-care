@@ -1,0 +1,13 @@
+/student-dashboard    /Assets/Student_dashboard/SDB.html    200
+/admin-dashboard      /Assets/Admin_dashboard/Admin.html    200
+/admin-login          /Assets/login/admin/admin.html        200
+/student-login        /Assets/login/log.html                200
+/report               /Assets/Student_reporting/report.html 200
+/admin/incidents      /Assets/Admin_dashboard/incident/incident.html 200
+/admin/users          /Assets/Admin_dashboard/user_page/user.html    200
+/admin/settings       /Assets/Admin_dashboard/settings/setting.html   200
+/student/settings     /Assets/Student_dashboard/setting/setting.html  200
+/land                 /land.html                           200
+
+/Assets/*             /Assets/:splat                       200
+/*                    /index.html                          200
