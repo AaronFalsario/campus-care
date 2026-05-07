@@ -19,28 +19,28 @@ function loadAdminToDrawer() {
     try {
         const storedAdmin = localStorage.getItem('currentAdmin');
         const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-        
+
         if (!storedAdmin || isLoggedIn !== 'true') {
             window.location.href = '/Assets/login/admin/admin.html';
             return false;
         }
-        
+
         currentAdmin = JSON.parse(storedAdmin);
         const adminName = currentAdmin.name || currentAdmin.email;
         const adminInitials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-        
+
         const drawerName = document.querySelector('.drawer-name');
         const drawerRole = document.querySelector('.drawer-role');
         const drawerAvatar = document.querySelector('.drawer-avatar');
         const adminPill = document.getElementById('adminPill');
-        
+
         if (drawerName) drawerName.textContent = adminName;
         if (drawerRole) drawerRole.textContent = currentAdmin.role || 'Campus Care Admin';
         if (adminPill) adminPill.textContent = adminName.split(' ')[0] || 'Admin';
         if (drawerAvatar) {
             drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${adminInitials}</span>`;
         }
-        
+
         return true;
     } catch (error) {
         console.error('Error loading admin:', error);
@@ -52,7 +52,7 @@ function loadAdminToDrawer() {
 function initDarkMode() {
     const savedMode = localStorage.getItem('admin_dark_mode');
     const toggle = document.getElementById('darkModeToggle');
-    
+
     if (savedMode === 'enabled') {
         document.body.classList.add('dark-mode');
         if (toggle) {
@@ -62,7 +62,7 @@ function initDarkMode() {
             if (moonIcon) moonIcon.style.display = 'block';
         }
     }
-    
+
     if (toggle) {
         toggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
@@ -89,7 +89,9 @@ function loadNotifications() {
     if (stored) {
         try {
             notifications = JSON.parse(stored);
-            notificationIdCounter = notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 0;
+            notificationIdCounter = notifications.length > 0
+                ? Math.max(...notifications.map(n => n.id)) + 1
+                : 0;
         } catch (e) {
             notifications = [];
             notificationIdCounter = 0;
@@ -110,16 +112,16 @@ function saveNotifications() {
 function addInternalNotification(title, message, isUrgent = false) {
     const notification = {
         id: notificationIdCounter++,
-        title: title,
-        message: message,
+        title,
+        message,
         timestamp: new Date().toISOString(),
         read: false,
-        isUrgent: isUrgent
+        isUrgent
     };
     notifications.unshift(notification);
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
     saveNotifications();
     updateNotificationDropdown();
-    if (notifications.length > 50) notifications = notifications.slice(0, 50);
 }
 
 function updateNotificationBadge() {
@@ -130,13 +132,8 @@ function updateNotificationBadge() {
         if (unreadCount > 0) {
             badge.textContent = urgentCount > 0 ? `🔥${unreadCount}` : (unreadCount > 9 ? '9+' : unreadCount);
             badge.style.display = 'flex';
-            if (urgentCount > 0) {
-                badge.style.background = '#DC2626';
-                badge.style.animation = 'pulse 0.5s ease infinite';
-            } else {
-                badge.style.background = 'var(--red)';
-                badge.style.animation = 'none';
-            }
+            badge.style.background = urgentCount > 0 ? '#DC2626' : 'var(--red)';
+            badge.style.animation = urgentCount > 0 ? 'pulse 0.5s ease infinite' : 'none';
         } else {
             badge.style.display = 'none';
         }
@@ -156,7 +153,7 @@ function createNotificationDropdown() {
 function updateNotificationDropdown() {
     let dropdown = document.getElementById('notificationDropdown');
     if (!dropdown) dropdown = createNotificationDropdown();
-    
+
     if (!notifications || notifications.length === 0) {
         dropdown.innerHTML = `
             <div class="notification-dropdown-header">
@@ -174,7 +171,7 @@ function updateNotificationDropdown() {
         `;
         return;
     }
-    
+
     const unreadCount = notifications.filter(n => !n.read).length;
     dropdown.innerHTML = `
         <div class="notification-dropdown-header">
@@ -183,14 +180,17 @@ function updateNotificationDropdown() {
         </div>
         <div class="notification-dropdown-list">
             ${notifications.slice(0, 15).map(notif => `
-                <div class="notification-dropdown-item ${!notif.read ? 'unread' : ''} ${notif.isUrgent ? 'urgent' : ''}" onclick="markNotificationRead(${notif.id})">
+                <div class="notification-dropdown-item ${!notif.read ? 'unread' : ''} ${notif.isUrgent ? 'urgent' : ''}"
+                     onclick="markNotificationRead(${notif.id})">
                     <div class="notification-dropdown-title">${notif.isUrgent ? '🚨 ' : '📋 '}${escapeHtml(notif.title)}</div>
                     <div class="notification-dropdown-message">${escapeHtml(notif.message)}</div>
                     <div class="notification-dropdown-time">${getTimeAgo(notif.timestamp)}</div>
                 </div>
             `).join('')}
         </div>
-        ${notifications.length > 15 ? `<div class="notification-dropdown-footer">${notifications.length - 15} more notifications</div>` : ''}
+        ${notifications.length > 15
+            ? `<div class="notification-dropdown-footer">${notifications.length - 15} more notifications</div>`
+            : ''}
     `;
 }
 
@@ -200,7 +200,7 @@ function toggleNotificationDropdown() {
         dropdown = createNotificationDropdown();
         updateNotificationDropdown();
     }
-    
+
     if (isNotificationDropdownOpen) {
         dropdown.classList.remove('show');
         isNotificationDropdownOpen = false;
@@ -224,7 +224,7 @@ function closeNotificationDropdownOutside(e) {
     }
 }
 
-window.markNotificationRead = function(id) {
+window.markNotificationRead = function (id) {
     const notif = notifications.find(n => n.id === id);
     if (notif) {
         notif.read = true;
@@ -233,7 +233,7 @@ window.markNotificationRead = function(id) {
     }
 };
 
-window.clearAllNotifications = function() {
+window.clearAllNotifications = function () {
     notifications = [];
     saveNotifications();
     updateNotificationDropdown();
@@ -258,35 +258,42 @@ function getTimeAgo(dateString) {
 }
 
 // ========== UPDATE STUDENT STATUS BASED ON LAST_LOGIN AND LAST_LOGOUT ==========
+// A student is ACTIVE if:
+//   - They have a last_login timestamp
+//   - They have NOT logged out after that login (last_logout < last_login or no logout)
+//   - Their last_login was within the past 30 minutes
+// As soon as a student logs in, last_login is updated → they become active instantly.
 async function updateStudentStatusFromAuth() {
     try {
-        console.log('Updating student statuses based on last_login and last_logout...');
         const now = new Date();
         let hasChanges = false;
-        
+
         for (const student of students) {
             const lastLogin = student.last_login ? new Date(student.last_login) : null;
             const lastLogout = student.last_logout ? new Date(student.last_logout) : null;
-            
+
             let isActive = false;
-            
+
             if (!lastLogin) {
+                // Never logged in → inactive
                 isActive = false;
             } else if (lastLogout && lastLogout > lastLogin) {
+                // Logged out after last login → inactive
                 isActive = false;
             } else {
-                const minutesSinceLastLogin = (now - lastLogin) / (1000 * 60);
-                isActive = minutesSinceLastLogin < 30;
+                // Logged in and not logged out → active if within 30 min
+                const minutesSinceLogin = (now - lastLogin) / (1000 * 60);
+                isActive = minutesSinceLogin < 30;
             }
-            
+
             const newStatus = isActive ? 'active' : 'inactive';
-            
+
             if (student.status !== newStatus) {
                 const { error } = await supabase
                     .from('student')
                     .update({ status: newStatus })
                     .eq('id', student.id);
-                
+
                 if (!error) {
                     student.status = newStatus;
                     hasChanges = true;
@@ -294,34 +301,27 @@ async function updateStudentStatusFromAuth() {
                 }
             }
         }
-        
+
         if (hasChanges) {
             renderStudents();
             updateStats();
-            console.log('✅ Student statuses updated');
         }
-        
     } catch (error) {
         console.error('Error updating status:', error);
     }
 }
 
-// ========== GET STUDENT REPORT COUNT FROM INCIDENTS ==========
+// ========== GET STUDENT REPORT COUNT ==========
 async function getStudentReportCount(studentIdNumber) {
     try {
         const { count, error } = await supabase
             .from('incident')
             .select('*', { count: 'exact', head: true })
             .eq('student_id_number', studentIdNumber);
-        
-        if (error) {
-            console.error('Error counting incidents:', error);
-            return 0;
-        }
-        
+
+        if (error) return 0;
         return count || 0;
-    } catch (error) {
-        console.error('Error:', error);
+    } catch {
         return 0;
     }
 }
@@ -329,19 +329,17 @@ async function getStudentReportCount(studentIdNumber) {
 // ========== LOAD STUDENTS FROM SUPABASE ==========
 async function loadStudents() {
     try {
-        console.log('Loading students from Supabase student table...');
-        
         const { data, error } = await supabase
             .from('student')
             .select('*')
             .order('created_at', { ascending: false });
-        
+
         if (error) {
             console.error('Supabase error:', error);
             showToast('Failed to load students', 'error');
             return;
         }
-        
+
         if (data && data.length > 0) {
             const studentsWithReports = await Promise.all(data.map(async (s) => {
                 const reportCount = await getStudentReportCount(s.student_id);
@@ -358,13 +356,11 @@ async function loadStudents() {
                     last_logout: s.last_logout || null
                 };
             }));
-            
             students = studentsWithReports;
-            console.log(`✅ Loaded ${students.length} students`);
         } else {
             students = [];
         }
-        
+
         await updateStudentStatusFromAuth();
         renderStudents();
         updateStats();
@@ -376,9 +372,7 @@ async function loadStudents() {
 
 // ========== UPDATE REPORT COUNTS ==========
 async function updateAllReportCounts() {
-    console.log('Updating report counts...');
     let hasChanges = false;
-    
     for (const student of students) {
         const newCount = await getStudentReportCount(student.idNumber);
         if (student.reports !== newCount) {
@@ -386,7 +380,6 @@ async function updateAllReportCounts() {
             hasChanges = true;
         }
     }
-    
     if (hasChanges) {
         renderStudents();
         updateStats();
@@ -394,20 +387,56 @@ async function updateAllReportCounts() {
 }
 
 // ========== REAL-TIME SUBSCRIPTION ==========
+// Listens for changes to the student table — including last_login updates
+// so the admin dashboard reflects active status the moment a student logs in.
 function setupRealtimeSubscription() {
     if (realtimeSubscription) return;
-    
+
     realtimeSubscription = supabase
         .channel('student-management-changes')
-        .on('postgres_changes', 
+        .on('postgres_changes',
             { event: '*', schema: 'public', table: 'student' },
-            (payload) => {
+            async (payload) => {
                 console.log('Real-time student update:', payload.eventType);
-                loadStudents();
+
                 if (payload.eventType === 'INSERT') {
-                    addInternalNotification('New Student Registered', `${payload.new.full_name} has created an account`, false);
-                    showToast(`📢 New student registered!`, 'info');
+                    addInternalNotification(
+                        'New Student Registered',
+                        `${payload.new.full_name} has created an account`,
+                        false
+                    );
+                    showToast('📢 New student registered!', 'info');
                 }
+
+                // On UPDATE: if last_login changed, mark student active immediately
+                if (payload.eventType === 'UPDATE') {
+                    const updated = payload.new;
+                    const student = students.find(s => s.id === updated.id);
+                    if (student) {
+                        const prevLogin = student.last_login;
+                        student.last_login = updated.last_login;
+                        student.last_logout = updated.last_logout;
+
+                        // If last_login just changed and no logout after it → set active
+                        if (
+                            updated.last_login &&
+                            updated.last_login !== prevLogin &&
+                            (!updated.last_logout || new Date(updated.last_logout) < new Date(updated.last_login))
+                        ) {
+                            student.status = 'active';
+                            await supabase
+                                .from('student')
+                                .update({ status: 'active' })
+                                .eq('id', student.id);
+
+                            renderStudents();
+                            updateStats();
+                            return; // skip full reload for performance
+                        }
+                    }
+                }
+
+                await loadStudents();
             }
         )
         .on('postgres_changes',
@@ -421,12 +450,12 @@ function setupRealtimeSubscription() {
 function renderStudents() {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
-    
+
     if (students.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:60px;">👨‍🎓 No students found</td></tr>`;
         return;
     }
-    
+
     tbody.innerHTML = students.map(student => `
         <tr data-id="${student.id}">
             <td>
@@ -455,7 +484,7 @@ function renderStudents() {
             </td>
         </tr>
     `).join('');
-    
+
     document.querySelectorAll('.edit-student').forEach(btn => {
         btn.onclick = () => editStudent(btn.dataset.id);
     });
@@ -468,159 +497,148 @@ function renderStudents() {
 async function deleteStudent(id) {
     const student = students.find(s => s.id == id);
     if (!student) return;
-    
+
     if (!confirm(`⚠️ WARNING: This will permanently delete "${student.name}"\n\nThis action CANNOT be undone!`)) return;
-    
+
     showToast('Deleting student account...', 'info');
-    
+
     try {
         const { error } = await supabase.from('student').delete().eq('id', id);
-        
+
         if (error) {
             showToast('Failed to delete student', 'error');
             return;
         }
-        
+
         showToast(`✓ ${student.name} has been deleted`, 'success');
         addInternalNotification('Student Deleted', `${student.name} has been removed`, false);
-        
+
         students = students.filter(s => s.id != id);
         renderStudents();
         updateStats();
-        
     } catch (error) {
         console.error('Delete error:', error);
         showToast('Failed to delete student', 'error');
     }
 }
 
-// ========== EDIT STUDENT - MAKE NAME, ID, EMAIL NON-EDITABLE ==========
+// ========== EDIT STUDENT ==========
+// Only allows editing Status — Name, ID Number, and Email are read-only.
+// Course and Year fields have been removed from the modal.
 function editStudent(id) {
     const student = students.find(s => s.id == id);
     if (!student) return;
-    
+
     editingStudentId = id;
-    
-    // Set values
+
+    // Populate fields
     document.getElementById('studentId').value = student.id;
     document.getElementById('studentFullName').value = student.name;
     document.getElementById('studentIdNumber').value = student.idNumber;
-    document.getElementById('studentCourse').value = student.course;
-    document.getElementById('studentYear').value = student.year;
     document.getElementById('studentEmail').value = student.email;
-    
-    // IMPORTANT: Disable the fields that should NOT be editable (Name, ID Number, Email)
-    const nameInput = document.getElementById('studentFullName');
-    const idNumberInput = document.getElementById('studentIdNumber');
-    const emailInput = document.getElementById('studentEmail');
-    
-    if (nameInput) nameInput.disabled = true;
-    if (idNumberInput) idNumberInput.disabled = true;
-    if (emailInput) emailInput.disabled = true;
-    
-    // Add visual hint for disabled fields (optional but nice)
-    if (nameInput) nameInput.style.opacity = '0.7';
-    if (idNumberInput) idNumberInput.style.opacity = '0.7';
-    if (emailInput) emailInput.style.opacity = '0.7';
-    
+    document.getElementById('studentStatus').value = student.status;
+
+    // Lock read-only fields
+    ['studentFullName', 'studentIdNumber', 'studentEmail'].forEach(fieldId => {
+        const el = document.getElementById(fieldId);
+        if (el) {
+            el.disabled = true;
+            el.style.opacity = '0.6';
+            el.style.cursor = 'not-allowed';
+        }
+    });
+
     document.getElementById('modalTitle').textContent = 'Edit Student';
     openModal();
 }
 
-// ========== RESET FORM FIELDS WHEN ADDING NEW STUDENT ==========
+// ========== RESET FORM ==========
 function resetFormForAdd() {
-    const nameInput = document.getElementById('studentFullName');
-    const idNumberInput = document.getElementById('studentIdNumber');
-    const emailInput = document.getElementById('studentEmail');
-    
-    if (nameInput) {
-        nameInput.disabled = false;
-        nameInput.style.opacity = '1';
-    }
-    if (idNumberInput) {
-        idNumberInput.disabled = false;
-        idNumberInput.style.opacity = '1';
-    }
-    if (emailInput) {
-        emailInput.disabled = false;
-        emailInput.style.opacity = '1';
-    }
-    
-    document.getElementById('studentForm').reset();
-    document.getElementById('studentId').value = '';
+    // Re-enable all fields
+    ['studentFullName', 'studentIdNumber', 'studentEmail'].forEach(fieldId => {
+        const el = document.getElementById(fieldId);
+        if (el) {
+            el.disabled = false;
+            el.style.opacity = '1';
+            el.style.cursor = '';
+        }
+    });
+
+    const form = document.getElementById('studentForm');
+    if (form) form.reset();
+
+    const studentIdInput = document.getElementById('studentId');
+    if (studentIdInput) studentIdInput.value = '';
+
     editingStudentId = null;
 }
 
 // ========== FORM SUBMIT ==========
-const studentForm = document.getElementById('studentForm');
-if (studentForm) {
-    studentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const isEditing = editingStudentId !== null;
-        
-        const studentData = {
-            full_name: document.getElementById('studentFullName')?.value.trim() || '',
-            student_id: document.getElementById('studentIdNumber')?.value.trim() || '',
-            course: document.getElementById('studentCourse')?.value || 'N/A',
-            year_level: document.getElementById('studentYear')?.value || '1',
-            email: document.getElementById('studentEmail')?.value.trim() || '',
-            status: document.getElementById('studentStatus')?.value || 'inactive',
-            updated_at: new Date().toISOString()
-        };
-        
-        if (!studentData.full_name || !studentData.student_id || !studentData.email) {
-            showToast('Please fill in all fields', 'error');
-            return;
-        }
-        
-        const existingId = document.getElementById('studentId')?.value;
-        
-        if (existingId && isEditing) {
-            // UPDATE - only update allowed fields (course, year_level, status)
-            // Do NOT update full_name, student_id, email
-            const updateData = {
-                course: studentData.course,
-                year_level: studentData.year_level,
-                status: studentData.status,
-                updated_at: studentData.updated_at
-            };
-            
-            const { error } = await supabase
-                .from('student')
-                .update(updateData)
-                .eq('id', existingId);
-            
-            if (error) {
-                showToast('Failed to update student', 'error');
-                console.error('Update error:', error);
-                return;
-            }
-            showToast(`✓ ${studentData.full_name} has been updated`, 'success');
-            addInternalNotification('Student Updated', `${studentData.full_name}'s info has been modified`, false);
-        } else {
-            // INSERT new student
-            studentData.created_at = new Date().toISOString();
-            const { error } = await supabase
-                .from('student')
-                .insert([studentData]);
-            
-            if (error) {
-                showToast('Failed to add student', 'error');
-                console.error('Insert error:', error);
-                return;
-            }
-            showToast(`✓ ${studentData.full_name} has been added`, 'success');
-            addInternalNotification('Student Added', `${studentData.full_name} has been added to the system`, false);
-        }
-        
-        await loadStudents();
-        resetFormForAdd();
-        closeModal();
-    });
-}
+document.addEventListener('DOMContentLoaded', () => {
+    const studentForm = document.getElementById('studentForm');
+    if (studentForm) {
+        studentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-// ========== HELPER FUNCTIONS ==========
+            const isEditing = editingStudentId !== null;
+
+            const fullName = document.getElementById('studentFullName')?.value.trim() || '';
+            const studentId = document.getElementById('studentIdNumber')?.value.trim() || '';
+            const email = document.getElementById('studentEmail')?.value.trim() || '';
+            const status = document.getElementById('studentStatus')?.value || 'inactive';
+            const existingId = document.getElementById('studentId')?.value;
+
+            if (!fullName || !studentId || !email) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+
+            if (isEditing && existingId) {
+                // UPDATE — only status is editable
+                const { error } = await supabase
+                    .from('student')
+                    .update({ status, updated_at: new Date().toISOString() })
+                    .eq('id', existingId);
+
+                if (error) {
+                    showToast('Failed to update student', 'error');
+                    console.error('Update error:', error);
+                    return;
+                }
+
+                showToast(`✓ ${fullName} has been updated`, 'success');
+                addInternalNotification('Student Updated', `${fullName}'s status has been changed to ${status}`, false);
+            } else {
+                // INSERT new student
+                const { error } = await supabase
+                    .from('student')
+                    .insert([{
+                        full_name: fullName,
+                        student_id: studentId,
+                        email,
+                        status,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    }]);
+
+                if (error) {
+                    showToast('Failed to add student', 'error');
+                    console.error('Insert error:', error);
+                    return;
+                }
+
+                showToast(`✓ ${fullName} has been added`, 'success');
+                addInternalNotification('Student Added', `${fullName} has been added to the system`, false);
+            }
+
+            await loadStudents();
+            resetFormForAdd();
+            closeModal();
+        });
+    }
+});
+
+// ========== MODAL HELPERS ==========
 function openModal() {
     const modal = document.getElementById('studentModal');
     if (modal) modal.classList.add('active');
@@ -631,10 +649,12 @@ function closeModal() {
     const modal = document.getElementById('studentModal');
     if (modal) modal.classList.remove('active');
     resetFormForAdd();
-    document.getElementById('modalTitle').textContent = 'Add New Student';
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) modalTitle.textContent = 'Add New Student';
     document.body.style.overflow = '';
 }
 
+// ========== HELPER FUNCTIONS ==========
 function getInitials(name) {
     if (!name) return '??';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -652,7 +672,7 @@ function formatDate(dateString) {
     const diffMinutes = Math.floor((now - date) / (1000 * 60));
     const diffHours = Math.floor(diffMinutes / 60);
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffMinutes < 1) return 'Just now';
     if (diffMinutes < 60) return `${diffMinutes}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
@@ -664,16 +684,12 @@ function updateStats() {
     const active = students.filter(s => s.status === 'active').length;
     const totalReports = students.reduce((sum, s) => sum + (s.reports || 0), 0);
     const avgReports = total > 0 ? (totalReports / total).toFixed(1) : 0;
-    
-    const totalEl = document.getElementById('totalStudents');
-    const activeEl = document.getElementById('activeStudents');
-    const reportsEl = document.getElementById('totalReports');
-    const avgEl = document.getElementById('avgReports');
-    
-    if (totalEl) totalEl.textContent = total;
-    if (activeEl) activeEl.textContent = active;
-    if (reportsEl) reportsEl.textContent = totalReports;
-    if (avgEl) avgEl.textContent = avgReports;
+
+    const el = (id) => document.getElementById(id);
+    if (el('totalStudents')) el('totalStudents').textContent = total;
+    if (el('activeStudents')) el('activeStudents').textContent = active;
+    if (el('totalReports')) el('totalReports').textContent = totalReports;
+    if (el('avgReports')) el('avgReports').textContent = avgReports;
 }
 
 function escapeHtml(text) {
@@ -685,114 +701,103 @@ function escapeHtml(text) {
 
 // ========== NAVIGATION SETUP ==========
 function setupNavigation() {
-    const drawerItems = document.querySelectorAll('.drawer-item');
-    drawerItems.forEach(item => {
+    document.querySelectorAll('.drawer-item').forEach(item => {
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
-        
-        newItem.addEventListener('click', function() {
+        newItem.addEventListener('click', function () {
             const page = this.dataset.page;
-            const drawer = document.getElementById('drawer');
-            const overlay = document.getElementById('overlay');
-            if (drawer) drawer.classList.remove('open');
-            if (overlay) overlay.classList.remove('open');
-            
-            if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
-            else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
-            else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
-            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
+            document.getElementById('drawer')?.classList.remove('open');
+            document.getElementById('overlay')?.classList.remove('open');
+            navigateTo(page);
         });
     });
 }
 
-// ========== BOTTOM NAVIGATION ==========
 function setupBottomNav() {
-    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
-    bottomNavItems.forEach(item => {
+    document.querySelectorAll('.bottom-nav-item').forEach(item => {
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
-        
-        newItem.addEventListener('click', () => {
-            const page = newItem.dataset.page;
-            if (page === 'dashboard') window.location.href = '/Assets/Admin_dashboard/Admin.html';
-            else if (page === 'incidents') window.location.href = '/Assets/Admin_dashboard/incident/incident.html';
-            else if (page === 'users') window.location.href = '/Assets/Admin_dashboard/user_page/user.html';
-            else if (page === 'analytics') window.location.href = '/Assets/Admin_dashboard/analytics/analytics.html';
-            else if (page === 'settings') window.location.href = '/Assets/Admin_dashboard/settings/setting.html';
-        });
+        newItem.addEventListener('click', () => navigateTo(newItem.dataset.page));
     });
 }
 
-// ========== HIGHLIGHT ACTIVE BOTTOM NAV ==========
+function navigateTo(page) {
+    const routes = {
+        dashboard: '/Assets/Admin_dashboard/Admin.html',
+        incidents: '/Assets/Admin_dashboard/incident/incident.html',
+        users:     '/Assets/Admin_dashboard/user_page/user.html',
+        analytics: '/Assets/Admin_dashboard/analytics/analytics.html',
+        settings:  '/Assets/Admin_dashboard/settings/setting.html'
+    };
+    if (routes[page]) window.location.href = routes[page];
+}
+
 function highlightActiveBottomNav() {
-    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
     const currentPath = window.location.pathname;
-    
-    bottomNavItems.forEach(item => {
+    document.querySelectorAll('.bottom-nav-item').forEach(item => {
         const page = item.dataset.page;
         item.classList.remove('active');
-        
-        if (page === 'dashboard' && (currentPath.includes('Admin.html') || currentPath === '/' || currentPath.includes('/dashboard'))) {
-            item.classList.add('active');
-        } 
-        else if (page === 'incidents' && currentPath.includes('incident')) {
-            item.classList.add('active');
-        } 
-        else if (page === 'users' && currentPath.includes('user_page')) {
-            item.classList.add('active');
-        } 
-        else if (page === 'analytics' && currentPath.includes('analytics')) {
-            item.classList.add('active');
-        } 
-        else if (page === 'settings' && currentPath.includes('setting')) {
+        if (
+            (page === 'dashboard' && (currentPath.includes('Admin.html') || currentPath === '/')) ||
+            (page === 'incidents' && currentPath.includes('incident')) ||
+            (page === 'users' && currentPath.includes('user_page')) ||
+            (page === 'analytics' && currentPath.includes('analytics')) ||
+            (page === 'settings' && currentPath.includes('setting'))
+        ) {
             item.classList.add('active');
         }
     });
 }
 
+// ========== UI SETUP ==========
 function setupUI() {
-    const drawer = document.getElementById('drawer');
+    const drawer  = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
     const adminPill = document.getElementById('adminPill');
     const notificationBell = document.getElementById('notificationBell');
-    
-    if (overlay) overlay.onclick = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
-    if (adminPill) adminPill.onclick = () => { drawer.classList.toggle('open'); overlay.classList.toggle('open'); };
+
+    if (overlay) overlay.onclick = () => { drawer?.classList.remove('open'); overlay.classList.remove('open'); };
+    if (adminPill) adminPill.onclick = () => { drawer?.classList.toggle('open'); overlay?.classList.toggle('open'); };
     if (notificationBell) notificationBell.onclick = (e) => { e.stopPropagation(); toggleNotificationDropdown(); };
-    
+
+    // Add Student button
     const addBtn = document.getElementById('addStudentBtn');
     if (addBtn) {
         addBtn.addEventListener('click', () => {
             resetFormForAdd();
+            document.getElementById('modalTitle').textContent = 'Add New Student';
             openModal();
         });
     }
-    
+
+    // Close modal button
     const closeBtn = document.getElementById('closeModalBtn');
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    
+
+    // Click outside modal to close
     const modal = document.getElementById('studentModal');
     if (modal) {
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
     }
-    
+
+    // Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (modal && modal.classList.contains('active')) closeModal();
+            if (modal?.classList.contains('active')) closeModal();
             if (isNotificationDropdownOpen) {
-                const dropdown = document.getElementById('notificationDropdown');
-                if (dropdown) dropdown.classList.remove('show');
+                document.getElementById('notificationDropdown')?.classList.remove('show');
                 isNotificationDropdownOpen = false;
             }
         }
     });
-    
+
+    // Logout
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         const newLogoutBtn = logoutBtn.cloneNode(true);
         logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
-        
         newLogoutBtn.addEventListener('click', () => {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('currentStudent');
@@ -805,7 +810,7 @@ function setupUI() {
     }
 }
 
-// ========== AUTO UPDATE STATUS EVERY 30 SECONDS ==========
+// ========== AUTO REFRESH EVERY 30 SECONDS ==========
 setInterval(() => {
     updateStudentStatusFromAuth();
     updateAllReportCounts();

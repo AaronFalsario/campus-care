@@ -18,17 +18,22 @@ window.saveStatus = null;
 window.deleteIncident = null;
 window.exportToCSV = null;
 
-// ========== NOTIFICATION SYSTEM (UNIFIED WITH ADMIN DASHBOARD) ==========
-// IMPORTANT: Using 'admin_notifications' key to share notifications with Admin Dashboard
+// ========== NOTIFICATION SYSTEM (FIXED FOR MOBILE/TABLET) ==========
 let notifications = [];
 let notificationIdCounter = 0;
 let isNotificationDropdownOpen = false;
 let _closeDropdownHandler = null;
 let lastUrgentTime = 0;
 
-// Load notifications from localStorage - USING SAME KEY AS ADMIN DASHBOARD
+// Detect if device is mobile/tablet
+function isMobileOrTablet() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Tablet|iPad|Android(?!.*Mobile)/i.test(navigator.userAgent) || 
+           window.innerWidth <= 1024;
+}
+
+// Load notifications
 function loadNotifications() {
-    const stored = localStorage.getItem('admin_notifications');  // ← CHANGED: Same key as Admin Dashboard
+    const stored = localStorage.getItem('admin_notifications');
     if (stored) {
         try {
             notifications = JSON.parse(stored);
@@ -49,75 +54,127 @@ function loadNotifications() {
 }
 
 function saveNotifications() {
-    localStorage.setItem('admin_notifications', JSON.stringify(notifications));  // ← CHANGED: Same key as Admin Dashboard
+    localStorage.setItem('admin_notifications', JSON.stringify(notifications));
     if (document.getElementById('notificationBadge')) {
         updateNotificationBadge();
     }
 }
 
-// Request notification permission
+// Request notification permission (won't break on mobile/tablet)
 async function requestNotificationPermission() {
     if ('Notification' in window) {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            console.log('✅ Notification permission granted');
-            new Notification('Campus Care Admin', {
-                body: 'Notifications enabled! You will receive alerts for new incidents.',
-                icon: '/Assets/Images/logo.png'
-            });
-        } else {
-            console.log('❌ Notification permission denied');
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                console.log('✅ Notification permission granted');
+                if (!isMobileOrTablet()) {
+                    new Notification('Campus Care Admin', {
+                        body: 'Notifications enabled! You will receive alerts for new incidents.',
+                        icon: '/Assets/Images/logo.png'
+                    });
+                }
+            } else {
+                console.log('❌ Notification permission denied');
+            }
+        } catch (error) {
+            console.log('Notification permission error:', error);
         }
     }
 }
 
-// Send browser notification
+// Safe browser notification (won't throw errors)
 function sendBrowserNotification(title, body, isUrgent = false) {
     if (!('Notification' in window)) {
-        console.log('This browser does not support notifications');
         return;
     }
     
     if (Notification.permission !== 'granted') {
-        console.log('Notification permission not granted');
         return;
     }
     
-    if (isUrgent) {
-        const now = Date.now();
-        if (now - lastUrgentTime < 10000) {
-            console.log('Throttling urgent notification');
-            return;
-        }
-        lastUrgentTime = now;
+    // Skip on mobile/tablet to avoid iOS issues
+    if (isMobileOrTablet()) {
+        console.log('Skipping browser notification on mobile/tablet, using fallback instead');
+        return;
     }
     
-    const notificationOptions = {
-        body: isUrgent ? `🚨 URGENT: ${body}` : body,
-        icon: '/Assets/Images/logo.png',
-        badge: '/Assets/Images/logo.png',
-        vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100, 50, 100],
-        silent: false,
-        requireInteraction: isUrgent,
-        tag: `incident-${Date.now()}`,
-        renotify: true
-    };
-    
-    const notification = new Notification(title, notificationOptions);
-    
-    notification.onclick = function() {
-        window.focus();
-        notification.close();
-    };
-    
-    setTimeout(() => {
-        notification.close();
-    }, isUrgent ? 30000 : 10000);
+    try {
+        if (isUrgent) {
+            const now = Date.now();
+            if (now - lastUrgentTime < 10000) {
+                return;
+            }
+            lastUrgentTime = now;
+        }
+        
+        const notificationOptions = {
+            body: isUrgent ? `🚨 URGENT: ${body}` : body,
+            icon: '/Assets/Images/logo.png',
+            badge: '/Assets/Images/logo.png',
+            vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100, 50, 100],
+            silent: false,
+            requireInteraction: isUrgent && !isMobileOrTablet(),
+            tag: `incident-${Date.now()}`,
+            renotify: true
+        };
+        
+        const notification = new Notification(title, notificationOptions);
+        
+        notification.onclick = function() {
+            window.focus();
+            notification.close();
+        };
+        
+        setTimeout(() => notification.close(), isUrgent ? 30000 : 10000);
+    } catch (error) {
+        console.log('Browser notification error:', error);
+    }
 }
 
-// Add internal notification
+// Mobile fallback notification (visible banner)
+function showMobileFallbackNotification(title, message, isUrgent = false) {
+    const notificationDiv = document.createElement('div');
+    notificationDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: ${isUrgent ? 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)' : 'linear-gradient(135deg, #1D9E75 0%, #085041 100%)'};
+        color: white;
+        padding: 16px;
+        z-index: 10001;
+        animation: slideDown 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        cursor: pointer;
+    `;
+    
+    notificationDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 28px;">${isUrgent ? '🚨' : '📋'}</span>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; margin-bottom: 4px;">${title}</div>
+                <div style="font-size: 13px;">${message}</div>
+            </div>
+            <button style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px;">View</button>
+        </div>
+    `;
+    
+    notificationDiv.onclick = () => {
+        notificationDiv.remove();
+        window.focus();
+    };
+    
+    document.body.appendChild(notificationDiv);
+    setTimeout(() => notificationDiv.remove(), 8000);
+    
+    if (isUrgent && navigator.vibrate) {
+        navigator.vibrate([500, 200, 500]);
+    }
+}
+
+// Add internal notification (FIXED - no constructor errors)
 function addInternalNotification(title, message, isUrgent = false) {
-    // Deduplicate - skip if identical unread notification added in last 3 seconds
+    // Deduplicate
     const now = Date.now();
     const isDuplicate = notifications.some(n =>
         !n.read &&
@@ -146,8 +203,12 @@ function addInternalNotification(title, message, isUrgent = false) {
     // Show toast
     showToast(message, isUrgent ? 'urgent' : 'info');
 
-    // Send browser notification
-    sendBrowserNotification(title, message, isUrgent);
+    // Send appropriate notification based on device
+    if (isMobileOrTablet()) {
+        showMobileFallbackNotification(title, message, isUrgent);
+    } else {
+        sendBrowserNotification(title, message, isUrgent);
+    }
 
     // Animate bell for urgent
     if (isUrgent) {
@@ -173,7 +234,7 @@ function addInternalNotification(title, message, isUrgent = false) {
         }, 500);
         
         // Vibrate on mobile devices
-        if (navigator.vibrate) {
+        if (isMobileOrTablet() && navigator.vibrate) {
             navigator.vibrate([500, 200, 500, 200, 1000]);
         }
     }
@@ -187,7 +248,6 @@ function _ensureDropdownExists() {
     const dropdown = document.createElement('div');
     dropdown.id = 'notificationDropdown';
     dropdown.className = 'notification-dropdown';
-    dropdown.style.cssText = 'position:fixed;z-index:9999;display:none;';
     document.body.appendChild(dropdown);
 }
 
@@ -297,7 +357,6 @@ function _closeDropdown() {
     }
 }
 
-// Public notification functions
 window.markNotificationRead = function(id) {
     const notif = notifications.find(n => n.id === id);
     if (notif && !notif.read) {
@@ -316,7 +375,6 @@ window.clearAllNotifications = function() {
     showToast('All notifications cleared', 'success');
 };
 
-// Setup notification bell
 function setupNotificationBell() {
     const bell = document.getElementById('notificationBell');
     if (!bell) return;
@@ -326,7 +384,6 @@ function setupNotificationBell() {
     });
 }
 
-// Check for urgent report and send notification
 function checkForUrgentReport(incident) {
     if (!incident) return;
     
@@ -453,7 +510,7 @@ function loadFromLocalStorage() {
     updateStats();
 }
 
-// ========== REAL-TIME SUBSCRIPTION WITH NOTIFICATIONS ==========
+// ========== REAL-TIME SUBSCRIPTION ==========
 function setupRealtimeSubscription() {
     if (realtimeSubscription) return;
 
@@ -467,7 +524,6 @@ function setupRealtimeSubscription() {
                 console.log('🔔 NEW INCIDENT DETECTED!', payload.new);
                 const newIncident = payload.new;
                 
-                // Send notification for new incident
                 checkForUrgentReport({
                     id: newIncident.id,
                     name: newIncident.title || 'Untitled',
@@ -511,7 +567,7 @@ function setupRealtimeSubscription() {
         .subscribe((status) => {
             console.log('Realtime subscription status:', status);
             if (status === 'SUBSCRIBED') {
-                console.log('%c✅ REAL-TIME ACTIVE! Notifications will appear instantly.', 'color: green; font-size: 14px; font-weight: bold');
+                console.log('%c✅ REAL-TIME ACTIVE!', 'color: green; font-size: 14px; font-weight: bold');
             }
         });
 }
@@ -590,8 +646,8 @@ function renderTable(list) {
                     <button class="action-btn" onclick="window.openModal('${inc.id}')" title="View & Edit">👁️</button>
                     <button class="action-btn del" onclick="window.deleteIncident('${inc.id}')" title="Delete">🗑️</button>
                 </div>
-             </td>
-         </tr>
+              </td>
+          </tr>
     `).join('');
 }
 
@@ -657,7 +713,7 @@ function changePage(page) {
     renderIncidents();
 }
 
-// ========== MODAL FUNCTIONS ==========
+// ========== MODAL FUNCTIONS (FIXED FOR MOBILE/TABLET) ==========
 window.openModal = function(id) {
     const inc = incidents.find(i => i.id == id);
     if (!inc) { console.error('Incident not found:', id); return; }
@@ -671,7 +727,7 @@ window.openModal = function(id) {
     const descEl      = document.getElementById('modalDescription');
     const categoryEl  = document.getElementById('modalCategory');
     const priorityEl  = document.getElementById('modalPriority');
-    const statusEl    = document.getElementById('modalStatus');
+    const statusSelect = document.getElementById('modalStatus');
 
     if (titleEl)     titleEl.innerText     = inc.name;
     if (locationEl)  locationEl.innerText  = inc.location;
@@ -686,7 +742,7 @@ window.openModal = function(id) {
     if (priorityEl) {
         priorityEl.innerHTML = `<span class="badge ${inc.priority === 'high' ? 'b-high' : inc.priority === 'medium' ? 'b-medium' : 'b-low'}">${inc.priority.toUpperCase()}</span>`;
     }
-    if (statusEl) statusEl.value = inc.status;
+    if (statusSelect) statusSelect.value = inc.status;
 
     const modalImage = document.getElementById('modalImage');
     const noImageDiv = document.getElementById('noImage');
@@ -721,7 +777,7 @@ window.closeModal = function() {
     currentIncidentId = null;
 };
 
-// ========== SAVE STATUS ==========
+// ========== SAVE STATUS (FIXED - no notification constructor error) ==========
 window.saveStatus = async function() {
     if (!currentIncidentId) { showToast('No incident selected', 'error'); return; }
 
@@ -752,13 +808,14 @@ window.saveStatus = async function() {
 
         if (error) throw error;
 
+        const oldStatus = incident.status;
         incident.status     = newStatus;
         incident.resolved_at = updateData.resolved_at || null;
         
-        // Add notification for status change
+        // Add notification for status change (safe - no constructor errors)
         addInternalNotification(
             'Status Updated',
-            `Incident "${incident.name}" status changed from ${incident.status} to ${newStatus}`,
+            `Incident "${incident.name}" status changed from ${oldStatus} to ${newStatus}`,
             false
         );
 
@@ -820,6 +877,10 @@ window.exportToCSV = function() {
 
 // ========== HELPERS ==========
 function showToast(message, type = 'success') {
+    // Remove existing toasts to prevent accumulation
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
     const toast = document.createElement('div');
     toast.className = `toast-notification ${type}`;
     toast.textContent = message;
@@ -839,7 +900,9 @@ function showToast(message, type = 'success') {
         max-width: 350px;
     `;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => {
+        if (toast && toast.remove) toast.remove();
+    }, 3000);
 }
 
 function escapeCsv(str) { if (!str) return ''; return str.replace(/"/g, '""'); }
@@ -935,9 +998,9 @@ function initBottomNav() {
     });
 }
 
-// Add CSS animations for notification bell and toast
-const style = document.createElement('style');
-style.textContent = `
+// Add CSS animations
+const styleElem = document.createElement('style');
+styleElem.textContent = `
     @keyframes bellRing {
         0% { transform: rotate(0deg); }
         25% { transform: rotate(15deg); }
@@ -947,14 +1010,13 @@ style.textContent = `
     }
     
     @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     @keyframes pulse {
@@ -1064,8 +1126,26 @@ style.textContent = `
         color: var(--hint);
         background: var(--surface-elevated);
     }
+    
+    /* Mobile/Tablet touch-friendly buttons */
+    @media (max-width: 768px) {
+        .action-btn, .page-btn, .btn-save, .btn-cancel {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        .modal-container {
+            width: 95%;
+            margin: 10px auto;
+        }
+        
+        #modalStatus {
+            min-height: 44px;
+            font-size: 16px;
+        }
+    }
 `;
-document.head.appendChild(style);
+document.head.appendChild(styleElem);
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', () => {
@@ -1074,8 +1154,8 @@ document.addEventListener('DOMContentLoaded', () => {
     requestNotificationPermission();
     loadAdminProfile();
     loadIncidents();
-    loadNotifications();       // creates dropdown + renders initial state
-    setupNotificationBell();   // wires bell button
+    loadNotifications();
+    setupNotificationBell();
     initDarkMode();
     setupFilters();
     setupNav();

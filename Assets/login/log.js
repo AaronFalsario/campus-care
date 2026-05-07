@@ -13,24 +13,27 @@ const loginBtn = document.getElementById('loginBtn');
 const signupBtn = document.getElementById('signupBtn');
 const loaderOverlay = document.getElementById('loaderOverlay');
 
-// Email validation - STRICT domain check
+// ========== EMAIL VALIDATION ==========
 function isValidGordonEmail(email) {
     if (!email) return false;
-    const trimmedEmail = email.trim().toLowerCase();
-    return trimmedEmail.endsWith('@gordoncollege.edu.ph') && 
-        trimmedEmail.length > '@gordoncollege.edu.ph'.length &&
-        !trimmedEmail.includes(' ');
+    const trimmed = email.trim().toLowerCase();
+    return (
+        trimmed.endsWith('@gordoncollege.edu.ph') &&
+        trimmed.length > '@gordoncollege.edu.ph'.length &&
+        !trimmed.includes(' ')
+    );
 }
 
 function showEmailError(inputElement, isValid) {
     if (isValid) {
         inputElement.classList.remove('domain-error');
-        inputElement.style.borderColor = '#e2e8f0';
+        inputElement.style.borderColor = '';
     } else {
         inputElement.classList.add('domain-error');
     }
 }
 
+// ========== LOADER ==========
 function showLoader() {
     if (loaderOverlay) loaderOverlay.classList.add('show');
 }
@@ -39,47 +42,39 @@ function hideLoader() {
     if (loaderOverlay) loaderOverlay.classList.remove('show');
 }
 
-// ========== BEAUTIFUL TOAST NOTIFICATION ==========
+// ========== TOAST NOTIFICATION ==========
 function showNotification(message, isError = false, duration = 3000) {
-    const existingToast = document.querySelector('.custom-toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    
+    const existing = document.querySelector('.custom-toast');
+    if (existing) existing.remove();
+
     const toast = document.createElement('div');
     toast.className = 'custom-toast';
-    
+
     const icon = document.createElement('div');
     icon.className = 'toast-icon';
-    if (isError) {
-        icon.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="12" cy="16" r="1" fill="currentColor"/>
-            </svg>
-        `;
-    } else {
-        icon.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            </svg>
-        `;
-    }
-    
-    const messageContainer = document.createElement('div');
-    messageContainer.className = 'toast-message';
-    messageContainer.textContent = message;
-    
-    const progressBar = document.createElement('div');
-    progressBar.className = 'toast-progress';
-    
+    icon.innerHTML = isError
+        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+               <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <circle cx="12" cy="16" r="1" fill="currentColor"/>
+           </svg>`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+               <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>`;
+
+    const msg = document.createElement('div');
+    msg.className = 'toast-message';
+    msg.textContent = message;
+
+    const progress = document.createElement('div');
+    progress.className = 'toast-progress';
+
     toast.appendChild(icon);
-    toast.appendChild(messageContainer);
-    toast.appendChild(progressBar);
+    toast.appendChild(msg);
+    toast.appendChild(progress);
     document.body.appendChild(toast);
-    
+
     if (!document.querySelector('#toast-styles')) {
         const style = document.createElement('style');
         style.id = 'toast-styles';
@@ -97,21 +92,18 @@ function showNotification(message, isError = false, duration = 3000) {
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.05);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.05);
                 z-index: 10000;
                 animation: toastSlideUp 0.3s ease-out;
-                border-left: 4px solid;
-                border-left-color: ${isError ? '#EF4444' : '#10B981'};
+                border-left: 4px solid ${isError ? '#EF4444' : '#10B981'};
+                overflow: hidden;
             }
-            
             .custom-toast .toast-icon {
                 flex-shrink: 0;
                 color: ${isError ? '#EF4444' : '#10B981'};
                 display: flex;
                 align-items: center;
-                justify-content: center;
             }
-            
             .custom-toast .toast-message {
                 flex: 1;
                 font-size: 13px;
@@ -119,7 +111,6 @@ function showNotification(message, isError = false, duration = 3000) {
                 color: #1e293b;
                 line-height: 1.4;
             }
-            
             .custom-toast .toast-progress {
                 position: absolute;
                 bottom: 0;
@@ -129,66 +120,46 @@ function showNotification(message, isError = false, duration = 3000) {
                 border-radius: 0 0 0 12px;
                 animation: toastProgress ${duration}ms linear forwards;
             }
-            
             @keyframes toastSlideUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+                from { opacity: 0; transform: translateY(20px); }
+                to   { opacity: 1; transform: translateY(0); }
             }
-            
             @keyframes toastProgress {
-                from {
-                    width: 100%;
-                }
-                to {
-                    width: 0%;
-                }
+                from { width: 100%; }
+                to   { width: 0%; }
             }
-            
             @media (max-width: 480px) {
-                .custom-toast {
-                    left: 12px;
-                    right: 12px;
-                    padding: 12px 14px;
-                    bottom: 20px;
-                }
-                
-                .custom-toast .toast-message {
-                    font-size: 12px;
-                }
+                .custom-toast { left: 12px; right: 12px; bottom: 20px; padding: 12px 14px; }
+                .custom-toast .toast-message { font-size: 12px; }
             }
         `;
         document.head.appendChild(style);
     }
-    
+
     setTimeout(() => {
         toast.style.animation = 'toastSlideUp 0.3s ease-out reverse';
         setTimeout(() => toast.remove(), 300);
     }, duration);
 }
 
+// ========== HELPERS ==========
 function applySlideUpAnimation(element) {
     element.classList.remove('slideUp');
     void element.offsetWidth;
     element.classList.add('slideUp');
 }
 
-function togglePasswordVisibility(inputElement, toggleIcon) {
-    if (!inputElement || !toggleIcon) return;
-    toggleIcon.addEventListener('click', () => {
-        const type = inputElement.getAttribute('type') === 'password' ? 'text' : 'password';
-        inputElement.setAttribute('type', type);
-        toggleIcon.classList.toggle('fa-eye');
-        toggleIcon.classList.toggle('fa-eye-slash');
+function togglePasswordVisibility(inputEl, toggleEl) {
+    if (!inputEl || !toggleEl) return;
+    toggleEl.addEventListener('click', () => {
+        const type = inputEl.getAttribute('type') === 'password' ? 'text' : 'password';
+        inputEl.setAttribute('type', type);
+        toggleEl.classList.toggle('fa-eye');
+        toggleEl.classList.toggle('fa-eye-slash');
     });
 }
 
-// ========== CHECK IF EMAIL EXISTS IN DATABASE ==========
+// ========== CHECK EMAIL IN DB ==========
 async function checkEmailExists(email) {
     try {
         const { data, error } = await supabase
@@ -196,67 +167,58 @@ async function checkEmailExists(email) {
             .select('email, full_name')
             .eq('email', email.toLowerCase().trim())
             .maybeSingle();
-        
-        if (error) {
-            console.error('Error checking email:', error);
-            return { exists: false, error: error.message };
-        }
-        
+
+        if (error) return { exists: false, error: error.message };
         return { exists: !!data, userData: data };
     } catch (error) {
-        console.error('Email check failed:', error);
         return { exists: false, error: error.message };
     }
 }
 
-// ========== UPDATE STUDENT STATUS TO ACTIVE ON LOGIN (FIXED) ==========
-async function updateStudentActivityOnLogin(studentEmail, studentId) {
+// ========== UPDATE STATUS ON LOGIN ==========
+// Sets status = 'active', records last_login, clears last_logout.
+// Uses the auth user ID (uuid) as the primary key — most reliable approach.
+async function updateStudentActivityOnLogin(userId) {
     try {
-        // CRITICAL: Set last_logout to NULL when logging in
         const { error } = await supabase
             .from('student')
-            .update({ 
+            .update({
+                status: 'active',
                 is_active: true,
                 last_login: new Date().toISOString(),
-                last_logout: null,  // Clear previous logout time
-                status: 'active'
+                last_logout: null   // ← clear previous logout so admin sees them as active
             })
-            .eq('email', studentEmail)
-            .eq('student_id', studentId);
-        
+            .eq('id', userId);     // ← match by Supabase auth UUID (most reliable)
+
         if (error) {
-            console.error('Error updating student status:', error);
+            console.error('Error updating login status:', error);
             return false;
         }
-        
-        console.log(`✅ Student ${studentEmail} logged in - last_login: ${new Date().toLocaleTimeString()}, last_logout cleared`);
+
+        console.log(`✅ Student ${userId} marked active at ${new Date().toLocaleTimeString()}`);
         return true;
-        
     } catch (error) {
-        console.error('Error updating student status:', error);
+        console.error('updateStudentActivityOnLogin failed:', error);
         return false;
     }
 }
 
-// Real-time email validation for login
+// ========== REAL-TIME EMAIL VALIDATION ==========
 const loginEmailInput = document.getElementById('loginEmail');
 if (loginEmailInput) {
-    loginEmailInput.addEventListener('input', function() {
-        const isValid = isValidGordonEmail(this.value);
-        showEmailError(this, isValid);
+    loginEmailInput.addEventListener('input', function () {
+        showEmailError(this, isValidGordonEmail(this.value));
     });
 }
 
-// Real-time email validation for signup
 const signupEmailInput = document.getElementById('signupEmail');
 if (signupEmailInput) {
-    signupEmailInput.addEventListener('input', function() {
-        const isValid = isValidGordonEmail(this.value);
-        showEmailError(this, isValid);
+    signupEmailInput.addEventListener('input', function () {
+        showEmailError(this, isValidGordonEmail(this.value));
     });
 }
 
-// Toggle between Login and Signup forms
+// ========== FORM TOGGLE ==========
 if (showSignupBtn) {
     showSignupBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -275,265 +237,259 @@ if (showLoginBtn) {
     });
 }
 
-// Setup password toggles
-const loginPasswordInput = document.getElementById('loginPassword');
-const toggleLoginPassword = document.getElementById('toggleLoginPassword');
-if (loginPasswordInput && toggleLoginPassword) {
-    togglePasswordVisibility(loginPasswordInput, toggleLoginPassword);
-}
+// ========== PASSWORD TOGGLES ==========
+togglePasswordVisibility(
+    document.getElementById('loginPassword'),
+    document.getElementById('toggleLoginPassword')
+);
+togglePasswordVisibility(
+    document.getElementById('signupPassword'),
+    document.getElementById('toggleSignupPassword')
+);
 
-const signupPasswordInput = document.getElementById('signupPassword');
-const toggleSignupPassword = document.getElementById('toggleSignupPassword');
-if (signupPasswordInput && toggleSignupPassword) {
-    togglePasswordVisibility(signupPasswordInput, toggleSignupPassword);
-}
+// ========== LOGIN ==========
+if (loginBtn) {
+    loginBtn.addEventListener('click', async () => {
+        const email    = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
 
-// ========== LOGIN FUNCTION (FIXED) ==========
-loginBtn.addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-
-    if (!email || !password) {
-        showNotification('Please fill in all fields', true);
-        return;
-    }
-
-    if (!isValidGordonEmail(email)) {
-        showNotification('Invalid Email Domain! Please use your @gordoncollege.edu.ph email address.', true);
-        document.getElementById('loginEmail').classList.add('domain-error');
-        return;
-    }
-
-    showLoader();
-
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        if (!data.user) throw new Error('Login failed - no user returned');
-
-        const { data: studentData, error: dbError } = await supabase
-            .from('student')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-
-        if (dbError || !studentData) {
-            await supabase.auth.signOut();
-            throw new Error('Account not found. Please sign up first.');
-        }
-
-        // Update last_login and clear last_logout
-        await updateStudentActivityOnLogin(studentData.email, studentData.student_id);
-
-        const studentInfo = {
-            name: studentData.full_name,
-            studentId: studentData.student_id,
-            email: studentData.email,
-            userId: data.user.id,
-            status: 'active'
-        };
-        localStorage.setItem('currentStudent', JSON.stringify(studentInfo));
-        
-        showNotification('Login successful! Redirecting...', false, 1500);
-        
-        setTimeout(() => {
-            window.location.href = '/Assets/Student_dashboard/SDB.html';  
-        }, 1500);
-
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification(error.message || 'Login failed. Please check your credentials.', true);
-        hideLoader();
-    }
-});
-
-// ========== SIGNUP FUNCTION ==========
-signupBtn.addEventListener('click', async () => {
-    const fullName = document.getElementById('signupName').value.trim();
-    const studentId = document.getElementById('signupStudentId').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-
-    if (!fullName || !studentId || !email || !password) {
-        showNotification('Please fill in all fields', true);
-        return;
-    }
-
-    if (!isValidGordonEmail(email)) {
-        showNotification('Invalid Email Domain! You must register with a @gordoncollege.edu.ph email address.', true);
-        document.getElementById('signupEmail').classList.add('domain-error');
-        return;
-    }
-
-    if (password.length < 6) {
-        showNotification('Password must be at least 6 characters', true);
-        return;
-    }
-
-    showLoader();
-
-    try {
-        const { data: existingStudent } = await supabase
-            .from('student')
-            .select('student_id')
-            .eq('student_id', studentId)
-            .maybeSingle();
-
-        if (existingStudent) {
-            hideLoader();
-            showNotification('Student ID already registered. Please login.', true);
+        if (!email || !password) {
+            showNotification('Please fill in all fields', true);
             return;
         }
 
-        const { data: existingEmail } = await supabase
-            .from('student')
-            .select('email')
-            .eq('email', email)
-            .maybeSingle();
-
-        if (existingEmail) {
-            hideLoader();
-            showNotification('Email already registered. Please login.', true);
+        if (!isValidGordonEmail(email)) {
+            showNotification('Please use your @gordoncollege.edu.ph email address.', true);
+            document.getElementById('loginEmail').classList.add('domain-error');
             return;
         }
 
-        const { data, error } = await supabase.auth.signUp({ 
-            email, 
-            password,
-            options: {
-                data: {
-                    full_name: fullName,
-                    student_id: studentId
-                }
-            }
-        });
-        
-        if (error) throw error;
-        if (!data.user) throw new Error('Signup failed.');
+        showLoader();
 
-        const { error: dbError } = await supabase
-            .from('student')
-            .insert([{ 
-                id: data.user.id, 
-                full_name: fullName, 
-                student_id: studentId, 
-                email: email,
-                status: 'active',
-                is_active: true,
-                created_at: new Date().toISOString(),
-                last_login: new Date().toISOString(),
-                last_logout: null  // New students start with no logout
-            }]);
+        try {
+            // 1. Sign in via Supabase Auth
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            if (!data.user) throw new Error('Login failed — no user returned.');
 
-        if (dbError) throw dbError;
-        
-        const studentInfo = {
-            name: fullName,
-            studentId: studentId,
-            email: email,
-            userId: data.user.id,
-            status: 'active'
-        };
-        localStorage.setItem('currentStudent', JSON.stringify(studentInfo));
-        
-        showNotification('Account created successfully! Redirecting...', false, 1500);
-        
-        setTimeout(() => {
-            window.location.href = './Assets/Student_dashboard/SDB.html';  // Relative path
-        }, 1500);
-
-    } catch (error) {
-        console.error('Signup error:', error);
-        showNotification(error.message || 'Signup failed. Please try again.', true);
-        hideLoader();
-    }
-});
-
-// ========== LOGOUT FUNCTION (FIXED - updates last_logout) ==========
-window.studentLogout = async function() {
-    try {
-        const currentStudent = localStorage.getItem('currentStudent');
-        if (currentStudent) {
-            const student = JSON.parse(currentStudent);
-            
-            // Update last_logout when student logs out
-            const { error } = await supabase
+            // 2. Fetch student record by auth UUID
+            const { data: studentData, error: dbError } = await supabase
                 .from('student')
-                .update({ 
-                    status: 'inactive',
-                    is_active: false,
-                    last_logout: new Date().toISOString()  // Record logout time
-                })
-                .eq('email', student.email);
-            
-            if (error) {
-                console.error('Error updating logout status:', error);
-            } else {
-                console.log(`✅ Student ${student.email} logged out - last_logout: ${new Date().toLocaleTimeString()}`);
-            }
-        }
-        
-        await supabase.auth.signOut();
-        localStorage.removeItem('currentStudent');
-        window.location.href = './Assets/login/log.html';  // Relative path
-        
-    } catch (error) {
-        console.error('Logout error:', error);
-        localStorage.removeItem('currentStudent');
-        window.location.href = './Assets/login/log.html';
-    }
-};
+                .select('*')
+                .eq('id', data.user.id)
+                .single();
 
-// ========== FORGOT PASSWORD HANDLER ==========
-const forgotPasswordBtn = document.getElementById('showForgotPassword');
-if (forgotPasswordBtn) {
-    forgotPasswordBtn.addEventListener('click', async () => {
-        const email = await showEmailPrompt();
-        
-        if (email && email.trim()) {
-            const trimmedEmail = email.trim().toLowerCase();
-            
-            if (!isValidGordonEmail(trimmedEmail)) {
-                showNotification('Invalid email domain! Please use your @gordoncollege.edu.ph email.', true);
-                return;
+            if (dbError || !studentData) {
+                await supabase.auth.signOut();
+                throw new Error('Account not found. Please sign up first.');
             }
-            
-            showLoader();
-            
-            try {
-                const { exists, userData, error: checkError } = await checkEmailExists(trimmedEmail);
-                
-                if (checkError) {
-                    throw new Error('Unable to verify email. Please try again.');
-                }
-                
-                if (!exists) {
-                    hideLoader();
-                    showNotification('❌ Email not found. Please sign up first or use a registered email.', true, 4000);
-                    return;
-                }
-                
-                console.log(`✅ Email verified: ${trimmedEmail} belongs to ${userData?.full_name}`);
-                
-                const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-                    redirectTo: `${window.location.origin}/Assets/login/reset-password.html`
-                });
-                
-                if (error) throw error;
-                
-                showNotification(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
-                
-            } catch (error) {
-                console.error('Password reset error:', error);
-                showNotification(error.message || 'Failed to send reset email. Please try again.', true);
-            } finally {
-                hideLoader();
-            }
+
+            // 3. Mark student as active — pass auth UUID
+            await updateStudentActivityOnLogin(data.user.id);
+
+            // 4. Store in localStorage
+            localStorage.setItem('currentStudent', JSON.stringify({
+                name:      studentData.full_name,
+                studentId: studentData.student_id,
+                email:     studentData.email,
+                userId:    data.user.id,
+                status:    'active'
+            }));
+
+            showNotification('Login successful! Redirecting...', false, 1500);
+            setTimeout(() => {
+                window.location.href = '/Assets/Student_dashboard/SDB.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('Login error:', error);
+            showNotification(error.message || 'Login failed. Please check your credentials.', true);
+            hideLoader();
         }
     });
 }
 
-// Custom email prompt modal
+// ========== SIGNUP ==========
+if (signupBtn) {
+    signupBtn.addEventListener('click', async () => {
+        const fullName  = document.getElementById('signupName').value.trim();
+        const studentId = document.getElementById('signupStudentId').value.trim();
+        const email     = document.getElementById('signupEmail').value.trim();
+        const password  = document.getElementById('signupPassword').value;
+
+        if (!fullName || !studentId || !email || !password) {
+            showNotification('Please fill in all fields', true);
+            return;
+        }
+
+        if (!isValidGordonEmail(email)) {
+            showNotification('You must register with a @gordoncollege.edu.ph email.', true);
+            document.getElementById('signupEmail').classList.add('domain-error');
+            return;
+        }
+
+        if (password.length < 6) {
+            showNotification('Password must be at least 6 characters.', true);
+            return;
+        }
+
+        showLoader();
+
+        try {
+            // Check duplicate student ID
+            const { data: existingId } = await supabase
+                .from('student')
+                .select('student_id')
+                .eq('student_id', studentId)
+                .maybeSingle();
+
+            if (existingId) {
+                hideLoader();
+                showNotification('Student ID already registered. Please login.', true);
+                return;
+            }
+
+            // Check duplicate email
+            const { data: existingEmail } = await supabase
+                .from('student')
+                .select('email')
+                .eq('email', email)
+                .maybeSingle();
+
+            if (existingEmail) {
+                hideLoader();
+                showNotification('Email already registered. Please login.', true);
+                return;
+            }
+
+            // Create auth account
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: fullName, student_id: studentId } }
+            });
+
+            if (error) throw error;
+            if (!data.user) throw new Error('Signup failed.');
+
+            // Insert student record — set active immediately on signup
+            const { error: dbError } = await supabase
+                .from('student')
+                .insert([{
+                    id:          data.user.id,
+                    full_name:   fullName,
+                    student_id:  studentId,
+                    email:       email,
+                    status:      'active',
+                    is_active:   true,
+                    last_login:  new Date().toISOString(),
+                    last_logout: null,
+                    created_at:  new Date().toISOString(),
+                    updated_at:  new Date().toISOString()
+                }]);
+
+            if (dbError) throw dbError;
+
+            localStorage.setItem('currentStudent', JSON.stringify({
+                name:      fullName,
+                studentId: studentId,
+                email:     email,
+                userId:    data.user.id,
+                status:    'active'
+            }));
+
+            showNotification('Account created successfully! Redirecting...', false, 1500);
+            setTimeout(() => {
+                window.location.href = '/Assets/Student_dashboard/SDB.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('Signup error:', error);
+            showNotification(error.message || 'Signup failed. Please try again.', true);
+            hideLoader();
+        }
+    });
+}
+
+// ========== LOGOUT (call this from student dashboard) ==========
+window.studentLogout = async function () {
+    try {
+        const stored = localStorage.getItem('currentStudent');
+        if (stored) {
+            const student = JSON.parse(stored);
+
+            // Mark student as inactive and record logout time
+            const { error } = await supabase
+                .from('student')
+                .update({
+                    status:      'inactive',
+                    is_active:   false,
+                    last_logout: new Date().toISOString()
+                })
+                .eq('id', student.userId);  // ← use auth UUID, not email
+
+            if (error) {
+                console.error('Error recording logout:', error);
+            } else {
+                console.log(`✅ Student ${student.email} logged out at ${new Date().toLocaleTimeString()}`);
+            }
+        }
+
+        await supabase.auth.signOut();
+        localStorage.removeItem('currentStudent');
+        window.location.href = '/Assets/login/log.html';
+
+    } catch (error) {
+        console.error('Logout error:', error);
+        localStorage.removeItem('currentStudent');
+        window.location.href = '/Assets/login/log.html';
+    }
+};
+
+// ========== FORGOT PASSWORD ==========
+const forgotPasswordBtn = document.getElementById('showForgotPassword');
+if (forgotPasswordBtn) {
+    forgotPasswordBtn.addEventListener('click', async () => {
+        const email = await showEmailPrompt();
+        if (!email) return;
+
+        const trimmed = email.trim().toLowerCase();
+
+        if (!isValidGordonEmail(trimmed)) {
+            showNotification('Please use your @gordoncollege.edu.ph email.', true);
+            return;
+        }
+
+        showLoader();
+
+        try {
+            const { exists, error: checkError } = await checkEmailExists(trimmed);
+
+            if (checkError) throw new Error('Unable to verify email. Please try again.');
+
+            if (!exists) {
+                hideLoader();
+                showNotification('Email not found. Please sign up first.', true, 4000);
+                return;
+            }
+
+            const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+                redirectTo: `${window.location.origin}/Assets/login/reset-password.html`
+            });
+
+            if (error) throw error;
+
+            showNotification(`Reset link sent to ${trimmed}! Check your inbox.`, false, 5000);
+        } catch (error) {
+            console.error('Password reset error:', error);
+            showNotification(error.message || 'Failed to send reset email.', true);
+        } finally {
+            hideLoader();
+        }
+    });
+}
+
+// ========== EMAIL PROMPT MODAL ==========
 function showEmailPrompt() {
     return new Promise((resolve) => {
         const modal = document.createElement('div');
@@ -546,11 +502,9 @@ function showEmailPrompt() {
                     <button class="email-prompt-close">&times;</button>
                 </div>
                 <div class="email-prompt-body">
-                    <p>Enter your registered @gordoncollege.edu.ph email address to receive a password reset link.</p>
+                    <p>Enter your registered @gordoncollege.edu.ph email to receive a reset link.</p>
                     <input type="email" id="promptEmail" placeholder="student@gordoncollege.edu.ph" autocomplete="off">
-                    <div class="email-hint" style="font-size: 11px; color: #64748b; margin-top: 8px;">
-                        <span>⚠️ Only registered emails will receive a reset link</span>
-                    </div>
+                    <div class="email-hint">⚠️ Only registered emails will receive a reset link</div>
                 </div>
                 <div class="email-prompt-footer">
                     <button class="email-prompt-cancel">Cancel</button>
@@ -558,172 +512,87 @@ function showEmailPrompt() {
                 </div>
             </div>
         `;
-        
+
         if (!document.querySelector('#prompt-styles')) {
             const style = document.createElement('style');
             style.id = 'prompt-styles';
             style.textContent = `
                 .email-prompt-modal {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    z-index: 20000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    z-index: 20000; display: flex; align-items: center; justify-content: center;
                     animation: fadeIn 0.2s ease;
                 }
                 .email-prompt-overlay {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
+                    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.5);
                 }
                 .email-prompt-container {
-                    position: relative;
-                    background: white;
-                    border-radius: 16px;
-                    width: 90%;
-                    max-width: 340px;
-                    overflow: hidden;
-                    animation: slideUp 0.3s ease;
+                    position: relative; background: white; border-radius: 16px;
+                    width: 90%; max-width: 340px; overflow: hidden; animation: slideUp 0.3s ease;
                 }
                 .email-prompt-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 16px 16px 12px;
-                    border-bottom: 1px solid #e2e8f0;
+                    display: flex; justify-content: space-between; align-items: center;
+                    padding: 16px 16px 12px; border-bottom: 1px solid #e2e8f0;
                 }
-                .email-prompt-header h3 {
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: #1e293b;
-                    margin: 0;
-                }
+                .email-prompt-header h3 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 0; }
                 .email-prompt-close {
-                    background: none;
-                    border: none;
-                    font-size: 24px;
-                    cursor: pointer;
-                    color: #94a3b8;
-                    padding: 0;
-                    line-height: 1;
+                    background: none; border: none; font-size: 24px; cursor: pointer;
+                    color: #94a3b8; padding: 0; line-height: 1;
                 }
-                .email-prompt-body {
-                    padding: 16px;
-                }
-                .email-prompt-body p {
-                    font-size: 13px;
-                    color: #64748b;
-                    margin-bottom: 12px;
-                }
+                .email-prompt-body { padding: 16px; }
+                .email-prompt-body p { font-size: 13px; color: #64748b; margin-bottom: 12px; }
                 .email-prompt-body input {
-                    width: 100%;
-                    padding: 10px 12px;
-                    border: 1.5px solid #e2e8f0;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-family: inherit;
+                    width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
+                    border-radius: 8px; font-size: 14px; font-family: inherit; box-sizing: border-box;
                 }
-                .email-prompt-body input:focus {
-                    outline: none;
-                    border-color: #2563eb;
-                }
+                .email-prompt-body input:focus { outline: none; border-color: #2563eb; }
+                .email-hint { font-size: 11px; color: #64748b; margin-top: 8px; }
                 .email-prompt-footer {
-                    display: flex;
-                    gap: 12px;
-                    padding: 12px 16px 16px;
-                    border-top: 1px solid #f1f5f9;
+                    display: flex; gap: 12px; padding: 12px 16px 16px; border-top: 1px solid #f1f5f9;
                 }
                 .email-prompt-cancel, .email-prompt-submit {
-                    flex: 1;
-                    padding: 10px;
-                    border-radius: 8px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
+                    flex: 1; padding: 10px; border-radius: 8px; font-size: 13px;
+                    font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
                 }
-                .email-prompt-cancel {
-                    background: #f1f5f9;
-                    border: none;
-                    color: #64748b;
-                }
-                .email-prompt-submit {
-                    background: #2563eb;
-                    border: none;
-                    color: white;
-                }
-                .email-prompt-submit:hover {
-                    background: #1d4ed8;
-                }
-                .email-hint {
-                    font-size: 11px;
-                    color: #64748b;
-                    margin-top: 8px;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
+                .email-prompt-cancel { background: #f1f5f9; color: #64748b; }
+                .email-prompt-submit { background: #2563eb; color: white; }
+                .email-prompt-submit:hover { background: #1d4ed8; }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes slideUp {
                     from { transform: translateY(20px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
+                    to   { transform: translateY(0); opacity: 1; }
                 }
             `;
             document.head.appendChild(style);
         }
-        
+
         document.body.appendChild(modal);
-        
-        const input = modal.querySelector('#promptEmail');
+
+        const input     = modal.querySelector('#promptEmail');
         const submitBtn = modal.querySelector('.email-prompt-submit');
         const cancelBtn = modal.querySelector('.email-prompt-cancel');
-        const closeBtn = modal.querySelector('.email-prompt-close');
-        
+        const closeBtn  = modal.querySelector('.email-prompt-close');
+        const overlay   = modal.querySelector('.email-prompt-overlay');
+
         const cleanup = () => modal.remove();
-        
-        submitBtn.onclick = () => {
-            const email = input.value.trim();
-            cleanup();
-            resolve(email || null);
-        };
-        
-        cancelBtn.onclick = () => {
-            cleanup();
-            resolve(null);
-        };
-        
-        closeBtn.onclick = () => {
-            cleanup();
-            resolve(null);
-        };
-        
-        modal.querySelector('.email-prompt-overlay').onclick = () => {
-            cleanup();
-            resolve(null);
-        };
-        
+
+        submitBtn.onclick = () => { const v = input.value.trim(); cleanup(); resolve(v || null); };
+        cancelBtn.onclick = () => { cleanup(); resolve(null); };
+        closeBtn.onclick  = () => { cleanup(); resolve(null); };
+        overlay.onclick   = () => { cleanup(); resolve(null); };
         input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const email = input.value.trim();
-                cleanup();
-                resolve(email || null);
-            }
+            if (e.key === 'Enter') { const v = input.value.trim(); cleanup(); resolve(v || null); }
         });
-        
+
         input.focus();
     });
 }
 
-// ========== ADD CSS STYLES ==========
+// ========== CSS ==========
 function addStyles() {
+    if (document.querySelector('#login-base-styles')) return;
     const style = document.createElement('style');
+    style.id = 'login-base-styles';
     style.textContent = `
         .domain-error {
             border-color: #DC2626 !important;
@@ -733,40 +602,37 @@ function addStyles() {
             animation: slideUp 0.4s ease-out;
         }
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
     `;
     document.head.appendChild(style);
 }
 
-// ========== CHECK IF ALREADY LOGGED IN ==========
+// ========== SESSION CHECK ==========
+// If student is already logged in and visits the login page, redirect them
 async function checkExistingSession() {
     const stored = localStorage.getItem('currentStudent');
-    if (stored && window.location.pathname.includes('log.html')) {
-        try {
-            const student = JSON.parse(stored);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                window.location.href = './Assets/Student_dashboard/SDB.html';  // Relative path
-            }
-        } catch(e) {
-            console.log('Session check failed');
+    if (!stored) return;
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            window.location.href = '/Assets/Student_dashboard/SDB.html';
+        } else {
+            // Auth session expired — clean up stale localStorage
+            localStorage.removeItem('currentStudent');
         }
+    } catch (e) {
+        localStorage.removeItem('currentStudent');
     }
 }
 
-// ========== INITIALIZE ==========
+// ========== INIT ==========
 function init() {
     addStyles();
     checkExistingSession();
-    console.log('✅ Login page ready - Student status will update on login/logout');
+    console.log('✅ Login page ready');
 }
 
 if (document.readyState === 'loading') {
@@ -774,5 +640,3 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
-
-console.log('✅ Login page script loaded - last_logout cleared on login, recorded on logout');

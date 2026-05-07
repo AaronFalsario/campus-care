@@ -13,7 +13,7 @@ let notificationIdCounter = 0;
 let isNotificationDropdownOpen = false;
 
 function loadNotifications() {
-    const stored = localStorage.getItem('settings_notifications');
+    const stored = localStorage.getItem('admin_notifications');
     if (stored) {
         try {
             notifications = JSON.parse(stored);
@@ -31,17 +31,12 @@ function loadNotifications() {
 }
 
 function saveNotifications() {
-    localStorage.setItem('settings_notifications', JSON.stringify(notifications));
+    localStorage.setItem('admin_notifications', JSON.stringify(notifications));
     updateNotificationBadge();
 }
 
 function addInternalNotification(title, message, isUrgent = false) {
-    // Skip unwanted notifications
-    if (title === 'Auto Refresh' || title === 'Data Refreshed' || message.includes('refreshed')) return;
-    if (title === 'Theme Changed') return;
-    if (title === 'Welcome') return;
-    
-    const importantTitles = ['Profile Updated', 'Password Changed', 'Preferences Saved', 'Notification Settings', 'Data Settings Saved', 'Data Exported', 'Data Cleared', 'Settings Reset', 'Settings Imported'];
+    const importantTitles = ['Profile Updated', 'Password Changed', 'Preferences Saved', 'Notification Settings', 'Data Settings Saved', 'Data Exported', 'Data Cleared', 'Settings Reset', 'Settings Imported', 'Feedback Received'];
     if (!importantTitles.includes(title) && !isUrgent) return;
     
     const notification = {
@@ -53,9 +48,10 @@ function addInternalNotification(title, message, isUrgent = false) {
         isUrgent: isUrgent
     };
     notifications.unshift(notification);
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
     saveNotifications();
     updateNotificationDropdown();
-    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    updateNotificationBadge();
 }
 
 function updateNotificationBadge() {
@@ -66,13 +62,8 @@ function updateNotificationBadge() {
         if (unreadCount > 0) {
             badge.textContent = urgentCount > 0 ? `🔥${unreadCount}` : (unreadCount > 9 ? '9+' : unreadCount);
             badge.style.display = 'flex';
-            if (urgentCount > 0) {
-                badge.style.background = '#DC2626';
-                badge.style.animation = 'pulse 0.5s ease infinite';
-            } else {
-                badge.style.background = 'var(--red)';
-                badge.style.animation = 'none';
-            }
+            badge.style.background = urgentCount > 0 ? '#DC2626' : 'var(--red)';
+            badge.style.animation = urgentCount > 0 ? 'pulse 0.5s ease infinite' : 'none';
         } else {
             badge.style.display = 'none';
         }
@@ -172,6 +163,7 @@ window.markNotificationRead = function(id) {
         notif.read = true;
         saveNotifications();
         updateNotificationDropdown();
+        updateNotificationBadge();
     }
 };
 
@@ -179,6 +171,7 @@ window.clearAllNotifications = function() {
     notifications = [];
     saveNotifications();
     updateNotificationDropdown();
+    updateNotificationBadge();
     showMessage('All notifications cleared', 'success');
 };
 
@@ -229,6 +222,7 @@ function initDarkMode() {
     const savedMode = localStorage.getItem('admin_dark_mode');
     const toggle = document.getElementById('darkModeToggle');
     const mobileDarkToggle = document.getElementById('mobileDarkModeToggle');
+    const darkModeCheckbox = document.getElementById('darkMode');
     
     if (savedMode === 'enabled') {
         document.body.classList.add('dark-mode');
@@ -239,6 +233,7 @@ function initDarkMode() {
             if (moonIcon) moonIcon.style.display = 'block';
         }
         if (mobileDarkToggle) mobileDarkToggle.checked = true;
+        if (darkModeCheckbox) darkModeCheckbox.checked = true;
         if (window.persistentSettings) window.persistentSettings.settings.darkMode = true;
     } else if (savedMode === 'disabled') {
         document.body.classList.remove('dark-mode');
@@ -249,6 +244,7 @@ function initDarkMode() {
             if (moonIcon) moonIcon.style.display = 'none';
         }
         if (mobileDarkToggle) mobileDarkToggle.checked = false;
+        if (darkModeCheckbox) darkModeCheckbox.checked = false;
         if (window.persistentSettings) window.persistentSettings.settings.darkMode = false;
     } else {
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -261,11 +257,10 @@ function initDarkMode() {
                 if (moonIcon) moonIcon.style.display = 'block';
             }
             if (mobileDarkToggle) mobileDarkToggle.checked = true;
-            if (window.persistentSettings) window.persistentSettings.settings.darkMode = true;
+            if (darkModeCheckbox) darkModeCheckbox.checked = true;
         }
     }
     
-    // Sync dark mode across all toggles
     function syncDarkMode(enabled) {
         document.body.classList.toggle('dark-mode', enabled);
         localStorage.setItem('admin_dark_mode', enabled ? 'enabled' : 'disabled');
@@ -284,6 +279,7 @@ function initDarkMode() {
             }
         }
         if (mobileDarkToggle) mobileDarkToggle.checked = enabled;
+        if (darkModeCheckbox) darkModeCheckbox.checked = enabled;
         if (window.persistentSettings) window.persistentSettings.set('darkMode', enabled);
         
         window.dispatchEvent(new StorageEvent('storage', {
@@ -293,11 +289,17 @@ function initDarkMode() {
     }
     
     if (toggle) {
-        toggle.addEventListener('click', () => syncDarkMode(!document.body.classList.contains('dark-mode')));
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+        newToggle.addEventListener('click', () => syncDarkMode(!document.body.classList.contains('dark-mode')));
     }
     
     if (mobileDarkToggle) {
         mobileDarkToggle.addEventListener('change', (e) => syncDarkMode(e.target.checked));
+    }
+    
+    if (darkModeCheckbox) {
+        darkModeCheckbox.addEventListener('change', (e) => syncDarkMode(e.target.checked));
     }
     
     window.addEventListener('storage', (e) => {
@@ -318,7 +320,7 @@ function initDarkMode() {
                 }
             }
             if (mobileDarkToggle) mobileDarkToggle.checked = enabled;
-            if (window.persistentSettings) window.persistentSettings.settings.darkMode = enabled;
+            if (darkModeCheckbox) darkModeCheckbox.checked = enabled;
         }
     });
 }
@@ -421,14 +423,16 @@ class PersistentSettings {
         this.applyCompactMode(this.settings.compactMode);
         this.setupAutoRefresh(this.settings.autoRefresh);
         this.applyNotificationSettings();
+        this.updateAllUI();
     }
 
     applyDarkMode(enabled) {
         const toggle = document.getElementById('darkModeToggle');
         const mobileToggle = document.getElementById('mobileDarkModeToggle');
+        const darkModeCheckbox = document.getElementById('darkMode');
+        
         if (enabled) {
             document.body.classList.add('dark-mode');
-            localStorage.setItem('admin_dark_mode', 'enabled');
             if (toggle) {
                 const sunIcon = toggle.querySelector('.sun-icon');
                 const moonIcon = toggle.querySelector('.moon-icon');
@@ -436,9 +440,9 @@ class PersistentSettings {
                 if (moonIcon) moonIcon.style.display = 'block';
             }
             if (mobileToggle) mobileToggle.checked = true;
+            if (darkModeCheckbox) darkModeCheckbox.checked = true;
         } else {
             document.body.classList.remove('dark-mode');
-            localStorage.setItem('admin_dark_mode', 'disabled');
             if (toggle) {
                 const sunIcon = toggle.querySelector('.sun-icon');
                 const moonIcon = toggle.querySelector('.moon-icon');
@@ -446,9 +450,8 @@ class PersistentSettings {
                 if (moonIcon) moonIcon.style.display = 'none';
             }
             if (mobileToggle) mobileToggle.checked = false;
+            if (darkModeCheckbox) darkModeCheckbox.checked = false;
         }
-        const darkModeCheckbox = document.getElementById('darkMode');
-        if (darkModeCheckbox) darkModeCheckbox.checked = enabled;
     }
 
     applyCompactMode(enabled) {
@@ -482,6 +485,9 @@ class PersistentSettings {
         if (enabled && this.settings.refreshInterval) {
             window.autoRefreshInterval = setInterval(() => {
                 if (typeof loadStats === 'function') loadStats();
+                if (window.location.pathname.includes('setting.html')) {
+                    console.log('Auto-refreshing stats...');
+                }
             }, this.settings.refreshInterval * 1000);
         }
     }
@@ -540,6 +546,7 @@ class PersistentSettings {
         a.click();
         URL.revokeObjectURL(url);
         showMessage('Settings exported!', 'success');
+        addInternalNotification('Settings Exported', 'Your settings have been exported', false);
     }
 
     importSettings(file) {
@@ -552,7 +559,7 @@ class PersistentSettings {
                 this.updateAllUI();
                 this.applySettingsToPage();
                 showMessage('Settings imported successfully!', 'success');
-                addInternalNotification('Settings Imported', 'Settings have been imported', false);
+                addInternalNotification('Settings Imported', 'Your settings have been imported', false);
             } catch (err) {
                 showMessage('Invalid settings file', 'error');
             }
@@ -602,6 +609,8 @@ async function loadAdminData() {
         const topName = document.getElementById('topAdminName');
         const drawerInitials = document.getElementById('drawerInitials');
         const mobileAdminName = document.getElementById('mobileAdminName');
+        const mobileFullName = document.getElementById('mobileFullName');
+        const mobileEmail = document.getElementById('mobileEmail');
         
         if (nameInput) nameInput.value = adminName;
         if (emailInput) emailInput.value = currentAdminData.email || '';
@@ -611,11 +620,12 @@ async function loadAdminData() {
         if (topName) topName.textContent = adminName.split(' ')[0] || 'Admin';
         if (drawerInitials) drawerInitials.textContent = initials;
         if (mobileAdminName) mobileAdminName.textContent = adminName;
+        if (mobileFullName) mobileFullName.value = adminName;
+        if (mobileEmail) mobileEmail.value = currentAdminData.email || '';
         
         window.persistentSettings.applySettingsToPage();
         window.persistentSettings.updateAllUI();
         
-        // Update notification status display
         const notificationStatus = document.getElementById('notificationStatus');
         if (notificationStatus && window.persistentSettings.get('pushNotifications')) {
             notificationStatus.textContent = 'Allowed';
@@ -639,7 +649,7 @@ async function saveProfile() {
     try {
         const { error } = await supabase
             .from('admin')
-            .update({ name: newName })
+            .update({ name: newName, updated_at: new Date().toISOString() })
             .eq('email', currentAdminData.email);
         
         if (error) throw error;
@@ -665,7 +675,6 @@ async function saveProfile() {
     }
 }
 
-
 // ============ SAVE PROFILE (MOBILE) ============
 async function saveMobileProfile() {
     const newName = document.getElementById('mobileFullName').value.trim();
@@ -677,7 +686,7 @@ async function saveMobileProfile() {
     try {
         const { error } = await supabase
             .from('admin')
-            .update({ name: newName })
+            .update({ name: newName, updated_at: new Date().toISOString() })
             .eq('email', currentAdminData.email);
         
         if (error) throw error;
@@ -706,9 +715,9 @@ async function saveMobileProfile() {
 
 // ============ CHANGE PASSWORD ============
 async function changePassword() {
-    const currentPwd = document.getElementById('currentPassword').value;
-    const newPwd = document.getElementById('newPassword').value;
-    const confirmPwd = document.getElementById('confirmPassword').value;
+    const currentPwd = document.getElementById('currentPassword')?.value;
+    const newPwd = document.getElementById('newPassword')?.value;
+    const confirmPwd = document.getElementById('confirmPassword')?.value;
     
     if (!currentPwd || !newPwd || !confirmPwd) {
         showMessage('Please fill all fields', 'error');
@@ -736,11 +745,15 @@ async function changePassword() {
         const { error } = await supabase.auth.updateUser({ password: newPwd });
         if (error) throw error;
         
-        document.getElementById('currentPassword').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
+        const currentPwdInput = document.getElementById('currentPassword');
+        const newPwdInput = document.getElementById('newPassword');
+        const confirmPwdInput = document.getElementById('confirmPassword');
         
-        showMessage('Password changed!', 'success');
+        if (currentPwdInput) currentPwdInput.value = '';
+        if (newPwdInput) newPwdInput.value = '';
+        if (confirmPwdInput) confirmPwdInput.value = '';
+        
+        showMessage('Password changed successfully!', 'success');
         addInternalNotification('Password Changed', 'Your password has been updated', false);
     } catch (err) {
         showMessage('Error: ' + err.message, 'error');
@@ -778,13 +791,11 @@ function saveNotificationSettings() {
         pushNotifications: pushNotifications
     });
     
-    // Update mobile display
     const notificationStatus = document.getElementById('notificationStatus');
     if (notificationStatus) {
         notificationStatus.textContent = pushNotifications ? 'Allowed' : 'Disabled';
     }
     
-    // Also update the mobile notification status if there's a separate display
     const mobileNotificationStatus = document.getElementById('mobileNotificationStatus');
     if (mobileNotificationStatus) {
         mobileNotificationStatus.textContent = pushNotifications ? 'Allowed' : 'Disabled';
@@ -840,56 +851,68 @@ async function loadStats() {
 
 // ============ EXPORT DATA ============
 async function exportIncidents() {
-    const { data } = await supabase.from('incident').select('*');
-    if (!data || data.length === 0) {
-        showMessage('No incidents to export', 'error');
-        return;
+    try {
+        const { data } = await supabase.from('incident').select('*');
+        if (!data || data.length === 0) {
+            showMessage('No incidents to export', 'error');
+            return;
+        }
+        let csv = 'ID,Title,Location,Category,Priority,Status,Student Name,Student ID,Date\n';
+        data.forEach(item => {
+            csv += `"${item.id}","${(item.title || '').replace(/"/g, '""')}","${(item.location || '').replace(/"/g, '""')}","${item.category || ''}","${item.priority || ''}","${item.status || ''}","${(item.student_name || '').replace(/"/g, '""')}","${item.student_id_number || ''}","${item.created_at || ''}"\n`;
+        });
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `incidents_${Date.now()}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showMessage(`Exported ${data.length} incidents`, 'success');
+        addInternalNotification('Data Exported', `Exported ${data.length} incidents to CSV`, false);
+    } catch (err) {
+        showMessage('Error exporting incidents', 'error');
     }
-    let csv = 'ID,Title,Location,Category,Priority,Status,Date\n';
-    data.forEach(item => {
-        csv += `"${item.id}","${(item.title || '').replace(/"/g, '""')}","${(item.location || '').replace(/"/g, '""')}","${item.category || ''}","${item.priority || ''}","${item.status || ''}","${item.created_at || ''}"\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `incidents_${Date.now()}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-    showMessage(`Exported ${data.length} incidents`, 'success');
-    addInternalNotification('Data Exported', `Exported ${data.length} incidents to CSV`, false);
 }
 
 async function exportStudents() {
-    const { data } = await supabase.from('student').select('*');
-    if (!data || data.length === 0) {
-        showMessage('No students to export', 'error');
-        return;
+    try {
+        const { data } = await supabase.from('student').select('*');
+        if (!data || data.length === 0) {
+            showMessage('No students to export', 'error');
+            return;
+        }
+        let csv = 'ID,Full Name,Student ID,Email,Status,Created At\n';
+        data.forEach(item => {
+            csv += `"${item.id}","${(item.full_name || '').replace(/"/g, '""')}","${item.student_id || ''}","${item.email || ''}","${item.status || 'active'}","${item.created_at || ''}"\n`;
+        });
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `students_${Date.now()}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showMessage(`Exported ${data.length} students`, 'success');
+        addInternalNotification('Data Exported', `Exported ${data.length} students to CSV`, false);
+    } catch (err) {
+        showMessage('Error exporting students', 'error');
     }
-    let csv = 'ID,Full Name,Student ID,Email,Created At\n';
-    data.forEach(item => {
-        csv += `"${item.id}","${(item.full_name || '').replace(/"/g, '""')}","${item.student_id || ''}","${item.email || ''}","${item.created_at || ''}"\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `students_${Date.now()}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-    showMessage(`Exported ${data.length} students`, 'success');
-    addInternalNotification('Data Exported', `Exported ${data.length} students to CSV`, false);
 }
 
 // ============ CLEAR INCIDENTS ============
 async function clearIncidents() {
-    if (!confirm('⚠️ Delete ALL incidents? This cannot be undone!')) return;
-    await supabase.from('incident').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    localStorage.setItem('campus_care_reports', '[]');
-    showMessage('All incidents cleared', 'success');
-    addInternalNotification('Data Cleared', 'All incidents have been cleared from the system', false);
-    loadStats();
+    try {
+        const { error } = await supabase.from('incident').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (error) throw error;
+        localStorage.setItem('campus_care_reports', '[]');
+        showMessage('All incidents cleared successfully!', 'success');
+        addInternalNotification('Data Cleared', 'All incidents have been cleared from the system', false);
+        await loadStats();
+    } catch (err) {
+        showMessage('Error clearing incidents: ' + err.message, 'error');
+    }
 }
 
-// ============ MODAL ============
+// ============ MODAL ==========
 let pendingClear = null;
 
 function showConfirmModal(message, callback) {
@@ -898,9 +921,14 @@ function showConfirmModal(message, callback) {
     const confirmBtn = document.getElementById('modalConfirmBtn');
     const cancelBtn = document.getElementById('modalCancelBtn');
     
-    if (!modal) return;
+    if (!modal) {
+        if (confirm(message)) {
+            callback();
+        }
+        return;
+    }
     
-    modalMessage.textContent = message;
+    if (modalMessage) modalMessage.textContent = message;
     pendingClear = callback;
     modal.classList.add('active');
     
@@ -917,13 +945,22 @@ function showConfirmModal(message, callback) {
         if (confirmBtn) confirmBtn.removeEventListener('click', handleConfirm);
         if (cancelBtn) cancelBtn.removeEventListener('click', handleCancel);
     };
-    if (confirmBtn) confirmBtn.addEventListener('click', handleConfirm);
-    if (cancelBtn) cancelBtn.addEventListener('click', handleCancel);
+    if (confirmBtn) {
+        const newConfirm = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+        newConfirm.addEventListener('click', handleConfirm);
+    }
+    if (cancelBtn) {
+        const newCancel = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+        newCancel.addEventListener('click', handleCancel);
+    }
 }
 
 function closeModal() {
     const modal = document.getElementById('confirmationModal');
     if (modal) modal.classList.remove('active');
+    pendingClear = null;
 }
 
 // ============ TABS ============
@@ -944,12 +981,6 @@ function setupTabs() {
 // ============ MOBILE MODAL FUNCTIONS ============
 function openProfileModal() {
     const modal = document.getElementById('profileModal');
-    const mobileFullName = document.getElementById('mobileFullName');
-    const mobileEmail = document.getElementById('mobileEmail');
-    
-    if (mobileFullName) mobileFullName.value = currentAdminData?.name || '';
-    if (mobileEmail) mobileEmail.value = currentAdminData?.email || '';
-    
     if (modal) modal.classList.add('active');
 }
 
@@ -959,13 +990,13 @@ function closeProfileModal() {
 }
 
 function openNotificationsModal() {
-    // Show notification settings
-    const pushNotifications = document.getElementById('pushNotifications');
-    if (pushNotifications) {
-        // Toggle or show settings
-        pushNotifications.checked = !pushNotifications.checked;
-        saveNotificationSettings();
-    }
+    const modal = document.getElementById('notificationsModal');
+    if (modal) modal.classList.add('active');
+}
+
+function closeNotificationsModal() {
+    const modal = document.getElementById('notificationsModal');
+    if (modal) modal.classList.remove('active');
 }
 
 function openLanguageModal() {
@@ -983,6 +1014,7 @@ function selectLanguage(lang) {
     if (selectedLanguage) selectedLanguage.textContent = lang;
     closeLanguageModal();
     showMessage(`Language set to ${lang}`, 'success');
+    addInternalNotification('Language Changed', `Language set to ${lang}`, false);
 }
 
 function openFeedbackModal() {
@@ -1003,7 +1035,6 @@ function sendFeedback() {
         showMessage('Please enter your feedback', 'error');
         return;
     }
-    // Here you can send feedback to your email or database
     showMessage('Thank you for your feedback!', 'success');
     addInternalNotification('Feedback Received', 'Thanks for sharing your thoughts!', false);
     closeFeedbackModal();
@@ -1070,8 +1101,10 @@ function setupNavigation() {
         }
         if (e.key === 'Escape') {
             closeProfileModal();
+            closeNotificationsModal();
             closeLanguageModal();
             closeFeedbackModal();
+            closeModal();
         }
     });
 }
@@ -1090,6 +1123,7 @@ function setupButtons() {
     const exportSettingsBtn = document.getElementById('exportSettingsBtn');
     const importSettingsBtn = document.getElementById('importSettingsBtn');
     const importSettingsInput = document.getElementById('importSettingsInput');
+    const refreshStatsBtn = document.getElementById('refreshStatsBtn');
     
     if (saveProfileBtn) saveProfileBtn.onclick = saveProfile;
     if (changePasswordBtn) changePasswordBtn.onclick = changePassword;
@@ -1099,6 +1133,7 @@ function setupButtons() {
     if (exportIncidentsBtn) exportIncidentsBtn.onclick = exportIncidents;
     if (exportStudentsBtn) exportStudentsBtn.onclick = exportStudents;
     if (clearDataBtn) clearDataBtn.onclick = () => showConfirmModal('⚠️ Clear ALL incidents? This cannot be undone.', clearIncidents);
+    if (refreshStatsBtn) refreshStatsBtn.onclick = loadStats;
     
     if (resetSettingsBtn) {
         resetSettingsBtn.onclick = () => window.persistentSettings.resetToDefault();
@@ -1138,11 +1173,6 @@ function initBottomNav() {
             }
         });
     });
-    
-    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
-    if (mobileLogoutBtn) {
-        mobileLogoutBtn.addEventListener('click', confirmLogout);
-    }
 }
 
 // ============ INITIALIZE ============
@@ -1157,10 +1187,17 @@ async function init() {
     setupButtons();
     initBottomNav();
     
+    // Set up auto-refresh interval
+    if (window.persistentSettings.get('autoRefresh')) {
+        window.persistentSettings.setupAutoRefresh(true);
+    }
+    
     // Expose functions globally for HTML onclick
     window.openProfileModal = openProfileModal;
     window.closeProfileModal = closeProfileModal;
     window.saveMobileProfile = saveMobileProfile;
+    window.openNotificationsModal = openNotificationsModal;
+    window.closeNotificationsModal = closeNotificationsModal;
     window.openLanguageModal = openLanguageModal;
     window.closeLanguageModal = closeLanguageModal;
     window.selectLanguage = selectLanguage;
@@ -1169,6 +1206,15 @@ async function init() {
     window.sendFeedback = sendFeedback;
     window.confirmLogout = confirmLogout;
     window.closeModal = closeModal;
+    window.saveNotificationSettings = saveNotificationSettings;
+    window.saveAllPreferences = saveAllPreferences;
+    window.saveDataSettings = saveDataSettings;
+    window.exportIncidents = exportIncidents;
+    window.exportStudents = exportStudents;
+    window.clearIncidents = clearIncidents;
+    window.resetSettings = () => window.persistentSettings.resetToDefault();
+    window.exportSettings = () => window.persistentSettings.exportSettings();
+    window.importSettings = () => document.getElementById('importSettingsInput')?.click();
 }
 
 init();

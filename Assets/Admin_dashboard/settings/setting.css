@@ -10,6 +10,7 @@
     --border: #E4E1DB;
     --text: #161513;
     --muted: #7A776F;
+    --hint: #9CA3AF;
     --teal: #1D9E75;
     --teal-light: #E1F5EE;
     --teal-dark: #085041;
@@ -30,6 +31,7 @@ body.dark-mode {
     --border: #334155;
     --text: #F1F5F9;
     --muted: #94A3B8;
+    --hint: #64748B;
     --teal: #10B981;
     --teal-light: #064E3B;
     --teal-dark: #059669;
@@ -50,6 +52,223 @@ html, body {
     min-height: 100vh;
     transition: background 0.3s ease, color 0.3s ease;
 }
+
+/* ========== PAGE FADE-IN ANIMATION ========== */
+
+/* Main content fade in */
+main {
+    margin-left: 260px;
+    padding: 28px 36px 48px;
+    max-width: 1400px;
+    animation: fadeInContent 0.5s ease-out forwards;
+}
+
+@keyframes fadeInContent {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Page header fade in */
+.page-header {
+    background: linear-gradient(130deg, #1D9E75 0%, #0D7A65 55%, #085041 100%);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    animation: fadeInUp 0.5s ease forwards;
+    animation-delay: 0.05s;
+    opacity: 0;
+}
+
+body.dark-mode .page-header {
+    background: linear-gradient(130deg, #0D9488 0%, #0F766E 55%, #115E59 100%);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Settings container fade in */
+.settings-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    animation: fadeInUp 0.5s ease forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+}
+
+/* Mobile settings list fade in */
+.settings-list-mobile {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeInUp 0.5s ease forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+}
+
+/* Settings sidebar items staggered animation */
+.settings-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    width: 100%;
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    animation: fadeInSlideRight 0.4s ease forwards;
+    opacity: 0;
+}
+
+.settings-sidebar-item:nth-child(1) { animation-delay: 0.05s; }
+.settings-sidebar-item:nth-child(2) { animation-delay: 0.1s; }
+.settings-sidebar-item:nth-child(3) { animation-delay: 0.15s; }
+.settings-sidebar-item:nth-child(4) { animation-delay: 0.2s; }
+.settings-sidebar-item:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeInSlideRight {
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Settings panel fade in */
+.settings-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    animation: fadeInScale 0.4s ease forwards;
+    animation-delay: 0.15s;
+    opacity: 0;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Tab content fade in */
+.tab-content {
+    animation: fadeInContent 0.4s ease forwards;
+}
+
+/* Form groups staggered animation */
+.form-group {
+    margin-bottom: 20px;
+    animation: fadeInUp 0.3s ease forwards;
+    opacity: 0;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.15s; }
+.form-group:nth-child(3) { animation-delay: 0.2s; }
+.form-group:nth-child(4) { animation-delay: 0.25s; }
+.form-group:nth-child(5) { animation-delay: 0.3s; }
+
+/* Buttons fade in */
+.btn-primary, .btn-secondary, .btn-danger {
+    animation: fadeInUp 0.3s ease forwards;
+    animation-delay: 0.35s;
+    opacity: 0;
+}
+
+/* Info boxes fade in */
+.info-box {
+    background: var(--blue-light);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-top: 20px;
+    animation: fadeInUp 0.3s ease forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+}
+
+body.dark-mode .info-box {
+    background: var(--teal-light);
+}
+
+/* Settings section staggered (for mobile) */
+.settings-section {
+    background: var(--surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.settings-section:nth-child(1) { animation-delay: 0.05s; }
+.settings-section:nth-child(2) { animation-delay: 0.1s; }
+.settings-section:nth-child(3) { animation-delay: 0.15s; }
+
+/* Settings items staggered */
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    animation: fadeInSlideRight 0.3s ease forwards;
+    opacity: 0;
+}
+
+.settings-item:nth-child(1) { animation-delay: 0.1s; }
+.settings-item:nth-child(2) { animation-delay: 0.15s; }
+.settings-item:nth-child(3) { animation-delay: 0.2s; }
+.settings-item:nth-child(4) { animation-delay: 0.25s; }
+
+/* Stats cards (if any) fade in */
+.stats-row {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+    animation-delay: 0.05s;
+}
+
+.stat-card {
+    animation: fadeInScale 0.4s ease forwards;
+    opacity: 0;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.15s; }
+.stat-card:nth-child(3) { animation-delay: 0.2s; }
+.stat-card:nth-child(4) { animation-delay: 0.25s; }
+
+/* ========== END OF FADE-IN ANIMATIONS ========== */
 
 /* DRAWER */
 .drawer {
@@ -173,7 +392,7 @@ html, body {
     color: #fff;
 }
 
-/* TOPBAR */
+/* TOPBAR - HIDDEN ON MOBILE, SHOWN ON DESKTOP */
 .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -266,15 +485,9 @@ body.dark-mode .dark-mode-toggle .moon-icon {
 }
 
 @keyframes bellShake {
-    0%, 100% {
-        transform: rotate(0deg);
-    }
-    25% {
-        transform: rotate(15deg);
-    }
-    75% {
-        transform: rotate(-15deg);
-    }
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(15deg); }
+    75% { transform: rotate(-15deg); }
 }
 
 .notification-badge {
@@ -412,14 +625,8 @@ body.dark-mode .dark-mode-toggle .moon-icon {
 }
 
 @keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: translateY(-50%) scale(1);
-    }
-    50% {
-        opacity: 0.7;
-        transform: translateY(-50%) scale(1.1);
-    }
+    0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+    50% { opacity: 0.7; transform: translateY(-50%) scale(1.1); }
 }
 
 .notification-dropdown-title {
@@ -611,24 +818,7 @@ body.dark-mode .dark-mode-toggle .moon-icon {
     transform: scale(0.95);
 }
 
-/* MAIN CONTENT */
-main {
-    margin-left: 260px;
-    padding: 28px 36px 48px;
-    max-width: 1400px;
-}
-
-.page-header {
-    background: linear-gradient(130deg, #1D9E75 0%, #0D7A65 55%, #085041 100%);
-    border-radius: 20px;
-    padding: 28px 32px;
-    margin-bottom: 28px;
-}
-
-body.dark-mode .page-header {
-    background: linear-gradient(130deg, #0D9488 0%, #0F766E 55%, #115E59 100%);
-}
-
+/* PAGE TITLE */
 .page-title {
     font-size: 26px;
     font-weight: 700;
@@ -641,13 +831,7 @@ body.dark-mode .page-header {
     margin-top: 6px;
 }
 
-/* ========== MOBILE SETTINGS LIST STYLES (LIKE REFERENCE IMAGE) ========== */
-.settings-list-mobile {
-    display: none;
-    flex-direction: column;
-    gap: 16px;
-}
-
+/* ========== MOBILE SETTINGS LIST STYLES ========== */
 .settings-section {
     background: var(--surface);
     border-radius: 16px;
@@ -871,7 +1055,7 @@ textarea:focus {
     border-left-color: var(--teal);
 }
 
-/* SETTINGS PANEL - DESKTOP - ADJUSTED SIZE */
+/* SETTINGS PANEL - DESKTOP */
 .settings-panel {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -894,7 +1078,7 @@ textarea:focus {
     border-bottom: 1px solid var(--border);
 }
 
-/* FORM STYLES - DESKTOP - LARGER */
+/* FORM STYLES - DESKTOP */
 .form-group {
     margin-bottom: 20px;
 }
@@ -932,7 +1116,7 @@ textarea:focus {
     color: var(--muted);
 }
 
-/* BUTTONS - DESKTOP - LARGER */
+/* BUTTONS - DESKTOP */
 .btn-primary {
     background: var(--teal);
     color: white;
@@ -1058,8 +1242,7 @@ input:checked+.toggle-slider:before {
     transform: translateX(26px);
 }
 
-/* MODAL */
-/* ========== BEAUTIFUL MODAL STYLES ========== */
+/* MODAL STYLES */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -1110,7 +1293,6 @@ input:checked+.toggle-slider:before {
     transform: scale(1);
 }
 
-/* Modal Header */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -1153,7 +1335,6 @@ input:checked+.toggle-slider:before {
     transform: rotate(90deg);
 }
 
-/* Modal Body */
 .modal-body {
     padding: 24px;
     max-height: 60vh;
@@ -1174,7 +1355,6 @@ input:checked+.toggle-slider:before {
     border-radius: 10px;
 }
 
-/* Form Groups inside Modal */
 .modal-body .form-group {
     margin-bottom: 20px;
 }
@@ -1212,7 +1392,6 @@ input:checked+.toggle-slider:before {
     color: var(--muted);
 }
 
-/* Modal Footer */
 .modal-footer {
     display: flex;
     justify-content: flex-end;
@@ -1386,62 +1565,32 @@ body.dark-mode .language-option:hover {
         padding-bottom: 65px;
     }
     
-    /* Topbar adjustments */
+    /* TOPBAR - HIDDEN ON MOBILE */
     .topbar {
-        margin-left: 0;
-        width: 100%;
-        padding: 0 16px;
-        height: 56px;
-    }
-    
-    .hamburger {
         display: none !important;
     }
     
-    .brand-name {
-        font-size: 16px;
-    }
-    
-    .brand-logo img {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .admin-indicator {
-        padding: 4px 12px;
-    }
-    
-    .admin-text {
-        font-size: 11px;
-    }
-    
-    /* Dark mode toggle mobile */
-    .dark-mode-toggle {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .notification-bell {
-        width: 32px;
-        height: 32px;
-    }
-    
-    /* Main content */
+    /* Remove margin from main since no topbar */
     main {
         margin-left: 0;
         width: 100%;
         padding: 16px;
-        margin-bottom: 0;
+        margin-top: 0;
         padding-bottom: 20px;
     }
     
     .page-header {
         padding: 16px 20px;
         margin-bottom: 16px;
+        margin-top: 0;
     }
     
     .page-title {
         font-size: 20px;
+    }
+    
+    .page-sub {
+        font-size: 11px;
     }
     
     /* SHOW MOBILE LIST STYLE SETTINGS */
@@ -1549,10 +1698,25 @@ body.dark-mode .language-option:hover {
     
     /* Notification dropdown mobile */
     .notification-dropdown {
-        width: calc(100vw - 20px);
-        left: 10px !important;
-        right: 10px !important;
-        top: 60px !important;
+        top: 10px !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) translateY(-10px);
+        width: calc(100vw - 32px);
+    }
+    
+    .notification-dropdown.show {
+        transform: translateX(-50%) translateY(0);
+    }
+    
+    /* Adjust brand name for mobile */
+    .brand-name {
+        font-size: 16px;
+    }
+    
+    .brand-logo img {
+        width: 28px;
+        height: 28px;
     }
 }
 
@@ -1634,6 +1798,11 @@ body.dark-mode .language-option:hover {
     /* Show desktop settings on desktop */
     .settings-container {
         display: grid !important;
+    }
+    
+    /* TOPBAR VISIBLE ON DESKTOP */
+    .topbar {
+        display: flex !important;
     }
 }
 

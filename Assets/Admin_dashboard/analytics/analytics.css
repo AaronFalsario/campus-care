@@ -539,7 +539,7 @@ body.dark-mode tr:hover td {
     background: rgba(255,255,255,0.03);
 }
 
-/* Badge styles - Enhanced for dark mode */
+/* Badge styles */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -550,33 +550,21 @@ body.dark-mode tr:hover td {
     white-space: nowrap;
 }
 
-/* Category badges - Dark mode compatible */
 .b-security { background: var(--red-light); color: var(--red); }
 .b-maintenance { background: var(--blue-light); color: var(--blue); }
 .b-janitorial { background: var(--teal-light); color: var(--teal-dark); }
 .b-facilities { background: var(--amber-light); color: var(--amber); }
-
-/* Priority badges - Dark mode compatible */
 .b-high { background: var(--red-light); color: var(--red); }
 .b-medium { background: var(--amber-light); color: var(--amber); }
 .b-low { background: var(--green-light); color: var(--green); }
-
-/* Status badges - Dark mode compatible */
 .b-pending { background: var(--orange-light); color: var(--orange); }
 .b-progress { background: var(--blue-light); color: var(--blue); }
 .b-resolved { background: var(--green-light); color: var(--green); }
 
-/* Dark mode specific badge text colors */
 body.dark-mode .b-janitorial { color: var(--teal); }
 body.dark-mode .b-pending { color: var(--orange); }
 body.dark-mode .b-progress { color: var(--blue); }
 body.dark-mode .b-resolved { color: var(--green); }
-body.dark-mode .b-high { color: var(--red); }
-body.dark-mode .b-medium { color: var(--amber); }
-body.dark-mode .b-low { color: var(--green); }
-body.dark-mode .b-security { color: var(--red); }
-body.dark-mode .b-maintenance { color: var(--blue); }
-body.dark-mode .b-facilities { color: var(--amber); }
 
 .view-btn {
     background: var(--teal-light);
@@ -624,7 +612,7 @@ body.dark-mode .b-facilities { color: var(--amber); }
     border-color: var(--teal);
 }
 
-/* Bottom Navigation - NO ANIMATION */
+/* ========== BOTTOM NAVIGATION - FIXED DARKER COLORS ========== */
 .bottom-nav {
     display: none;
     position: fixed;
@@ -635,10 +623,11 @@ body.dark-mode .b-facilities { color: var(--amber); }
     background: var(--surface);
     border-top: 1px solid var(--border);
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-evenly;
     padding: 8px 16px;
     z-index: 400;
     animation: none !important;
+    box-shadow: 0 -2px 8px var(--shadow);
 }
 
 .bottom-nav-item {
@@ -650,23 +639,100 @@ body.dark-mode .b-facilities { color: var(--amber); }
     background: none;
     border: none;
     cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 12px;
+    padding: 3px 1px;
+    border-radius: 25px;
+    transition: all 0.2s ease;
     color: var(--muted);
     font-size: 11px;
     font-weight: 500;
-    transition: all 0.2s;
+    flex: 1;
+    max-width: 70px;
 }
 
 .bottom-nav-item svg {
     width: 22px;
     height: 22px;
-    stroke: currentColor;
+    stroke: var(--muted);
+    fill: none;
+    stroke-width: 1.8;
+    transition: all 0.2s ease;
 }
 
+.bottom-nav-item span {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+}
+
+/* Active state */
 .bottom-nav-item.active {
     color: var(--teal);
     background: var(--teal-light);
+    border-radius: 14px;
+}
+
+.bottom-nav-item.active svg {
+    stroke: var(--teal);
+}
+
+.bottom-nav-item.active span {
+    color: var(--teal);
+}
+
+/* Hover effect */
+.bottom-nav-item:hover {
+    color: var(--teal);
+    background: var(--teal-light);
+    border-radius: 25px;
+}
+
+.bottom-nav-item:hover svg {
+    stroke: var(--teal);
+}
+
+.bottom-nav-item:hover span {
+    color: var(--teal);
+}
+
+/* Press effect */
+.bottom-nav-item:active {
+    transform: scale(0.96);
+}
+
+/* Dark mode bottom nav adjustments */
+body.dark-mode .bottom-nav {
+    background: var(--surface);
+    border-top-color: var(--border);
+}
+
+body.dark-mode .bottom-nav-item {
+    color: var(--muted);
+}
+
+body.dark-mode .bottom-nav-item svg {
+    stroke: var(--muted);
+}
+
+body.dark-mode .bottom-nav-item span {
+    color: var(--muted);
+}
+
+body.dark-mode .bottom-nav-item.active {
+    color: var(--teal);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+body.dark-mode .bottom-nav-item.active svg {
+    stroke: var(--teal);
+}
+
+body.dark-mode .bottom-nav-item.active span {
+    color: var(--teal);
+}
+
+body.dark-mode .bottom-nav-item:hover {
+    background: rgba(16, 185, 129, 0.1);
 }
 
 /* Modal */
@@ -842,7 +908,7 @@ body.dark-mode .b-facilities { color: var(--amber); }
     color: var(--hint);
 }
 
-/* Chart text colors for dark mode - MAKE TEXT WHITE */
+/* Chart text colors for dark mode */
 body.dark-mode .chart-container canvas {
     filter: brightness(0.9);
 }
@@ -853,20 +919,16 @@ body.dark-mode .chart-card .card-sub {
     color: var(--text) !important;
 }
 
-/* Chart.js specific - force text color in dark mode */
 body.dark-mode canvas {
     filter: brightness(0.95) contrast(1.1);
 }
 
-/* ========== FIX DARK MODE TEXT COLORS - MAKE ALL TEXT VISIBLE ========== */
-
-/* Force all text to use the correct color in dark mode */
+/* ========== DARK MODE TEXT COLORS ========== */
 body.dark-mode,
 body.dark-mode * {
     color: var(--text) !important;
 }
 
-/* Keep drawer items in navy background - they need white text */
 body.dark-mode .drawer,
 body.dark-mode .drawer-item,
 body.dark-mode .drawer-name,
@@ -896,12 +958,10 @@ body.dark-mode .drawer-logout:hover {
     color: #fff !important;
 }
 
-/* But preserve badge colors - they have specific meanings */
 body.dark-mode .badge {
     color: inherit !important;
 }
 
-/* Keep specific badge colors (they need to maintain their meaning) */
 body.dark-mode .b-security { color: var(--red) !important; background: var(--red-light) !important; }
 body.dark-mode .b-maintenance { color: var(--blue) !important; background: var(--blue-light) !important; }
 body.dark-mode .b-janitorial { color: var(--teal) !important; background: var(--teal-light) !important; }
@@ -913,7 +973,6 @@ body.dark-mode .b-pending { color: var(--orange) !important; background: var(--o
 body.dark-mode .b-progress { color: var(--blue) !important; background: var(--blue-light) !important; }
 body.dark-mode .b-resolved { color: var(--green) !important; background: var(--green-light) !important; }
 
-/* Fix modal text in dark mode */
 body.dark-mode .modal-value,
 body.dark-mode .modal-label,
 body.dark-mode .modal-body,
@@ -922,20 +981,17 @@ body.dark-mode .info-label {
     color: var(--text) !important;
 }
 
-/* Fix description text in modal */
 body.dark-mode .description-text {
     color: var(--text) !important;
     background: var(--bg) !important;
 }
 
-/* Fix table text in dark mode */
 body.dark-mode td,
 body.dark-mode th,
 body.dark-mode .table-container {
     color: var(--text) !important;
 }
 
-/* Fix cell content text - titles, locations, etc */
 body.dark-mode td strong,
 body.dark-mode td span,
 body.dark-mode .inc-title,
@@ -943,7 +999,6 @@ body.dark-mode .inc-location {
     color: var(--text) !important;
 }
 
-/* Fix mobile cards text */
 body.dark-mode .m-card,
 body.dark-mode .m-card-title,
 body.dark-mode .m-card-location,
@@ -953,7 +1008,6 @@ body.dark-mode .m-timestamp {
     color: var(--text) !important;
 }
 
-/* Fix filter bar text */
 body.dark-mode .filter-label,
 body.dark-mode .filter-chip,
 body.dark-mode .filter-select,
@@ -967,7 +1021,6 @@ body.dark-mode .search-bar input::placeholder {
     color: var(--hint) !important;
 }
 
-/* Fix pagination text */
 body.dark-mode .page-btn {
     color: var(--text) !important;
     background: var(--surface) !important;
@@ -979,7 +1032,6 @@ body.dark-mode .page-btn.active {
     color: white !important;
 }
 
-/* Fix view button */
 body.dark-mode .view-btn {
     color: var(--teal) !important;
     background: var(--teal-light) !important;
@@ -990,20 +1042,17 @@ body.dark-mode .view-btn:hover {
     background: var(--teal) !important;
 }
 
-/* Fix stat cards text */
 body.dark-mode .stat-value,
 body.dark-mode .stat-label {
     color: var(--text) !important;
 }
 
-/* Fix chart card headers */
 body.dark-mode .chart-card h3,
 body.dark-mode .chart-card .card-title,
 body.dark-mode .chart-card .card-sub {
     color: var(--text) !important;
 }
 
-/* Fix select dropdowns in dark mode */
 body.dark-mode select,
 body.dark-mode .filter-select,
 body.dark-mode .modal-status-select {
@@ -1017,18 +1066,15 @@ body.dark-mode select option {
     background: var(--surface) !important;
 }
 
-/* Fix toast messages in dark mode */
 body.dark-mode .toast {
     color: white !important;
     background: var(--teal) !important;
 }
 
-/* Fix modal close button */
 body.dark-mode .modal-close {
     color: white !important;
 }
 
-/* Fix brand name gradient to be visible in dark mode */
 body.dark-mode .brand-name {
     background: linear-gradient(135deg, var(--teal), var(--teal-dark));
     -webkit-background-clip: text;
@@ -1036,12 +1082,10 @@ body.dark-mode .brand-name {
     color: transparent !important;
 }
 
-/* Fix page header sub text */
 body.dark-mode .page-sub {
     color: rgba(255, 255, 255, 0.75) !important;
 }
 
-/* Fix any remaining text elements */
 body.dark-mode p,
 body.dark-mode span,
 body.dark-mode div,
@@ -1091,11 +1135,6 @@ body.dark-mode .page-sub {
         padding-bottom: 20px;
     }
     
-    /* ===== HIDE ALL STATS AND FILTERS ON MOBILE ===== */
-    .stats-row {
-        display: none !important;
-    }
-    
     .stats-grid {
         display: none !important;
     }
@@ -1105,10 +1144,6 @@ body.dark-mode .page-sub {
     }
     
     .filter-chip {
-        display: none !important;
-    }
-    
-    .filter-chips-wrapper {
         display: none !important;
     }
     
@@ -1122,20 +1157,6 @@ body.dark-mode .page-sub {
     
     .page-title {
         font-size: 20px;
-    }
-    
-    .stat-card {
-        padding: 12px;
-    }
-    
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .stat-value {
-        font-size: 22px;
     }
     
     .charts-row {
@@ -1161,12 +1182,6 @@ body.dark-mode .page-sub {
         display: none !important;
     }
 
-    @media (max-width: 480px) {
-        .chart-container {
-            height: 180px;
-        }
-    }
-    
     .export-btn {
         display: none;
     }
@@ -1213,6 +1228,31 @@ body.dark-mode .page-sub {
     .page-btn {
         padding: 6px 10px;
         font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-container {
+        height: 180px;
+    }
+    
+    .bottom-nav {
+        height: 60px;
+        padding: 6px 10px;
+    }
+    
+    .bottom-nav-item {
+        padding: 4px 8px;
+        max-width: 55px;
+    }
+    
+    .bottom-nav-item svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .bottom-nav-item span {
+        font-size: 9px;
     }
 }
 
@@ -1267,36 +1307,29 @@ body.dark-mode .page-sub {
     background: var(--teal-dark);
 }
 
-/* ========== CRITICAL FIXES TO PREVENT OVERRIDING ========== */
-/* These fixes prevent element overlap and display issues */
-
-/* Fix for charts container - prevents overlapping */
+/* ========== CRITICAL FIXES ========== */
 .charts-row,
 .two-columns {
     display: grid !important;
     width: 100% !important;
 }
 
-/* Ensure chart containers don't overlap */
 .chart-card,
 .violations-list {
     overflow: hidden !important;
     width: 100% !important;
 }
 
-/* Fix for chart canvas responsiveness */
 .chart-container canvas {
     max-width: 100% !important;
     height: auto !important;
 }
 
-/* Prevent brand name from being hidden */
 .brand-name {
     display: inline-block !important;
     visibility: visible !important;
 }
 
-/* Mobile specific fixes for charts */
 @media (max-width: 768px) {
     .charts-row,
     .two-columns {
@@ -1321,7 +1354,6 @@ body.dark-mode .page-sub {
     }
 }
 
-/* Small phone fixes */
 @media (max-width: 480px) {
     .brand-name {
         font-size: 13px !important;
