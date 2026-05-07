@@ -1,5 +1,34 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
+import { copyFileSync, mkdirSync, existsSync } from 'fs'
+import { dirname } from 'path'
+
+// Custom plugin to copy static files
+function copyStaticFiles() {
+  return {
+    name: 'copy-static-files',
+    writeBundle() {
+      // List of files to copy from root to dist
+      const filesToCopy = [
+        { src: 'bottom-nav.js', dest: 'dist/bottom-nav.js' },
+        // top-nav.js removed from here
+      ];
+      
+      filesToCopy.forEach(({ src, dest }) => {
+        if (existsSync(src)) {
+          const destDir = dirname(dest);
+          if (!existsSync(destDir)) {
+            mkdirSync(destDir, { recursive: true });
+          }
+          copyFileSync(src, dest);
+          console.log(`✓ Copied ${src} to ${dest}`);
+        } else {
+          console.log(`⚠️ File not found: ${src}`);
+        }
+      });
+    }
+  }
+}
 
 export default defineConfig({
   base: '/',
@@ -26,5 +55,6 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
-  }
+  },
+  publicDir: 'public'
 })
