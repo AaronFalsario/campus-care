@@ -79,7 +79,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - REMOVED THIS LINE - DO NOT IGNORE PUBLIC FOLDER!
 
 # Storybook build output
 storybook-static
