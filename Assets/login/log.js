@@ -269,7 +269,6 @@ if (loginBtn) {
             if (error) throw error;
             if (!data.user) throw new Error('Login failed — no user returned.');
 
-            // Check if email is confirmed
             if (!data.user.email_confirmed_at) {
                 showNotification('Please verify your email first. Check your inbox for confirmation link.', true);
                 hideLoader();
@@ -310,7 +309,7 @@ if (loginBtn) {
     });
 }
 
-// ========== SIGNUP WITH EMAIL CONFIRMATION (UPDATED) ==========
+// ========== SIGNUP WITH EMAIL CONFIRMATION ==========
 if (signupBtn) {
     signupBtn.addEventListener('click', async () => {
         const fullName  = document.getElementById('signupName').value.trim();
@@ -337,7 +336,6 @@ if (signupBtn) {
         showLoader();
 
         try {
-            // Check duplicate student ID
             const { data: existingId } = await supabase
                 .from('student')
                 .select('student_id')
@@ -350,7 +348,6 @@ if (signupBtn) {
                 return;
             }
 
-            // Check duplicate email
             const { data: existingEmail } = await supabase
                 .from('student')
                 .select('email')
@@ -397,19 +394,16 @@ if (signupBtn) {
 
             showNotification('✅ Account created! Please check your email to verify your account before logging in.', false, 6000);
             
-            // Clear form fields
             document.getElementById('signupName').value = '';
             document.getElementById('signupStudentId').value = '';
             document.getElementById('signupEmail').value = '';
             document.getElementById('signupPassword').value = '';
             
-            // Switch back to login form after 3 seconds
             setTimeout(() => {
                 signupForm.style.display = 'none';
                 studentLoginCard.style.display = 'block';
                 applySlideUpAnimation(studentLoginCard);
                 
-                // Show message on login form
                 const loginMessage = document.createElement('div');
                 loginMessage.className = 'login-message';
                 loginMessage.innerHTML = '<i class="fas fa-envelope"></i> Please verify your email before logging in. Check your inbox!';
@@ -464,7 +458,7 @@ window.studentLogout = async function () {
     }
 };
 
-// ========== FORGOT PASSWORD ==========
+// ========== FORGOT PASSWORD WITH HARDCODED URL ==========
 const forgotPasswordBtn = document.getElementById('showForgotPassword');
 if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', async () => {
@@ -491,9 +485,9 @@ if (forgotPasswordBtn) {
                 return;
             }
 
-            // ✅ UPDATED PATH for student reset
+            // ✅ HARDCODED URL - NO ${window.location.origin}
             const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-                redirectTo: `${window.location.origin}/Assets/login/password_admin/reset_password.html?type=student`
+                redirectTo: `https://campus-care-iota.vercel.app/Assets/login/password_admin/reset_password.html?type=student`
             });
 
             if (error) throw error;
@@ -636,7 +630,6 @@ async function checkExistingSession() {
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-            // Check if email is confirmed
             if (user.email_confirmed_at) {
                 window.location.href = '/Assets/Student_dashboard/SDB.html';
             } else {

@@ -40,12 +40,10 @@ function showToast(message, isError = false, duration = 3000) {
         `;
     }
     
-    // message container
     const messageContainer = document.createElement('div');
     messageContainer.className = 'admin-toast-message';
     messageContainer.textContent = message;
     
-    //  progress bar
     const progressBar = document.createElement('div');
     progressBar.className = 'admin-toast-progress';
     
@@ -140,14 +138,13 @@ function showToast(message, isError = false, duration = 3000) {
         document.head.appendChild(style);
     }
     
-    // Auto remove after duration
     setTimeout(() => {
         toast.style.animation = 'adminToastSlideUp 0.3s ease-out reverse';
         setTimeout(() => toast.remove(), 300);
     }, duration);
 }
 
-// SU TRIGGER - MOVED OUTSIDE DOMContentLoaded FOR IMMEDIATE EXECUTION
+// SU TRIGGER
 (function() {
     let suSequence = [];
     let suTimeout;
@@ -199,7 +196,6 @@ function showToast(message, isError = false, duration = 3000) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - setting up admin panel');
     
-    // DOM Elements
     const adminLoginCard = document.getElementById('adminLoginCard');
     const adminSignupCard = document.getElementById('adminSignupCard');
     const adminLoginBtn = document.getElementById('adminLoginBtn');
@@ -207,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const showAdminLogin = document.getElementById('showAdminLogin');
     const showAdminForgotPassword = document.getElementById('showAdminForgotPassword');
 
-    // Function to check if email is approved
     function isEmailApproved(email) {
         if (SPECIFIC_APPROVED_EMAILS.includes(email.toLowerCase())) {
             return true;
@@ -217,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    // ============ CHECK IF ADMIN EMAIL EXISTS IN DATABASE ============
     async function checkAdminEmailExists(email) {
         try {
             const { data, error } = await supabase
@@ -238,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ============ CREATE ADMIN TABLE IF NOT EXISTS ============
     async function ensureAdminTableExists() {
         try {
             const { error } = await supabase
@@ -257,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ============ METHOD 2: MOBILE - Triple tap on logo ============
+    // Mobile triggers
     let logoTapCount = 0;
     let logoTapTimeout;
     
@@ -286,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ============ METHOD 3: MOBILE - Long press on footer ============
     let pressTimer;
     const footerElement = document.querySelector('footer');
     
@@ -336,7 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // METHOD 4: MOBILE - Two-finger tap on header 
     let twoFingerTap = false;
     const headerElement = document.querySelector('.header');
     
@@ -368,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('%c📱 MOBILE: Triple-tap logo | Long press footer (3s) | Two-finger tap header', 'color: #10b981; font-size: 12px;');
     console.log('%c📧 Approved domains: ' + APPROVED_DOMAINS.join(', '), 'color: #10b981; font-size: 12px;');
 
-    // Toggle between login and signup (back to login)
     if (showAdminLogin) {
         showAdminLogin.addEventListener('click', () => {
             if (adminSignupCard && adminLoginCard) {
@@ -383,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Password visibility toggle
     function setupPasswordToggle(inputId) {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -413,7 +402,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPasswordToggle('adminSignupPassword');
     setupPasswordToggle('adminConfirmPassword');
 
-    // ============ ADMIN LOGIN FUNCTION ============
     async function adminLogin() {
         const email = document.getElementById('adminEmail').value.trim();
         const password = document.getElementById('adminPasswordInput').value;
@@ -455,7 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // Check if admin exists in admin table
             let adminData = null;
             let adminError = null;
             
@@ -472,7 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminError = err;
             }
             
-            // If admin doesn't exist in table, create them
             if (adminError || !adminData) {
                 if (isEmailApproved(email)) {
                     try {
@@ -544,7 +530,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ============ ADMIN SIGNUP FUNCTION ============
     async function adminSignup() {
         const name = document.getElementById('adminName').value.trim();
         const email = document.getElementById('adminSignupEmail').value.trim();
@@ -661,7 +646,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ============ CUSTOM EMAIL PROMPT MODAL ============
     function showAdminEmailPrompt() {
         return new Promise((resolve) => {
             const modal = document.createElement('div');
@@ -687,7 +671,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             
-            // Add styles for modal
             if (!document.querySelector('#admin-prompt-styles')) {
                 const style = document.createElement('style');
                 style.id = 'admin-prompt-styles';
@@ -850,51 +833,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-// ============ FORGOT PASSWORD FUNCTION ============
-async function forgotPassword() {
-    const email = await showAdminEmailPrompt();
-    
-    if (email && email.trim()) {
-        const trimmedEmail = email.trim().toLowerCase();
+    // ============ FORGOT PASSWORD FUNCTION WITH HARDCODED URL ============
+    async function forgotPassword() {
+        const email = await showAdminEmailPrompt();
         
-        showToast('Verifying email address...', false, 2000);
-        
-        try {
-            const { exists, adminData, error: checkError } = await checkAdminEmailExists(trimmedEmail);
+        if (email && email.trim()) {
+            const trimmedEmail = email.trim().toLowerCase();
             
-            if (checkError) {
-                throw new Error('Unable to verify email. Please try again.');
+            showToast('Verifying email address...', false, 2000);
+            
+            try {
+                const { exists, adminData, error: checkError } = await checkAdminEmailExists(trimmedEmail);
+                
+                if (checkError) {
+                    throw new Error('Unable to verify email. Please try again.');
+                }
+                
+                if (!exists) {
+                    showToast('❌ Admin email not found. Please contact super administrator.', true, 4000);
+                    return;
+                }
+                
+                console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
+                
+                // ✅ HARDCODED URL - NO ${window.location.origin}
+                const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+                    redirectTo: `https://campus-care-iota.vercel.app/Assets/login/password_admin/reset_password.html?type=admin`
+                });
+                
+                if (error) throw error;
+                
+                showToast(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
+                
+            } catch (error) {
+                console.error('Password reset error:', error);
+                showToast(error.message || 'Failed to send reset email. Please try again.', true);
             }
-            
-            if (!exists) {
-                showToast('❌ Admin email not found. Please contact super administrator.', true, 4000);
-                return;
-            }
-            
-            console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
-            
-            // ✅ UPDATED PATH - using password_admin folder (no spaces!)
-            const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-                redirectTo: `${window.location.origin}/Assets/login/password_admin/reset_password.html?type=admin`
-            });
-            
-            if (error) throw error;
-            
-            showToast(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
-            
-        } catch (error) {
-            console.error('Password reset error:', error);
-            showToast(error.message || 'Failed to send reset email. Please try again.', true);
         }
     }
-}
 
-    // Attach event listeners
     if (adminLoginBtn) adminLoginBtn.addEventListener('click', adminLogin);
     if (adminSignupBtn) adminSignupBtn.addEventListener('click', adminSignup);
     if (showAdminForgotPassword) showAdminForgotPassword.addEventListener('click', forgotPassword);
 
-    // Allow Enter key to submit
     const adminEmail = document.getElementById('adminEmail');
     const adminPassword = document.getElementById('adminPasswordInput');
     if (adminEmail && adminPassword) {
@@ -906,10 +887,7 @@ async function forgotPassword() {
         });
     }
 
-    // SECRET PASSCODES FOR ADMIN REGISTRATION
-    const SECRET_PASSCODES = [
-        'SU', 'ADMIN', 'CAMPUS', '7890', '#123#'
-    ];
+    const SECRET_PASSCODES = ['SU', 'ADMIN', 'CAMPUS', '7890', '#123#'];
 
     (function() {
         let keySequence = [];
@@ -983,7 +961,6 @@ async function forgotPassword() {
         console.log('%c✅ SECRET PASSCODES ACTIVE! Try typing: SU, ADMIN, CAMPUS, 7890, #123#', 'color: #10b981; font-size: 14px; font-weight: bold;');
     })();
 
-    // Check if already logged in
     const alreadyLoggedIn = localStorage.getItem('isAdminLoggedIn');
     if (alreadyLoggedIn === 'true' && window.location.pathname.includes('admin.html')) {
         const confirmRedirect = confirm('You are already logged in. Go to dashboard?');
