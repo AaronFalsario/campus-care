@@ -256,7 +256,7 @@ function updateUIText() {
     }
     
     const sectionTitle = document.querySelector('.section-title');
-    if (sectionTitle) sectionTitle.textContent = t('recent_incidents') || 'Recent Incidents';
+    if (sectionTitle) sectionTitle.textContent = t() || 'Recent Incidents';
     
     const drawerSpans = document.querySelectorAll('.drawer-item span');
     const drawerKeys = ['dashboard', 'report', 'settings'];
