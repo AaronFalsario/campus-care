@@ -176,8 +176,6 @@ async function checkEmailExists(email) {
 }
 
 // ========== UPDATE STATUS ON LOGIN ==========
-// Sets status = 'active', records last_login, clears last_logout.
-// Uses the auth user ID (uuid) as the primary key — most reliable approach.
 async function updateStudentActivityOnLogin(userId) {
     try {
         const { error } = await supabase
@@ -186,9 +184,9 @@ async function updateStudentActivityOnLogin(userId) {
                 status: 'active',
                 is_active: true,
                 last_login: new Date().toISOString(),
-                last_logout: null   // ← clear previous logout so admin sees them as active
+                last_logout: null
             })
-            .eq('id', userId);     // ← match by Supabase auth UUID (most reliable)
+            .eq('id', userId);
 
         if (error) {
             console.error('Error updating login status:', error);
@@ -267,12 +265,17 @@ if (loginBtn) {
         showLoader();
 
         try {
-            // 1. Sign in via Supabase Auth
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
             if (!data.user) throw new Error('Login failed — no user returned.');
 
-            // 2. Fetch student record by auth UUID
+            // Check if email is confirmed
+            if (!data.user.email_confirmed_at) {
+                showNotification('Please verify your email first. Check your inbox for confirmation link.', true);
+                hideLoader();
+                return;
+            }
+
             const { data: studentData, error: dbError } = await supabase
                 .from('student')
                 .select('*')
@@ -284,10 +287,8 @@ if (loginBtn) {
                 throw new Error('Account not found. Please sign up first.');
             }
 
-            // 3. Mark student as active — pass auth UUID
             await updateStudentActivityOnLogin(data.user.id);
 
-            // 4. Store in localStorage
             localStorage.setItem('currentStudent', JSON.stringify({
                 name:      studentData.full_name,
                 studentId: studentData.student_id,
@@ -309,7 +310,7 @@ if (loginBtn) {
     });
 }
 
-// ========== SIGNUP ==========
+// ========== SIGNUP WITH EMAIL CONFIRMATION (UPDATED) ==========
 if (signupBtn) {
     signupBtn.addEventListener('click', async () => {
         const fullName  = document.getElementById('signupName').value.trim();
@@ -362,17 +363,25 @@ if (signupBtn) {
                 return;
             }
 
-            // Create auth account
+            // ✅ UPDATED: Create auth account with email confirmation
+            // The user will receive a confirmation email
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
-                options: { data: { full_name: fullName, student_id: studentId } }
+                options: { 
+                    data: { 
+                        full_name: fullName, 
+                        student_id: studentId 
+                    },
+                    // Redirect to login page after confirmation
+                    emailRedirectTo: `${window.location.origin}/Assets/login/log.html`
+                }
             });
 
             if (error) throw error;
             if (!data.user) throw new Error('Signup failed.');
 
-            // Insert student record — set active immediately on signup
+            // ✅ NEW: Insert student record with pending status (is_active = false until email confirmed)
             const { error: dbError } = await supabase
                 .from('student')
                 .insert([{
@@ -380,9 +389,9 @@ if (signupBtn) {
                     full_name:   fullName,
                     student_id:  studentId,
                     email:       email,
-                    status:      'active',
-                    is_active:   true,
-                    last_login:  new Date().toISOString(),
+                    status:      'pending',  // ← Changed from 'active' to 'pending'
+                    is_active:   false,      // ← Set to false until email confirmation
+                    last_login:  null,
                     last_logout: null,
                     created_at:  new Date().toISOString(),
                     updated_at:  new Date().toISOString()
@@ -390,18 +399,33 @@ if (signupBtn) {
 
             if (dbError) throw dbError;
 
-            localStorage.setItem('currentStudent', JSON.stringify({
-                name:      fullName,
-                studentId: studentId,
-                email:     email,
-                userId:    data.user.id,
-                status:    'active'
-            }));
-
-            showNotification('Account created successfully! Redirecting...', false, 1500);
+            // ✅ Show success message asking user to verify email
+            showNotification('✅ Account created! Please check your email to verify your account before logging in.', false, 6000);
+            
+            // Clear form fields
+            document.getElementById('signupName').value = '';
+            document.getElementById('signupStudentId').value = '';
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            
+            // Switch back to login form after 3 seconds
             setTimeout(() => {
-                window.location.href = '/Assets/Student_dashboard/SDB.html';
-            }, 1500);
+                signupForm.style.display = 'none';
+                studentLoginCard.style.display = 'block';
+                applySlideUpAnimation(studentLoginCard);
+                
+                // Show message on login form
+                const loginMessage = document.createElement('div');
+                loginMessage.className = 'login-message';
+                loginMessage.innerHTML = '<i class="fas fa-envelope"></i> Please verify your email before logging in. Check your inbox!';
+                loginMessage.style.cssText = 'background: #d1fae5; color: #065f46; padding: 12px; border-radius: 10px; margin-top: 16px; font-size: 13px; text-align: center;';
+                
+                const existingMsg = studentLoginCard.querySelector('.login-message');
+                if (existingMsg) existingMsg.remove();
+                studentLoginCard.appendChild(loginMessage);
+                
+                setTimeout(() => loginMessage.remove(), 5000);
+            }, 3000);
 
         } catch (error) {
             console.error('Signup error:', error);
@@ -411,14 +435,13 @@ if (signupBtn) {
     });
 }
 
-// ========== LOGOUT (call this from student dashboard) ==========
+// ========== LOGOUT ==========
 window.studentLogout = async function () {
     try {
         const stored = localStorage.getItem('currentStudent');
         if (stored) {
             const student = JSON.parse(stored);
 
-            // Mark student as inactive and record logout time
             const { error } = await supabase
                 .from('student')
                 .update({
@@ -426,7 +449,7 @@ window.studentLogout = async function () {
                     is_active:   false,
                     last_logout: new Date().toISOString()
                 })
-                .eq('id', student.userId);  // ← use auth UUID, not email
+                .eq('id', student.userId);
 
             if (error) {
                 console.error('Error recording logout:', error);
@@ -474,12 +497,12 @@ if (forgotPasswordBtn) {
             }
 
             const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-                redirectTo: `${window.location.origin}/Assets/login/reset-password.html`
+                redirectTo: `${window.location.origin}/Assets/login/student/reset-password.html?type=student`
             });
 
             if (error) throw error;
 
-            showNotification(`Reset link sent to ${trimmed}! Check your inbox.`, false, 5000);
+            showNotification(`✅ Reset link sent to ${trimmed}! Check your inbox.`, false, 5000);
         } catch (error) {
             console.error('Password reset error:', error);
             showNotification(error.message || 'Failed to send reset email.', true);
@@ -610,7 +633,6 @@ function addStyles() {
 }
 
 // ========== SESSION CHECK ==========
-// If student is already logged in and visits the login page, redirect them
 async function checkExistingSession() {
     const stored = localStorage.getItem('currentStudent');
     if (!stored) return;
@@ -618,9 +640,13 @@ async function checkExistingSession() {
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-            window.location.href = '/Assets/Student_dashboard/SDB.html';
+            // Check if email is confirmed
+            if (user.email_confirmed_at) {
+                window.location.href = '/Assets/Student_dashboard/SDB.html';
+            } else {
+                localStorage.removeItem('currentStudent');
+            }
         } else {
-            // Auth session expired — clean up stale localStorage
             localStorage.removeItem('currentStudent');
         }
     } catch (e) {

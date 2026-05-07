@@ -4,30 +4,23 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// List of approved email domains (any email with these domains can register)
 const APPROVED_DOMAINS = [
     '@gordoncollege.edu.ph',
-    '@campuscaredemo.com'
 ];
 
-// Optional: List of specific additional approved emails (outside domains)
 const SPECIFIC_APPROVED_EMAILS = [
     'admin@campuscaredemo.com'
 ];
 
-// ========== BEAUTIFUL TOAST NOTIFICATION SYSTEM ==========
 function showToast(message, isError = false, duration = 3000) {
-    // Remove existing toast
     const existingToast = document.querySelector('.admin-custom-toast');
     if (existingToast) {
         existingToast.remove();
     }
-    
-    // Create toast container
+
     const toast = document.createElement('div');
     toast.className = 'admin-custom-toast';
-    
-    // Create icon based on type
+
     const icon = document.createElement('div');
     icon.className = 'admin-toast-icon';
     if (isError) {
@@ -47,12 +40,12 @@ function showToast(message, isError = false, duration = 3000) {
         `;
     }
     
-    // Create message container
+    // message container
     const messageContainer = document.createElement('div');
     messageContainer.className = 'admin-toast-message';
     messageContainer.textContent = message;
     
-    // Create progress bar
+    //  progress bar
     const progressBar = document.createElement('div');
     progressBar.className = 'admin-toast-progress';
     
@@ -61,7 +54,6 @@ function showToast(message, isError = false, duration = 3000) {
     toast.appendChild(progressBar);
     document.body.appendChild(toast);
     
-    // Add styles if not already added
     if (!document.querySelector('#admin-toast-styles')) {
         const style = document.createElement('style');
         style.id = 'admin-toast-styles';
@@ -858,45 +850,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ============ FORGOT PASSWORD FUNCTION (UPDATED WITH EMAIL CHECK) ============
-    async function forgotPassword() {
-        const email = await showAdminEmailPrompt();
+    // ============ FORGOT PASSWORD FUNCTION ============
+// ============ FORGOT PASSWORD FUNCTION ============
+async function forgotPassword() {
+    const email = await showAdminEmailPrompt();
+    
+    if (email && email.trim()) {
+        const trimmedEmail = email.trim().toLowerCase();
         
-        if (email && email.trim()) {
-            const trimmedEmail = email.trim().toLowerCase();
+        showToast('Verifying email address...', false, 2000);
+        
+        try {
+            const { exists, adminData, error: checkError } = await checkAdminEmailExists(trimmedEmail);
             
-            showToast('Verifying email address...', false, 2000);
-            
-            try {
-                // CHECK IF ADMIN EMAIL EXISTS IN DATABASE FIRST
-                const { exists, adminData, error: checkError } = await checkAdminEmailExists(trimmedEmail);
-                
-                if (checkError) {
-                    throw new Error('Unable to verify email. Please try again.');
-                }
-                
-                if (!exists) {
-                    showToast('❌ Admin email not found. Please contact super administrator.', true, 4000);
-                    return;
-                }
-                
-                // Email exists, send reset link
-                console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
-                
-                const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-                    redirectTo: `${window.location.origin}/Assets/Admin/reset-password.html?type=admin`
-                });
-                
-                if (error) throw error;
-                
-                showToast(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
-                
-            } catch (error) {
-                console.error('Password reset error:', error);
-                showToast(error.message || 'Failed to send reset email. Please try again.', true);
+            if (checkError) {
+                throw new Error('Unable to verify email. Please try again.');
             }
+            
+            if (!exists) {
+                showToast('❌ Admin email not found. Please contact super administrator.', true, 4000);
+                return;
+            }
+            
+            console.log(`✅ Admin email verified: ${trimmedEmail} belongs to ${adminData?.name}`);
+            
+            // ⬇️⬇️⬇️ THIS IS THE CORRECT PATH ⬇️⬇️⬇️
+            const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+                redirectTo: `${window.location.origin}/Assets/login/reset%20password/reset_password.html?type=admin`
+            });
+            // ⬆️⬆️⬆️ THIS IS THE CORRECT PATH ⬆️⬆️⬆️
+            
+            if (error) throw error;
+            
+            showToast(`✅ Password reset email sent to ${trimmedEmail}! Check your inbox.`, false, 5000);
+            
+        } catch (error) {
+            console.error('Password reset error:', error);
+            showToast(error.message || 'Failed to send reset email. Please try again.', true);
         }
     }
+}
 
     // Attach event listeners
     if (adminLoginBtn) adminLoginBtn.addEventListener('click', adminLogin);
